@@ -1,6 +1,10 @@
 package br.com.senai.entity;
 
+import java.util.List;
+
 public class UsuarioEntity {
+
+    // Atributos do objeto
 
     private String id;
     private String nome;
@@ -10,8 +14,17 @@ public class UsuarioEntity {
     private String telefone;
     private boolean status;
 
+    private List<HabilidadeEntity> habilidades;
+    private List<CertificadoEntity> certificados;
+    private List<LogTransacaoEntity> logTransacao;
+
+    // ----------------------------------
+
+    //Metodos
+
     public UsuarioEntity() {}
 
+    //Construtor cheio
     public UsuarioEntity(String id, String nome, int idade, String email, String telefone, boolean status) {
         this.id = id;
         this.nome = nome;
@@ -21,6 +34,7 @@ public class UsuarioEntity {
         this.status = status;
     }
 
+    //Getters and setters
     public String getId() {
         return id;
     }
@@ -76,4 +90,6 @@ public class UsuarioEntity {
     public void setStatus(boolean status) {
         this.status = status;
     }
+
+    //---------------------------------------------
 }
