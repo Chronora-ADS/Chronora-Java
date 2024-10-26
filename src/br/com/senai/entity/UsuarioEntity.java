@@ -1,5 +1,8 @@
 package br.com.senai.entity;
 
+import br.com.senai.enums.StatusUsuario;
+import br.com.senai.utils.UUIDGenerator;
+
 import java.util.List;
 
 public class UsuarioEntity {
@@ -12,7 +15,7 @@ public class UsuarioEntity {
     private int qntChronos;
     private String email;
     private String telefone;
-    private boolean status;
+    private StatusUsuario status;
 
     private List<HabilidadeEntity> habilidades;
     private List<CertificadoEntity> certificados;
@@ -25,13 +28,13 @@ public class UsuarioEntity {
     public UsuarioEntity() {}
 
     //Construtor cheio
-    public UsuarioEntity(String id, String nome, int idade, String email, String telefone, boolean status) {
-        this.id = id;
+    public UsuarioEntity(String nome, int idade, String email, String telefone) {
+        this.id = UUIDGenerator.generateUUID();
         this.nome = nome;
         this.idade = idade;
         this.email = email;
         this.telefone = telefone;
-        this.status = status;
+        this.status = StatusUsuario.ATIVO;
     }
 
     //Getters and setters
@@ -83,12 +86,17 @@ public class UsuarioEntity {
         this.telefone = telefone;
     }
 
-    public boolean isStatus() {
+    public StatusUsuario getStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
-        this.status = status;
+    public void setStatus(String status) {
+        this.status = StatusUsuario.valueOf(status);
+    }
+
+    @Override
+    public String toString() {
+        return this.getId() + " " + this.getNome() + " " + this.getIdade() + " " + this.getEmail() + " " + this.getTelefone() + " " + this.getStatus();
     }
 
     //---------------------------------------------

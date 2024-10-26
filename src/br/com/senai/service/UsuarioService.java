@@ -3,31 +3,20 @@ package br.com.senai.service;
 import br.com.senai.entity.UsuarioEntity;
 
 import java.util.List;
+import java.util.Scanner;
 
 public class UsuarioService {
 
     //Instância
-    UsuarioEntity usuarioEntity = new UsuarioEntity();
+    Scanner sc = new Scanner(System.in);
 
-    public UsuarioEntity cadastrarUsuario(UsuarioEntity usuarioEntity) {
-        return usuarioEntity;
-    }
+   public UsuarioEntity cadastrarUsuario(UsuarioEntity usuarioEntity) {
 
-    public UsuarioEntity editarUsuario(UsuarioEntity usuarioEntity) {
-        return usuarioEntity;
-    }
+       return usuarioEntity;
+   }
 
-    public UsuarioEntity listarUmUsuario(String id) {
-        return null;
-    }
+   public UsuarioEntity editarUsuario(UsuarioEntity usuarioEntity) {
 
-    public UsuarioEntity listarTodosUsuarios(List<UsuarioEntity> usuarioEntity) {
-        return null;
-    }
-
-    public void adicionarChronos(int qntChronos) {}
-
-    public void removerChronos(int qntChronos) {}
-
-    public void inverterStatus() {}
+       return usuarioEntity;
+   }
 }
