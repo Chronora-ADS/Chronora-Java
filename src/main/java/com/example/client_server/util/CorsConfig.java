@@ -14,9 +14,10 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        config.addAllowedOrigin("http://127.0.0.1:5501"); // URL do seu frontend
-        config.addAllowedOrigin("http://127.0.0.1:5502"); // URL do seu frontend
-        config.addAllowedOrigin("http://localhost:8000"); // URL do seu frontend
+//        config.addAllowedOrigin("http://127.0.0.1:5501"); // URL do seu frontend
+//        config.addAllowedOrigin("http://127.0.0.1:5502"); // URL do seu frontend
+//        config.addAllowedOrigin("http://localhost:8000"); // URL do seu frontend
+        config.addAllowedOriginPattern("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("GET");
         config.addAllowedMethod("POST");
