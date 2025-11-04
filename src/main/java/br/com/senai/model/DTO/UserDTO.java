@@ -22,4 +22,7 @@ public class UserDTO {
     @NotNull(message = "Documento é obrigatório")
     @Valid
     private DocumentDTO document;
+
+    @NotNull(message = "ID do Supabase é obrigatório")
+    private String supabaseUserId;
 }

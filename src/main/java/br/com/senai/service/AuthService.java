@@ -38,17 +38,12 @@ public class AuthService implements UserDetailsService {
                 .build();
     }
 
-    public UserEntity authenticate(LoginDTO loginDTO) {
-        Optional<UserEntity> userOptional = userRepository.findByEmail(loginDTO.getEmail());
-        if (userOptional.isEmpty()) {
-            throw new RuntimeException("Credenciais inválidas");
-        }
-        UserEntity userEntity = userOptional.get();
-
-        if (!passwordEncoder.matches(loginDTO.getPassword(), userEntity.getPassword())) {
-            throw new RuntimeException("Credenciais inválidas");
-        }
-        return userEntity;
+    /**
+     * Busca usuário pelo ID do Supabase
+     */
+    public UserEntity findBySupabaseUserId(String supabaseUserId) {
+        return userRepository.findBySupabaseUserId(supabaseUserId)
+                .orElse(null);
     }
 
     public UserEntity register(UserDTO userDTO) throws RuntimeException {
@@ -65,6 +60,7 @@ public class AuthService implements UserDetailsService {
         userEntity.setEmail(userDTO.getEmail());
         userEntity.setPhoneNumber(userDTO.getPhoneNumber());
         userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        userEntity.setSupabaseUserId(userDTO.getSupabaseUserId()); // ✅ Novo campo
 
         // Processa o documento
         DocumentDTO docDTO = userDTO.getDocument();
@@ -76,7 +72,6 @@ public class AuthService implements UserDetailsService {
         document.setName(docDTO.getName() != null ? docDTO.getName() : "documento_sem_nome");
         document.setType(docDTO.getType() != null ? docDTO.getType() : "application/octet-stream");
 
-        // Remove o prefixo "data:...;base64," se existir
         String base64Data = docDTO.getData().trim();
         if (base64Data.contains(",")) {
             base64Data = base64Data.substring(base64Data.indexOf(",") + 1);

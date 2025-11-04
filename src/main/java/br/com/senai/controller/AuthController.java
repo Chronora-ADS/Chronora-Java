@@ -1,9 +1,11 @@
 package br.com.senai.controller;
 
 import br.com.senai.model.DTO.LoginDTO;
+import br.com.senai.model.DTO.SupabaseAuthResponseDTO;
 import br.com.senai.model.DTO.UserDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.service.AuthService;
+import br.com.senai.service.SupabaseAuthService;
 import br.com.senai.util.JWTBlacklist;
 import br.com.senai.util.JWTUtils;
 import jakarta.validation.Valid;
@@ -11,26 +13,67 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
-    private final JWTUtils jwtUtils;
+    private final SupabaseAuthService supabaseAuthService;
     private final JWTBlacklist jwtBlacklist;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO dto) {
-        UserEntity userEntity = authService.authenticate(dto);
-        String token = jwtUtils.generateToken(userEntity);
-        return ResponseEntity.ok(token);
+    public ResponseEntity<?> login(@RequestBody LoginDTO dto) {
+        try {
+            // 1. Login no Supabase
+            SupabaseAuthResponseDTO supabaseResponse = supabaseAuthService.signIn(dto.getEmail(), dto.getPassword());
+            // 2. Verificar se usuário existe no banco local
+            UserEntity userEntity = authService.findBySupabaseUserId(supabaseResponse.getUser().getId());
+            if (userEntity == null) {
+                return ResponseEntity.badRequest()
+                        .body("Usuário não encontrado no sistema. Faça o cadastro primeiro.");
+            }
+            // 3. Retornar token do Supabase
+            Map<String, Object> response = new HashMap<>();
+            response.put("access_token", supabaseResponse.getAccessToken());
+            response.put("user", userEntity);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserEntity> register(@Valid @RequestBody UserDTO userDTO) {
-        UserEntity newUser = authService.register(userDTO);
-        return ResponseEntity.ok(newUser);
+    public ResponseEntity<?> register(@Valid @RequestBody UserDTO userDTO) {
+        try {
+            // 1. Registrar no Supabase
+            Map<String, Object> userMetadata = new HashMap<>();
+            userMetadata.put("name", userDTO.getName());
+            userMetadata.put("phone", userDTO.getPhoneNumber());
+
+            var supabaseUser = supabaseAuthService.signUp(
+                    userDTO.getEmail(),
+                    userDTO.getPassword(),
+                    userMetadata
+            );
+
+            // 2. Registrar no banco local com o ID do Supabase
+            userDTO.setSupabaseUserId(supabaseUser.getId());
+            UserEntity newUser = authService.register(userDTO);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Usuário criado com sucesso");
+            response.put("user", newUser);
+            response.put("supabase_user_id", supabaseUser.getId());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/logout")
@@ -40,5 +83,24 @@ public class AuthController {
             jwtBlacklist.addToken(token);
         }
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/validate-token")
+    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String tokenHeader) {
+        try {
+            if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
+                String token = tokenHeader.substring(7);
+                var supabaseUser = supabaseAuthService.validateToken(token);
+
+                UserEntity userEntity = authService.findBySupabaseUserId(supabaseUser.getId());
+
+                if (userEntity != null) {
+                    return ResponseEntity.ok(userEntity);
+                }
+            }
+            return ResponseEntity.badRequest().body("Token inválido");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Token inválido: " + e.getMessage());
+        }
     }
 }

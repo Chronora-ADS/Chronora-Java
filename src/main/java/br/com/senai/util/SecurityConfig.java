@@ -2,6 +2,7 @@ package br.com.senai.util;
 
 import br.com.senai.repository.UserRepository;
 import br.com.senai.service.AuthService;
+import br.com.senai.service.SupabaseAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,15 +20,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JWTUtils jwtUtils;
     private final UserRepository userRepository;
+    private final SupabaseAuthService supabaseAuthService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .cors(cors -> {})
-            .addFilterBefore(new JWTFilter(jwtUtils, userRepository), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new JWTFilter(supabaseAuthService, userRepository), UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/auth/**").permitAll()
                     .anyRequest().authenticated())

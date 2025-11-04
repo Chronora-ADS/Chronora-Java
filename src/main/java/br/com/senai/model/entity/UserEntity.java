@@ -32,4 +32,7 @@ public class UserEntity {
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     private List<String> roles;
+
+    @Column(name = "supabase_user_id", unique = true)
+    private String supabaseUserId;
 }
