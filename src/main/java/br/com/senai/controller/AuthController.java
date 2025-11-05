@@ -8,7 +8,6 @@ import br.com.senai.model.entity.UserEntity;
 import br.com.senai.service.AuthService;
 import br.com.senai.service.SupabaseAuthService;
 import br.com.senai.util.JWTBlacklist;
-import br.com.senai.util.JWTUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

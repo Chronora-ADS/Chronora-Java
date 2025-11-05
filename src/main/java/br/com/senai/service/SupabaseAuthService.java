@@ -26,12 +26,16 @@ public class SupabaseAuthService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
+    private static final String USER_ENDPOINT = "/auth/v1/user";
+    private static final String SIGNUP_ENDPOINT = "/auth/v1/signup";
+    private static final String TOKEN_ENDPOINT = "/auth/v1/token?grant_type=password";
+
     /**
      * Valida um token JWT do Supabase
      */
     public SupabaseUserDTO validateToken(String token) {
         try {
-            String url = supabaseUrl + "/auth/v1/user";
+            String url = supabaseUrl + USER_ENDPOINT;
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + token);
@@ -65,7 +69,7 @@ public class SupabaseAuthService {
      */
     public SupabaseUserDTO signUp(String email, String password, Map<String, Object> userMetadata) {
         try {
-            String url = supabaseUrl + "/auth/v1/signup";
+            String url = supabaseUrl + SIGNUP_ENDPOINT;
 
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("email", email);
@@ -88,6 +92,7 @@ public class SupabaseAuthService {
                 return SupabaseUserDTO.builder()
                         .id(userData.get("id").asText())
                         .email(userData.get("email").asText())
+                        .phone(userData.get("phone").asText())
                         .createdAt(userData.get("created_at").asText())
                         .build();
             } else {
@@ -103,7 +108,7 @@ public class SupabaseAuthService {
      */
     public SupabaseAuthResponseDTO signIn(String email, String password) {
         try {
-            String url = supabaseUrl + "/auth/v1/token?grant_type=password";
+            String url = supabaseUrl + TOKEN_ENDPOINT;
 
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("email", email);

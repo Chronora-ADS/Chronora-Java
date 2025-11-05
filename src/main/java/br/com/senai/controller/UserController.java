@@ -15,12 +15,6 @@ public class UserController {
 
     private final UserService userService;
 
-//    @PostMapping(path = "/post", consumes = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<UserEntity> create(@RequestBody UserDTO userDTO) {
-//        UserEntity userEntity = userService.create(userDTO);
-//        return ResponseEntity.ok(userEntity);
-//    }
-
     @GetMapping("/get/{id}")
     public ResponseEntity<UserEntity> getById(@PathVariable Long id) {
         return userService.getById(id)
