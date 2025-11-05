@@ -2,6 +2,7 @@ package br.com.senai.controller;
 
 import br.com.senai.model.DTO.LoginDTO;
 import br.com.senai.model.DTO.SupabaseAuthResponseDTO;
+import br.com.senai.model.DTO.SupabaseUserDTO;
 import br.com.senai.model.DTO.UserDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.service.AuthService;
@@ -54,20 +55,19 @@ public class AuthController {
             userMetadata.put("name", userDTO.getName());
             userMetadata.put("phone", userDTO.getPhoneNumber());
 
-            var supabaseUser = supabaseAuthService.signUp(
+            SupabaseUserDTO supabaseUserDTO = supabaseAuthService.signUp(
                     userDTO.getEmail(),
                     userDTO.getPassword(),
                     userMetadata
             );
 
             // 2. Registrar no banco local com o ID do Supabase
-            userDTO.setSupabaseUserId(supabaseUser.getId());
-            UserEntity newUser = authService.register(userDTO);
+            UserEntity newUser = authService.register(userDTO, supabaseUserDTO.getId());
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Usuário criado com sucesso");
             response.put("user", newUser);
-            response.put("supabase_user_id", supabaseUser.getId());
+            response.put("supabase_user_id", supabaseUserDTO.getId());
 
             return ResponseEntity.ok(response);
 

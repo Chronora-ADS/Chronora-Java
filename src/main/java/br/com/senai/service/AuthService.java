@@ -46,7 +46,7 @@ public class AuthService implements UserDetailsService {
                 .orElse(null);
     }
 
-    public UserEntity register(UserDTO userDTO) throws RuntimeException {
+    public UserEntity register(UserDTO userDTO, String supabaseUserId) throws RuntimeException {
         if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
             throw new RuntimeException("Email já registrado");
         }
@@ -60,7 +60,7 @@ public class AuthService implements UserDetailsService {
         userEntity.setEmail(userDTO.getEmail());
         userEntity.setPhoneNumber(userDTO.getPhoneNumber());
         userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        userEntity.setSupabaseUserId(userDTO.getSupabaseUserId()); // ✅ Novo campo
+        userEntity.setSupabaseUserId(supabaseUserId);
 
         // Processa o documento
         DocumentDTO docDTO = userDTO.getDocument();
@@ -84,5 +84,21 @@ public class AuthService implements UserDetailsService {
         userEntity.setRoles(List.of("USER")); // não esqueça de definir as roles!
 
         return userRepository.save(userEntity);
+    }
+
+    /**
+     * Autentica usuário
+     */
+    public UserEntity authenticate(LoginDTO loginDTO) {
+        Optional<UserEntity> userOptional = userRepository.findByEmail(loginDTO.getEmail());
+        if (userOptional.isEmpty()) {
+            throw new RuntimeException("Credenciais inválidas");
+        }
+        UserEntity userEntity = userOptional.get();
+
+        if (!passwordEncoder.matches(loginDTO.getPassword(), userEntity.getPassword())) {
+            throw new RuntimeException("Credenciais inválidas");
+        }
+        return userEntity;
     }
 }
