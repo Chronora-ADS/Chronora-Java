@@ -17,16 +17,15 @@ public class ServiceController {
     private final ServiceService serviceService;
 
     @PostMapping("/post/{userId}")
-    public ResponseEntity<ServiceEntity> create(@PathVariable Long userId, @RequestBody ServiceDTO serviceDTO) throws Exception {
+    public ResponseEntity<ServiceEntity> create(@PathVariable Long userId, @RequestBody ServiceDTO serviceDTO) {
         ServiceEntity saved = serviceService.create(serviceDTO, userId);
         return ResponseEntity.ok(saved);
     }
 
     @GetMapping("/get/{id}")
     public ResponseEntity<ServiceEntity> getById(@PathVariable Long id) {
-        return serviceService.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        ServiceEntity service = serviceService.getById(id);
+        return ResponseEntity.ok(service);
     }
 
     @GetMapping("/get/all")

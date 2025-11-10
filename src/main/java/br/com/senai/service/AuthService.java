@@ -1,5 +1,9 @@
 package br.com.senai.service;
 
+import br.com.senai.exception.NotFound.UserNotFoundException;
+import br.com.senai.exception.Validation.EmailAlreadyExistsException;
+import br.com.senai.exception.Validation.InvalidDocumentException;
+import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
 import br.com.senai.model.DTO.DocumentDTO;
 import br.com.senai.model.DTO.LoginDTO;
 import br.com.senai.model.DTO.UserDTO;
@@ -25,17 +29,13 @@ public class AuthService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
 
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<UserEntity> userOptional = userRepository.findByEmail(email);
-        if (userOptional.isEmpty()) {
-            throw new UsernameNotFoundException("Usuário não encontrado");
-        }
-        UserEntity userEntity = userOptional.get();
-
-        return User.builder()
-                .username(userEntity.getEmail())
-                .password(userEntity.getPassword())
-                .roles(userEntity.getRoles().toArray(new String[0]))
-                .build();
+        return userRepository.findByEmail(email)
+                .map(userEntity -> User.builder()
+                        .username(userEntity.getEmail())
+                        .password(userEntity.getPassword())
+                        .roles(userEntity.getRoles().toArray(new String[0]))
+                        .build())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
     }
 
     /**
@@ -43,16 +43,22 @@ public class AuthService implements UserDetailsService {
      */
     public UserEntity findBySupabaseUserId(String supabaseUserId) {
         return userRepository.findBySupabaseUserId(supabaseUserId)
-                .orElse(null);
+                .orElseThrow(() -> new UserNotFoundException("Usuário com ID Supabase " + supabaseUserId + " não encontrado."));
     }
 
     public UserEntity register(UserDTO userDTO, String supabaseUserId) throws RuntimeException {
         if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
-            throw new RuntimeException("Email já registrado");
+            throw new EmailAlreadyExistsException(userDTO.getEmail());
         }
 
         if (userRepository.findByPhoneNumber(userDTO.getPhoneNumber()).isPresent()) {
-            throw new RuntimeException("Número de celular já registrado");
+            throw new PhoneNumberAlreadyExistsException(userDTO.getPhoneNumber().toString());
+        }
+
+        // Processa o documento
+        DocumentDTO docDTO = userDTO.getDocument();
+        if (docDTO.getData() == null) {
+            throw new InvalidDocumentException("Documento é obrigatório no cadastro.");
         }
 
         UserEntity userEntity = new UserEntity();
@@ -61,12 +67,7 @@ public class AuthService implements UserDetailsService {
         userEntity.setPhoneNumber(userDTO.getPhoneNumber());
         userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         userEntity.setSupabaseUserId(supabaseUserId);
-
-        // Processa o documento
-        DocumentDTO docDTO = userDTO.getDocument();
-        if (docDTO.getData() == null) {
-            throw new IllegalArgumentException("Documento é obrigatório");
-        }
+        userEntity.setRoles(List.of("USER"));
 
         DocumentEntity document = new DocumentEntity();
         document.setName(docDTO.getName() != null ? docDTO.getName() : "documento_sem_nome");
@@ -76,13 +77,10 @@ public class AuthService implements UserDetailsService {
         if (base64Data.contains(",")) {
             base64Data = base64Data.substring(base64Data.indexOf(",") + 1);
         }
-
         byte[] fileBytes = Base64.getDecoder().decode(base64Data);
         document.setData(fileBytes);
 
         userEntity.setDocumentEntity(document);
-        userEntity.setRoles(List.of("USER")); // não esqueça de definir as roles!
-
         return userRepository.save(userEntity);
     }
 
@@ -94,11 +92,11 @@ public class AuthService implements UserDetailsService {
         if (userOptional.isEmpty()) {
             throw new RuntimeException("Credenciais inválidas");
         }
-        UserEntity userEntity = userOptional.get();
 
-        if (!passwordEncoder.matches(loginDTO.getPassword(), userEntity.getPassword())) {
+        UserEntity user = userOptional.get();
+        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
             throw new RuntimeException("Credenciais inválidas");
         }
-        return userEntity;
+        return user;
     }
 }

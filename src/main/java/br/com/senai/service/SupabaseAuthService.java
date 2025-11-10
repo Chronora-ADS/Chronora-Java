@@ -1,5 +1,8 @@
 package br.com.senai.service;
 
+import br.com.senai.exception.Auth.AuthException;
+import br.com.senai.exception.SupabaseIntegrationException;
+import br.com.senai.exception.Validation.EmailAlreadyExistsException;
 import br.com.senai.model.DTO.SupabaseAuthResponseDTO;
 import br.com.senai.model.DTO.SupabaseUserDTO;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -36,31 +42,35 @@ public class SupabaseAuthService {
     public SupabaseUserDTO validateToken(String token) {
         try {
             String url = supabaseUrl + USER_ENDPOINT;
-
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + token);
             headers.set("apikey", supabaseAnonKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-
             ResponseEntity<String> response = restTemplate.exchange(
-                    url, HttpMethod.GET, entity, String.class);
+                    url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 JsonNode userData = objectMapper.readTree(response.getBody());
-
                 return SupabaseUserDTO.builder()
                         .id(userData.get("id").asText())
                         .email(userData.get("email").asText())
                         .phone(userData.has("phone") ? userData.get("phone").asText() : null)
                         .createdAt(userData.get("created_at").asText())
                         .build();
+            } else if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                throw new AuthException("Token inválido ou expirado");
             } else {
-                throw new RuntimeException("Token inválido");
+                throw new SupabaseIntegrationException("Resposta inesperada do Supabase: " + response.getStatusCode(), null);
             }
+        } catch (HttpClientErrorException.Unauthorized e) {
+            throw new AuthException("Token inválido");
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            throw new SupabaseIntegrationException("Erro na chamada ao Supabase", e);
+        } catch (RestClientException e) {
+            throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao validar token: " + e.getMessage());
+            throw new SupabaseIntegrationException("Erro inesperado ao validar token", e);
         }
     }
 
@@ -71,35 +81,39 @@ public class SupabaseAuthService {
         try {
             String url = supabaseUrl + SIGNUP_ENDPOINT;
 
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("email", email);
-            requestBody.put("password", password);
-            requestBody.put("data", userMetadata);
+            Map<String, Object> body = new HashMap<>();
+            body.put("email", email);
+            body.put("password", password);
+            body.put("data", userMetadata);
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("apikey", supabaseAnonKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
             ResponseEntity<String> response = restTemplate.exchange(
-                    url, HttpMethod.POST, entity, String.class);
+                    url, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
 
             if (response.getStatusCode() == HttpStatus.OK) {
-                JsonNode responseData = objectMapper.readTree(response.getBody());
-                JsonNode userData = responseData.get("user");
-
+                JsonNode userData = objectMapper.readTree(response.getBody()).get("user");
                 return SupabaseUserDTO.builder()
                         .id(userData.get("id").asText())
                         .email(userData.get("email").asText())
-                        .phone(userData.get("phone").asText())
+                        .phone(userData.has("phone") ? userData.get("phone").asText() : null)
                         .createdAt(userData.get("created_at").asText())
                         .build();
+            } else if (response.getStatusCode() == HttpStatus.CONFLICT) {
+                throw new EmailAlreadyExistsException(email);
             } else {
-                throw new RuntimeException("Erro no cadastro: " + response.getBody());
+                throw new SupabaseIntegrationException("Erro no cadastro no Supabase: " + response.getStatusCode(), null);
             }
+        } catch (HttpClientErrorException.Conflict e) {
+            throw new EmailAlreadyExistsException(email);
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            throw new SupabaseIntegrationException("Erro ao cadastrar no Supabase", e);
+        } catch (RestClientException e) {
+            throw new SupabaseIntegrationException("Falha de rede com o Supabase", e);
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao cadastrar usuário: " + e.getMessage());
+            throw new SupabaseIntegrationException("Erro inesperado no cadastro", e);
         }
     }
 
@@ -110,43 +124,46 @@ public class SupabaseAuthService {
         try {
             String url = supabaseUrl + TOKEN_ENDPOINT;
 
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("email", email);
-            requestBody.put("password", password);
+            Map<String, Object> body = new HashMap<>();
+            body.put("email", email);
+            body.put("password", password);
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("apikey", supabaseAnonKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
             ResponseEntity<String> response = restTemplate.exchange(
-                    url, HttpMethod.POST, entity, String.class);
+                    url, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
 
             if (response.getStatusCode() == HttpStatus.OK) {
-                JsonNode responseData = objectMapper.readTree(response.getBody());
-
-                JsonNode userData = responseData.get("user");
-                String accessToken = responseData.get("access_token").asText();
-                String refreshToken = responseData.get("refresh_token").asText();
+                JsonNode json = objectMapper.readTree(response.getBody());
+                JsonNode userNode = json.get("user");
 
                 SupabaseUserDTO user = SupabaseUserDTO.builder()
-                        .id(userData.get("id").asText())
-                        .email(userData.get("email").asText())
-                        .phone(userData.has("phone") ? userData.get("phone").asText() : null)
-                        .createdAt(userData.get("created_at").asText())
+                        .id(userNode.get("id").asText())
+                        .email(userNode.get("email").asText())
+                        .phone(userNode.has("phone") ? userNode.get("phone").asText() : null)
+                        .createdAt(userNode.get("created_at").asText())
                         .build();
 
                 return SupabaseAuthResponseDTO.builder()
                         .user(user)
-                        .accessToken(accessToken)
-                        .refreshToken(refreshToken)
+                        .accessToken(json.get("access_token").asText())
+                        .refreshToken(json.get("refresh_token").asText())
                         .build();
+            } else if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                throw new AuthException("Credenciais inválidas");
             } else {
-                throw new RuntimeException("Credenciais inválidas");
+                throw new SupabaseIntegrationException("Erro no login no Supabase", null);
             }
+        } catch (HttpClientErrorException.Unauthorized e) {
+            throw new AuthException("Credenciais inválidas");
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            throw new SupabaseIntegrationException("Erro ao fazer login no Supabase", e);
+        } catch (RestClientException e) {
+            throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
         } catch (Exception e) {
-            throw new RuntimeException("Erro no login: " + e.getMessage());
+            throw new SupabaseIntegrationException("Erro inesperado no login", e);
         }
     }
 }

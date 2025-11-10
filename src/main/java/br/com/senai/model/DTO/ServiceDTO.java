@@ -8,16 +8,16 @@ import java.util.List;
 
 @Data
 public class ServiceDTO {
-    @NotBlank(message = "Título é obrigatório")
+    @NotBlank(message = "Título do serviço é obrigatório")
     private String title;
 
-    @NotBlank(message = "Descrição é obrigatória")
+    @NotBlank(message = "Descrição do serviço é obrigatória")
     private String description;
 
-    @NotNull(message = "Tempo em Chronos é obrigatório")
+    @NotNull(message = "Tempo em Chronos do serviço é obrigatório")
     private Integer timeChronos;
 
-    @NotBlank(message = "Categoria é obrigatória")
+    @NotBlank(message = "Categoria do serviço é obrigatória")
     private List<CategoryEntity> categoryEntities;
 
     @NotBlank(message = "Imagem de serviço é obrigatória")

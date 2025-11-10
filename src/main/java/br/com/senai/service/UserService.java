@@ -1,5 +1,6 @@
 package br.com.senai.service;
 
+import br.com.senai.exception.NotFound.UserNotFoundException;
 import br.com.senai.model.DTO.UserDTO;
 import br.com.senai.model.entity.DocumentEntity;
 import br.com.senai.model.entity.UserEntity;
@@ -17,8 +18,9 @@ public class UserService {
     @Autowired
     private final UserRepository userRepository;
 
-    public Optional<UserEntity> getById(Long id) {
-        return userRepository.findById(id);
+    public UserEntity getById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Usuário com ID " + id + " não encontrado."));
     }
 
 //    public UserEntity create(UserDTO userDTO) {

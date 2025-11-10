@@ -1,5 +1,7 @@
 package br.com.senai.service;
 
+import br.com.senai.exception.NotFound.ServiceNotFoundException;
+import br.com.senai.exception.NotFound.UserNotFoundException;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
@@ -18,13 +20,9 @@ public class ServiceService {
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
 
-    public ServiceEntity create(ServiceDTO serviceDTO, Long userId) throws Exception {
-        Optional<UserEntity> userOptional = userRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            throw new Exception("Usuário não encontrado");
-        }
-
-        UserEntity userEntity = userOptional.get();
+    public ServiceEntity create(ServiceDTO serviceDTO, Long userId) {
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("Usuário com ID " + userId + " não encontrado."));
 
         ServiceEntity service = new ServiceEntity();
         service.setTitle(serviceDTO.getTitle());
@@ -41,8 +39,9 @@ public class ServiceService {
         return serviceRepository.save(service);
     }
 
-    public Optional<ServiceEntity> getById(Long id) {
-        return serviceRepository.findById(id);
+    public ServiceEntity getById(Long id) {
+        return serviceRepository.findById(id)
+                .orElseThrow(() -> new ServiceNotFoundException("Serviço com ID " + id + " não encontrado."));
     }
 
     public List<ServiceEntity> getAll() {

@@ -17,18 +17,16 @@ public class UserController {
 
     @GetMapping("/get/{id}")
     public ResponseEntity<UserEntity> getById(@PathVariable Long id) {
-        return userService.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        UserEntity user = userService.getById(id);
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/get/document/{id}")
     public ResponseEntity<byte[]> getDocument(@PathVariable Long id) {
-        return userService.getById(id)
-                .map(user -> ResponseEntity.ok()
-                        .header("Content-Type", user.getDocumentEntity().getType())
-                        .header("Content-Disposition", "inline; filename=\"" + user.getDocumentEntity().getName() + "\"")
-                        .body(user.getDocumentEntity().getData()))
-                .orElse(ResponseEntity.notFound().build());
+        UserEntity user = userService.getById(id);
+        return ResponseEntity.ok()
+                .header("Content-Type", user.getDocumentEntity().getType())
+                .header("Content-Disposition", "inline; filename=\"" + user.getDocumentEntity().getName() + "\"")
+                .body(user.getDocumentEntity().getData());
     }
 }
