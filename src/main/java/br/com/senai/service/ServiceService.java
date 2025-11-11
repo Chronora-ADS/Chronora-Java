@@ -1,7 +1,6 @@
 package br.com.senai.service;
 
 import br.com.senai.enums.ServiceStatus;
-import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.ServiceNotFoundException;
 import br.com.senai.exception.NotFound.UserNotFoundException;
 import br.com.senai.model.DTO.ServiceDTO;
@@ -33,13 +32,13 @@ public class ServiceService {
         service.setDeadline(serviceDTO.getDeadline());
         service.setCategoryEntities(serviceDTO.getCategoryEntities());
         service.setServiceLocation(serviceDTO.getServiceLocation());
-        service.setStatus(ServiceStatus.CRIADO);
+        service.setStatus(ServiceStatus.CRIADO.toString());
 
         // Decodifica o Base64
         String[] partes = serviceDTO.getServiceImage().split(",");
         String dadosBase64 = (partes.length > 1) ? partes[1] : partes[0];
         service.setServiceImage(Base64.getDecoder().decode(dadosBase64));
-        service.setCreatorUser(userEntity);
+        service.setUserEntity(userEntity);
 
         return serviceRepository.save(service);
     }
@@ -71,23 +70,5 @@ public class ServiceService {
 
     public List<ServiceEntity> getAll() {
         return serviceRepository.findAll();
-    }
-
-    public ServiceEntity updateToAcceptedStatus(Long serviceId, ServiceStatus newStatus, Long userId) {
-        ServiceEntity service = serviceRepository.findById(serviceId)
-                .orElseThrow(() -> new ServiceNotFoundException("Serviço com ID " + serviceId + " não encontrado."));
-        if (newStatus == ServiceStatus.CRIADO && !canUserUpdateStatusCreated(service, userId)) {
-            throw new AuthException("Você não possui permissão para aceitar este serviço.");
-        }
-
-        service.setStatus(newStatus);
-        return serviceRepository.save(service);
-    }
-
-    private boolean canUserUpdateStatusCreated(ServiceEntity service, Long userId) {
-        Long creatorId = service.getCreatorUser().getId();
-        Long acceptedById = service.getAcceptedByUser() != null ? service.getAcceptedByUser().getId() : null;
-        ServiceStatus status = service.getStatus();
-        return !userId.equals(creatorId) && acceptedById == null && status == ServiceStatus.CRIADO;
     }
 }
