@@ -1,5 +1,6 @@
 package br.com.senai.model.entity;
 
+import br.com.senai.enums.ServiceStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -39,7 +40,7 @@ public class ServiceEntity {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private String status;
+    private ServiceStatus status;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "creator_user_id", nullable = false)

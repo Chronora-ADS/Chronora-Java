@@ -1,9 +1,11 @@
 package br.com.senai.controller;
 
 import br.com.senai.enums.ServiceStatus;
+import br.com.senai.model.DTO.ServiceChangeStatusDTO;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.service.ServiceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -57,5 +59,10 @@ public class ServiceController {
     @GetMapping("/get/all")
     public ResponseEntity<List<ServiceEntity>> getAll() {
         return ResponseEntity.ok(serviceService.getAll());
+    }
+
+    @PutMapping("/updateToAcceptedStatus/{id}")
+    public ResponseEntity<ServiceEntity> updateToAcceptedStatus(@PathVariable Long id, @Valid @RequestBody ServiceChangeStatusDTO statusDTO) {
+        Long userId = get
     }
 }
