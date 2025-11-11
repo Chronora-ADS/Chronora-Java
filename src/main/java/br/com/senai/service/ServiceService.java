@@ -1,5 +1,6 @@
 package br.com.senai.service;
 
+import br.com.senai.enums.ServiceStatus;
 import br.com.senai.exception.NotFound.ServiceNotFoundException;
 import br.com.senai.exception.NotFound.UserNotFoundException;
 import br.com.senai.model.DTO.ServiceDTO;
@@ -9,9 +10,9 @@ import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +29,10 @@ public class ServiceService {
         service.setTitle(serviceDTO.getTitle());
         service.setDescription(serviceDTO.getDescription());
         service.setTimeChronos(serviceDTO.getTimeChronos());
+        service.setDeadline(serviceDTO.getDeadline());
         service.setCategoryEntities(serviceDTO.getCategoryEntities());
+        service.setServiceLocation(serviceDTO.getServiceLocation());
+        service.setStatus(ServiceStatus.CRIADO.toString());
 
         // Decodifica o Base64
         String[] partes = serviceDTO.getServiceImage().split(",");
@@ -42,6 +46,26 @@ public class ServiceService {
     public ServiceEntity getById(Long id) {
         return serviceRepository.findById(id)
                 .orElseThrow(() -> new ServiceNotFoundException("Serviço com ID " + id + " não encontrado."));
+    }
+
+    public List<ServiceEntity> getAllCreated() {
+        return serviceRepository.findAllByStatus(ServiceStatus.CRIADO);
+    }
+
+    public List<ServiceEntity> getAllInitialized() {
+        return serviceRepository.findAllByStatus(ServiceStatus.INICIADO);
+    }
+
+    public List<ServiceEntity> getAllAccepted() {
+        return serviceRepository.findAllByStatus(ServiceStatus.ACEITO);
+    }
+
+    public List<ServiceEntity> getAllCancelled() {
+        return serviceRepository.findAllByStatus(ServiceStatus.CANCELADO);
+    }
+
+    public List<ServiceEntity> getAllFinalized() {
+        return serviceRepository.findAllByStatus(ServiceStatus.FINALIZADO);
     }
 
     public List<ServiceEntity> getAll() {
