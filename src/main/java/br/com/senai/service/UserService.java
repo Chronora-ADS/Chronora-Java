@@ -23,6 +23,10 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("Usuário com ID " + id + " não encontrado."));
     }
 
+    public UserEntity getByEmail(String email) {
+        return userRepository.findAllByEmail(email);
+    }
+
 //    public UserEntity create(UserDTO userDTO) {
 //        DocumentEntity documentEntity = new DocumentEntity();
 //

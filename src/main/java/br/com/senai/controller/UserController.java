@@ -29,4 +29,10 @@ public class UserController {
                 .header("Content-Disposition", "inline; filename=\"" + user.getDocumentEntity().getName() + "\"")
                 .body(user.getDocumentEntity().getData());
     }
+
+    @GetMapping("/get")
+    public ResponseEntity<UserEntity> getByEmail(@RequestBody String email) {
+        UserEntity user = userService.getByEmail(email);
+        return ResponseEntity.ok(user);
+    }
 }
