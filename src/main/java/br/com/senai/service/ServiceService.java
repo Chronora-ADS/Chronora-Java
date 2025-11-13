@@ -8,7 +8,6 @@ import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.ServiceRepository;
-import br.com.senai.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +22,6 @@ public class ServiceService {
 
     private final ServiceRepository serviceRepository;
     private final UserService userService;
-    private final ServiceService serviceService;
 
     public ServiceEntity create(ServiceDTO serviceDTO, String tokenHeader) {
         UserEntity userEntity = userService.getLoggedUser(tokenHeader);
@@ -52,7 +50,7 @@ public class ServiceService {
 
     public ServiceEntity put(ServiceEditDTO serviceEditDTO, String tokenHeader) {
         UserEntity userEntity = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = serviceService.getById(serviceEditDTO.getId());
+        ServiceEntity service = getById(serviceEditDTO.getId());
 
         if (!Objects.equals(service.getUserCreator().getId(), userEntity.getId())) {
             throw new AuthException("Credenciais inválidas.");
