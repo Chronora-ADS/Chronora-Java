@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.time.LocalTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -21,6 +21,9 @@ public class ServiceDTO {
 
     @NotNull(message = "Modalidade do serviço é obrigatório")
     private String modality;
+
+    @NotNull(message = "Prazo do serviço é obrigatório")
+    private LocalDate deadline;
 
     @NotBlank(message = "Categoria do serviço é obrigatória")
     private List<CategoryEntity> categoryEntities;

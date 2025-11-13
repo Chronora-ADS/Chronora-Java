@@ -10,10 +10,9 @@ import br.com.senai.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,15 +29,16 @@ public class ServiceService {
         service.setTitle(serviceDTO.getTitle());
         service.setDescription(serviceDTO.getDescription());
         service.setTimeChronos(serviceDTO.getTimeChronos());
-        service.setDeadline(LocalTime.now());
+        service.setDeadline(serviceDTO.getDeadline());
         service.setModality(serviceDTO.getModality());
+        service.setPostedAt(LocalDateTime.now());
         service.setCategoryEntities(serviceDTO.getCategoryEntities());
 
         // Decodifica o Base64
         String[] partes = serviceDTO.getServiceImage().split(",");
         String dadosBase64 = (partes.length > 1) ? partes[1] : partes[0];
         service.setServiceImage(Base64.getDecoder().decode(dadosBase64));
-        service.setUserEntity(userEntity);
+        service.setUserCreator(userEntity);
 
         return serviceRepository.save(service);
     }

@@ -1,10 +1,10 @@
 package br.com.senai.model.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.time.LocalTime;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -25,10 +25,13 @@ public class ServiceEntity {
     private Integer timeChronos;
 
     @Column(nullable = false)
-    private LocalTime deadline;
+    private LocalDate deadline;
 
     @Column(nullable = false)
     private String modality;
+
+    @Column(nullable = false)
+    private LocalDateTime postedAt;
 
     @ElementCollection
     private List<CategoryEntity> categoryEntities;
@@ -38,5 +41,10 @@ public class ServiceEntity {
     private byte[] serviceImage;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private UserEntity userEntity;
+    @JoinColumn(name = "user_creator_id", nullable = false)
+    private UserEntity userCreator;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_accepted_id")
+    private UserEntity userAccepted;
 }
