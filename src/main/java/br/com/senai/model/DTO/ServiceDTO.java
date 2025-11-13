@@ -4,6 +4,8 @@ import br.com.senai.model.entity.CategoryEntity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+
+import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -16,6 +18,9 @@ public class ServiceDTO {
 
     @NotNull(message = "Tempo em Chronos do serviço é obrigatório")
     private Integer timeChronos;
+
+    @NotNull(message = "Modalidade do serviço é obrigatório")
+    private String modality;
 
     @NotBlank(message = "Categoria do serviço é obrigatória")
     private List<CategoryEntity> categoryEntities;

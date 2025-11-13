@@ -1,8 +1,10 @@
 package br.com.senai.model.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.time.LocalTime;
 import java.util.List;
 
 @Entity
@@ -21,6 +23,12 @@ public class ServiceEntity {
 
     @Column(nullable = false)
     private Integer timeChronos;
+
+    @Column(nullable = false)
+    private LocalTime deadline;
+
+    @Column(nullable = false)
+    private String modality;
 
     @ElementCollection
     private List<CategoryEntity> categoryEntities;

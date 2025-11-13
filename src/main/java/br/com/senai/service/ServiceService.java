@@ -9,6 +9,8 @@ import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +30,8 @@ public class ServiceService {
         service.setTitle(serviceDTO.getTitle());
         service.setDescription(serviceDTO.getDescription());
         service.setTimeChronos(serviceDTO.getTimeChronos());
+        service.setDeadline(LocalTime.now());
+        service.setModality(serviceDTO.getModality());
         service.setCategoryEntities(serviceDTO.getCategoryEntities());
 
         // Decodifica o Base64
