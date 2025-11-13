@@ -2,6 +2,7 @@ package br.com.senai.service;
 
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.ServiceNotFoundException;
+import br.com.senai.exception.Validation.QuantityChronosInvalidException;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
@@ -27,6 +28,10 @@ public class ServiceService {
     public ServiceEntity create(ServiceDTO serviceDTO, String tokenHeader) {
         UserEntity userEntity = userService.getLoggedUser(tokenHeader);
 
+        if (serviceDTO.getTimeChronos() > 100) {
+            throw new QuantityChronosInvalidException("Limite de chronos de 100 por serviço excedido.");
+        }
+
         ServiceEntity service = new ServiceEntity();
         service.setTitle(serviceDTO.getTitle());
         service.setDescription(serviceDTO.getDescription());
@@ -47,11 +52,13 @@ public class ServiceService {
 
     public ServiceEntity put(ServiceEditDTO serviceEditDTO, String tokenHeader) {
         UserEntity userEntity = userService.getLoggedUser(tokenHeader);
-
         ServiceEntity service = serviceService.getById(serviceEditDTO.getId());
 
         if (!Objects.equals(service.getUserCreator().getId(), userEntity.getId())) {
             throw new AuthException("Credenciais inválidas.");
+        }
+        if (serviceEditDTO.getTimeChronos() > 100) {
+            throw new QuantityChronosInvalidException("Limite de chronos de 100 por serviço excedido.");
         }
 
         if(serviceEditDTO.getTitle() != null) {

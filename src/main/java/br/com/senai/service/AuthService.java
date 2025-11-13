@@ -68,6 +68,7 @@ public class AuthService implements UserDetailsService {
         userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         userEntity.setSupabaseUserId(supabaseUserId);
         userEntity.setRoles(List.of("USER"));
+        userEntity.setTimeChronos(12);
 
         DocumentEntity document = new DocumentEntity();
         document.setName(docDTO.getName() != null ? docDTO.getName() : "documento_sem_nome");

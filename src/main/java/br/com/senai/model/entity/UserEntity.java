@@ -25,6 +25,9 @@ public class UserEntity {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    private Integer timeChronos;
+
     @Embedded
     private DocumentEntity documentEntity;
 

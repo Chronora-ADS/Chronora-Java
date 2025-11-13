@@ -13,19 +13,14 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/get/{id}")
-    public ResponseEntity<UserEntity> getById(@PathVariable Long id) {
-        UserEntity user = userService.getById(id);
-        return ResponseEntity.ok(user);
+    @PutMapping("/put/buy-chronos")
+    public ResponseEntity<UserEntity> buyChronos(@RequestHeader("Authorization") String tokenHeader, @RequestHeader("Chronos") Integer chronos) {
+        return ResponseEntity.ok(userService.buyChronos(tokenHeader, chronos));
     }
 
-    @GetMapping("/get/document/{id}")
-    public ResponseEntity<byte[]> getDocument(@PathVariable Long id) {
-        UserEntity user = userService.getById(id);
-        return ResponseEntity.ok()
-                .header("Content-Type", user.getDocumentEntity().getType())
-                .header("Content-Disposition", "inline; filename=\"" + user.getDocumentEntity().getName() + "\"")
-                .body(user.getDocumentEntity().getData());
+    @PutMapping("/put/sell-chronos")
+    public ResponseEntity<UserEntity> sellChronos(@RequestHeader("Authorization") String tokenHeader, @RequestHeader("Chronos") Integer chronos) {
+        return ResponseEntity.ok(userService.sellChronos(tokenHeader, chronos));
     }
 
     @GetMapping("/get")

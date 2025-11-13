@@ -2,6 +2,7 @@ package br.com.senai.service;
 
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.UserNotFoundException;
+import br.com.senai.exception.Validation.QuantityChronosInvalidException;
 import br.com.senai.model.DTO.SupabaseUserDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.UserRepository;
@@ -19,13 +20,22 @@ public class UserService {
     private final SupabaseAuthService supabaseAuthService;
     private final AuthService authService;
 
-    public UserEntity getById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuário com ID " + id + " não encontrado."));
+    public UserEntity buyChronos(String tokenHeader, Integer chronos) {
+        UserEntity userEntity = getLoggedUser(tokenHeader);
+        if (userEntity.getTimeChronos() + chronos > 300) {
+            throw new QuantityChronosInvalidException("Excedido limite de chronos de 300 por usuário.");
+        }
+        userEntity.setTimeChronos(userEntity.getTimeChronos() + chronos);
+        return userRepository.save(userEntity);
     }
 
-    public UserEntity getByEmail(String email) {
-        return userRepository.findAllByEmail(email);
+    public UserEntity sellChronos(String tokenHeader, Integer chronos) {
+        UserEntity userEntity = getLoggedUser(tokenHeader);
+        if (userEntity.getTimeChronos() - chronos <= 0) {
+            throw new QuantityChronosInvalidException("O limite mínimo de chronos é 0 por usuário.");
+        }
+        userEntity.setTimeChronos(userEntity.getTimeChronos() - chronos);
+        return userRepository.save(userEntity);
     }
 
     public UserEntity getLoggedUser(String tokenHeader) {
@@ -44,25 +54,4 @@ public class UserService {
             throw new AuthException("Token inválido.");
         }
     }
-
-//    public UserEntity create(UserDTO userDTO) {
-//        DocumentEntity documentEntity = new DocumentEntity();
-//
-//        String[] parts = userDTO.getDocument().split(",");
-//        String dataBase64 = (parts.length > 1) ? parts[1] : parts[0];
-//        byte[] data = Base64.getDecoder().decode(dataBase64);
-//
-//        documentEntity.setName("foto.png");
-//        documentEntity.setType("image/png");
-//        documentEntity.setData(data);
-//
-//        UserEntity userEntity = new UserEntity();
-//        userEntity.setName(userDTO.getName());
-//        userEntity.setEmail(userDTO.getEmail());
-//        userEntity.setPhone_number(userDTO.getPhone_number());
-//        userEntity.setPasswod(userDTO.getPassword());
-//        userEntity.setDocumentEntity(documentEntity);
-//
-//        return userRepository.save(userEntity);
-//    }
 }
