@@ -1,8 +1,9 @@
 package br.com.senai.service;
 
+import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.ServiceNotFoundException;
-import br.com.senai.exception.NotFound.UserNotFoundException;
 import br.com.senai.model.DTO.ServiceDTO;
+import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.ServiceRepository;
@@ -13,17 +14,18 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class ServiceService {
 
     private final ServiceRepository serviceRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final ServiceService serviceService;
 
-    public ServiceEntity create(ServiceDTO serviceDTO, Long userId) {
-        UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("Usuário com ID " + userId + " não encontrado."));
+    public ServiceEntity create(ServiceDTO serviceDTO, String tokenHeader) {
+        UserEntity userEntity = userService.getLoggedUser(tokenHeader);
 
         ServiceEntity service = new ServiceEntity();
         service.setTitle(serviceDTO.getTitle());
@@ -39,6 +41,43 @@ public class ServiceService {
         String dadosBase64 = (partes.length > 1) ? partes[1] : partes[0];
         service.setServiceImage(Base64.getDecoder().decode(dadosBase64));
         service.setUserCreator(userEntity);
+
+        return serviceRepository.save(service);
+    }
+
+    public ServiceEntity put(ServiceEditDTO serviceEditDTO, String tokenHeader) {
+        UserEntity userEntity = userService.getLoggedUser(tokenHeader);
+
+        ServiceEntity service = serviceService.getById(serviceEditDTO.getId());
+
+        if (!Objects.equals(service.getUserCreator().getId(), userEntity.getId())) {
+            throw new AuthException("Credenciais inválidas.");
+        }
+
+        if(serviceEditDTO.getTitle() != null) {
+            service.setTitle(serviceEditDTO.getTitle());
+        }
+        if (serviceEditDTO.getDescription() != null) {
+            service.setDescription(serviceEditDTO.getDescription());
+        }
+        if(serviceEditDTO.getTimeChronos() != null) {
+            service.setTimeChronos(serviceEditDTO.getTimeChronos());
+        }
+        if(serviceEditDTO.getDeadline() != null) {
+            service.setDeadline(serviceEditDTO.getDeadline());
+        }
+        if(serviceEditDTO.getModality() != null) {
+            service.setModality(serviceEditDTO.getModality());
+        }
+        if(serviceEditDTO.getCategoryEntities() != null) {
+            service.setCategoryEntities(serviceEditDTO.getCategoryEntities());
+        }
+        if(serviceEditDTO.getServiceImage() != null) {
+            // Decodifica o Base64
+            String[] partes = serviceEditDTO.getServiceImage().split(",");
+            String dadosBase64 = (partes.length > 1) ? partes[1] : partes[0];
+            service.setServiceImage(Base64.getDecoder().decode(dadosBase64));
+        }
 
         return serviceRepository.save(service);
     }

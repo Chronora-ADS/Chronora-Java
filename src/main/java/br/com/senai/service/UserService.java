@@ -1,15 +1,14 @@
 package br.com.senai.service;
 
+import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.UserNotFoundException;
-import br.com.senai.model.DTO.UserDTO;
-import br.com.senai.model.entity.DocumentEntity;
+import br.com.senai.model.DTO.SupabaseUserDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import java.util.Base64;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +16,8 @@ public class UserService {
 
     @Autowired
     private final UserRepository userRepository;
+    private final SupabaseAuthService supabaseAuthService;
+    private final AuthService authService;
 
     public UserEntity getById(Long id) {
         return userRepository.findById(id)
@@ -25,6 +26,23 @@ public class UserService {
 
     public UserEntity getByEmail(String email) {
         return userRepository.findAllByEmail(email);
+    }
+
+    public UserEntity getLoggedUser(String tokenHeader) {
+        try {
+            if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
+                String token = tokenHeader.substring(7);
+
+                // Valida o token no Supabase
+                SupabaseUserDTO supabaseUser = supabaseAuthService.validateToken(token);
+
+                // Busca o usuário no banco local pelo ID do Supabase usando UserService
+                return authService.findBySupabaseUserId(supabaseUser.getId());
+            }
+            throw new UserNotFoundException("Usuário não encontrado.");
+        } catch (Exception e) {
+            throw new AuthException("Token inválido.");
+        }
     }
 
 //    public UserEntity create(UserDTO userDTO) {

@@ -1,6 +1,7 @@
 package br.com.senai.controller;
 
 import br.com.senai.model.DTO.ServiceDTO;
+import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.service.ServiceService;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +17,15 @@ public class ServiceController {
 
     private final ServiceService serviceService;
 
-    @PostMapping("/post/{userId}")
-    public ResponseEntity<ServiceEntity> create(@PathVariable Long userId, @RequestBody ServiceDTO serviceDTO) {
-        ServiceEntity saved = serviceService.create(serviceDTO, userId);
+    @PostMapping("/post")
+    public ResponseEntity<ServiceEntity> create(@RequestHeader("Authorization") String tokenHeader, @RequestBody ServiceDTO serviceDTO) {
+        ServiceEntity saved = serviceService.create(serviceDTO, tokenHeader);
+        return ResponseEntity.ok(saved);
+    }
+
+    @PutMapping("/put")
+    public ResponseEntity<ServiceEntity> put(@RequestHeader("Authorization") String tokenHeader, @RequestBody ServiceEditDTO serviceEditDTO) {
+        ServiceEntity saved = serviceService.put(serviceEditDTO, tokenHeader);
         return ResponseEntity.ok(saved);
     }
 
