@@ -39,8 +39,6 @@ public class DataInitializer {
     public CommandLineRunner initializeData() {
         return args -> {
             if (userRepository.count() == 0) {
-                System.out.println("🚀 Inicializando dados padrão...");
-
                 try {
                     // SENHA EM TEXTO PURO (igual ao register)
                     String plainPassword = "123123";
@@ -64,8 +62,6 @@ public class DataInitializer {
 
                     defaultUser.setDocument(documentDTO);
 
-                    System.out.println("📝 Criando usuário no Supabase...");
-
                     // Registrar no Supabase (EXATAMENTE como no AuthController)
                     Map<String, Object> userMetadata = new HashMap<>();
                     userMetadata.put("name", defaultUser.getName());
@@ -78,30 +74,30 @@ public class DataInitializer {
                             userMetadata
                     );
 
-                    System.out.println("✅ Usuário criado no Supabase: " + supabaseUserDTO.getEmail());
+                    System.out.println("Usuário criado no Supabase: " + supabaseUserDTO.getEmail());
 
                     // Registrar no banco local (EXATAMENTE como no AuthService.register)
                     UserEntity createdUser = authService.register(defaultUser, supabaseUserDTO.getId());
 
-                    System.out.println("✅ Usuário criado no banco local: " + createdUser.getEmail());
+                    System.out.println("Usuário criado no banco local: " + createdUser.getEmail());
 
-                    // Reanexar o usuário ao contexto de persistência
-                    UserEntity managedUser = entityManager.merge(createdUser);
-                    entityManager.flush();
+                    // Buscar o usuário gerenciado (managed) do banco
+                    UserEntity managedUser = userRepository.findById(createdUser.getId())
+                            .orElseThrow(() -> new RuntimeException("Usuário não encontrado após criação"));
 
-                    System.out.println("🔄 Usuário reanexado ao contexto de persistência");
+                    System.out.println("Usuário carregado do banco: " + managedUser.getId());
 
                     // Criar serviços padrão
                     createDefaultServices(managedUser);
 
-                    System.out.println("🎉 Inicialização concluída com sucesso!");
+                    System.out.println("Inicialização concluída com sucesso!");
 
                 } catch (Exception e) {
-                    System.err.println("❌ Erro durante inicialização: " + e.getMessage());
+                    System.err.println("Erro durante inicialização: " + e.getMessage());
                     e.printStackTrace();
                 }
             } else {
-                System.out.println("📊 Banco de dados já possui dados. Inicialização ignorada.");
+                System.out.println("Banco de dados já possui dados. Inicialização ignorada.");
             }
         };
     }
@@ -111,16 +107,6 @@ public class DataInitializer {
         try {
             System.out.println("🛠️ Criando serviços padrão...");
 
-            // Configurar categorias
-            CategoryEntity categoryManutencao = new CategoryEntity();
-            categoryManutencao.setName("Manutenção");
-            CategoryEntity categoryEncanamento = new CategoryEntity();
-            categoryEncanamento.setName("Encanamento");
-            CategoryEntity categoryEletrica = new CategoryEntity();
-            categoryEletrica.setName("Elétrica");
-            CategoryEntity categoryPintura = new CategoryEntity();
-            categoryPintura.setName("Pintura");
-
             // Carregar imagem para serviços
             byte[] serviceImageBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("images.png")).readAllBytes();
             String base64ServiceImage = Base64.getEncoder().encodeToString(serviceImageBytes);
@@ -129,83 +115,108 @@ public class DataInitializer {
             List<ServiceDTO> services = Arrays.asList(
                     new ServiceDTO(
                             "Manutenção Preventiva de Eletrodomésticos",
-                            "Realizamos manutenção preventiva em geladeiras, lavadoras, micro-ondas e outros eletrodomésticos.",
+                            "Realizamos manutenção preventiva em geladeiras, lavadoras, micro-ondas e outros eletrodomésticos. Inclui limpeza, lubrificação e ajustes necessários para prolongar a vida útil do equipamento.",
                             6,
                             "PRESENCIAL",
                             LocalDate.now().plusDays(15),
-                            List.of(categoryManutencao),
+                            createCategories(List.of("Manutenção")),
                             base64ServiceImage
                     ),
                     new ServiceDTO(
                             "Desentupimento de Pia e Vaso Sanitário",
-                            "Serviço de desentupimento rápido e eficaz para pias, ralos, vasos sanitários e tubulações.",
+                            "Serviço de desentupimento rápido e eficaz para pias, ralos, vasos sanitários e tubulações. Utilizamos equipamentos modernos sem danificar a estrutura do local.",
                             4,
                             "PRESENCIAL",
                             LocalDate.now().plusDays(7),
-                            List.of(categoryEncanamento),
+                            createCategories(List.of("Encanamento")),
                             base64ServiceImage
                     ),
                     new ServiceDTO(
                             "Instalação de Tomadas e Interruptores",
-                            "Instalação elétrica residencial e comercial. Garantia de segurança e qualidade.",
+                            "Instalação elétrica residencial e comercial. Inclui troca de interruptores, tomadas, quadro de luz e adequação à norma técnica. Garantia de segurança e qualidade.",
                             8,
                             "PRESENCIAL",
                             LocalDate.now().plusDays(10),
-                            List.of(categoryEletrica),
+                            createCategories(List.of("Elétrica")),
                             base64ServiceImage
                     ),
                     new ServiceDTO(
                             "Pintura Interna de Quarto (12m²)",
-                            "Pintura completa de quarto com aplicação de massa corrida e duas demãos de tinta acrílica.",
+                            "Pintura completa de quarto com aplicação de massa corrida e duas demãos de tinta acrílica. Inclui proteção de móveis e limpeza pós-serviço.",
                             16,
                             "PRESENCIAL",
                             LocalDate.now().plusDays(20),
-                            List.of(categoryPintura),
+                            createCategories(List.of("Pintura")),
                             base64ServiceImage
                     ),
                     new ServiceDTO(
                             "Limpeza e Manutenção de Ar Condicionado Split",
-                            "Limpeza profunda, troca de filtros e verificação de gás e funcionamento.",
+                            "Limpeza profunda, troca de filtros e verificação de gás e funcionamento. Recomendado a cada 6 meses para melhor desempenho e saúde.",
                             8,
                             "PRESENCIAL",
                             LocalDate.now().plusDays(30),
-                            List.of(categoryManutencao),
+                            createCategories(List.of("Manutenção")),
                             base64ServiceImage
                     )
             );
 
+            int servicesCreated = 0;
             for (ServiceDTO serviceDTO : services) {
-                createServiceDirectly(serviceDTO, userCreator);
+                if (createServiceDirectly(serviceDTO, userCreator)) {
+                    servicesCreated++;
+                }
             }
 
-            System.out.println("✅ " + services.size() + " serviços criados com sucesso!");
+            System.out.println(servicesCreated + " serviços criados com sucesso!");
 
         } catch (Exception e) {
-            System.err.println("❌ Erro ao criar serviços: " + e.getMessage());
+            System.err.println("Erro ao criar serviços: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    @Transactional
-    protected void createServiceDirectly(ServiceDTO serviceDTO, UserEntity userCreator) {
-        ServiceEntity service = new ServiceEntity();
-        service.setTitle(serviceDTO.getTitle());
-        service.setDescription(serviceDTO.getDescription());
-        service.setTimeChronos(serviceDTO.getTimeChronos());
-        service.setDeadline(serviceDTO.getDeadline());
-        service.setModality(serviceDTO.getModality());
-        service.setPostedAt(LocalDateTime.now());
-        service.setCategoryEntities(serviceDTO.getCategoryEntities());
-        service.setUserCreator(userCreator);
-
-        // Processar imagem (igual ao register)
-        String base64Data = serviceDTO.getServiceImage().trim();
-        if (base64Data.contains(",")) {
-            base64Data = base64Data.substring(base64Data.indexOf(",") + 1);
+    protected List<CategoryEntity> createCategories(List<String> categoryNames) {
+        List<CategoryEntity> categories = new ArrayList<>();
+        for (String name : categoryNames) {
+            CategoryEntity category = new CategoryEntity();
+            category.setName(name);
+            categories.add(category);
         }
-        byte[] imageBytes = Base64.getDecoder().decode(base64Data);
-        service.setServiceImage(imageBytes);
+        return categories;
+    }
 
-        serviceRepository.save(service);
+    @Transactional
+    protected boolean createServiceDirectly(ServiceDTO serviceDTO, UserEntity userCreator) {
+        try {
+            ServiceEntity service = new ServiceEntity();
+            service.setTitle(serviceDTO.getTitle());
+            service.setDescription(serviceDTO.getDescription());
+            service.setTimeChronos(serviceDTO.getTimeChronos());
+            service.setDeadline(serviceDTO.getDeadline());
+            service.setModality(serviceDTO.getModality());
+            service.setPostedAt(LocalDateTime.now());
+
+            // As categorias serão persistidas por cascata
+            service.setCategoryEntities(serviceDTO.getCategoryEntities());
+
+            service.setUserCreator(userCreator);
+
+            // Processar imagem
+            String base64Data = serviceDTO.getServiceImage().trim();
+            if (base64Data.contains(",")) {
+                base64Data = base64Data.substring(base64Data.indexOf(",") + 1);
+            }
+            byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+            service.setServiceImage(imageBytes);
+
+            ServiceEntity savedService = serviceRepository.save(service);
+            System.out.println("Serviço criado: " + savedService.getTitle());
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("Erro ao criar serviço '" + serviceDTO.getTitle() + "': " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 }
