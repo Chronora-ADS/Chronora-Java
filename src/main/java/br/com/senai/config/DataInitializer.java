@@ -19,10 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configuration
 @RequiredArgsConstructor
@@ -49,7 +46,7 @@ public class DataInitializer {
                 DocumentDTO documentDTO = new DocumentDTO();
                 documentDTO.setName("documento_padrao");
                 documentDTO.setType("application/png");
-                byte[] pdfBytes = Files.readAllBytes(Paths.get("C:/Users/lucasmader/Downloads/images.png"));
+                byte[] pdfBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("images.png")).readAllBytes();
                 documentDTO.setData(Base64.getEncoder().encodeToString(pdfBytes));
                 defaultUser.setDocument(documentDTO);
 
@@ -77,7 +74,7 @@ public class DataInitializer {
                 categoryPintura.setName("Pintura");
 
                 // Imagem padrão em Base64
-                byte[] serviceImageBytes = Files.readAllBytes(Paths.get("C:/Users/lucasmader/Downloads/images.png"));
+                byte[] serviceImageBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("images.png")).readAllBytes();
 
                 // Cria serviço padrão
                 ServiceDTO service1 = new ServiceDTO(
