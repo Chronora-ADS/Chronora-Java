@@ -2,21 +2,21 @@ package br.com.senai.config;
 
 import br.com.senai.model.DTO.DocumentDTO;
 import br.com.senai.model.DTO.ServiceDTO;
-import br.com.senai.model.DTO.SupabaseAuthResponseDTO;
 import br.com.senai.model.DTO.UserDTO;
 import br.com.senai.model.entity.*;
 import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
 import br.com.senai.service.AuthService;
 import br.com.senai.service.SupabaseAuthService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -31,11 +31,18 @@ public class DataInitializer {
     private final SupabaseAuthService supabaseAuthService;
     private final AuthService authService;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Bean
+    @Transactional
     public CommandLineRunner initializeData() {
         return args -> {
             if (userRepository.count() == 0) {
+                System.out.println("🚀 Inicializando dados padrão...");
+
                 try {
+                    // SENHA EM TEXTO PURO (igual ao register)
                     String plainPassword = "123123";
 
                     // Criar UserDTO igual ao register
@@ -43,9 +50,9 @@ public class DataInitializer {
                     defaultUser.setName("Bertrania Dude");
                     defaultUser.setEmail("email@email.com");
                     defaultUser.setPhoneNumber(5547912345678L);
-                    defaultUser.setPassword(plainPassword);
+                    defaultUser.setPassword(plainPassword); // Senha em texto puro
 
-                    // Configurar documento padrão
+                    // Configurar documento padrão (igual ao register)
                     DocumentDTO documentDTO = new DocumentDTO();
                     documentDTO.setName("documento_padrao.png");
                     documentDTO.setType("image/png");
@@ -57,9 +64,9 @@ public class DataInitializer {
 
                     defaultUser.setDocument(documentDTO);
 
-                    System.out.println("Criando usuário no Supabase...");
+                    System.out.println("📝 Criando usuário no Supabase...");
 
-                    // Registrar no Supabase
+                    // Registrar no Supabase (EXATAMENTE como no AuthController)
                     Map<String, Object> userMetadata = new HashMap<>();
                     userMetadata.put("name", defaultUser.getName());
                     userMetadata.put("phone", defaultUser.getPhoneNumber());
@@ -71,30 +78,39 @@ public class DataInitializer {
                             userMetadata
                     );
 
-                    System.out.println("Usuário criado no Supabase: " + supabaseUserDTO.getEmail());
+                    System.out.println("✅ Usuário criado no Supabase: " + supabaseUserDTO.getEmail());
 
-                    // Registrar no banco local
+                    // Registrar no banco local (EXATAMENTE como no AuthService.register)
                     UserEntity createdUser = authService.register(defaultUser, supabaseUserDTO.getId());
 
-                    System.out.println("Usuário criado no banco local: " + createdUser.getEmail());
+                    System.out.println("✅ Usuário criado no banco local: " + createdUser.getEmail());
+
+                    // Reanexar o usuário ao contexto de persistência
+                    UserEntity managedUser = entityManager.merge(createdUser);
+                    entityManager.flush();
+
+                    System.out.println("🔄 Usuário reanexado ao contexto de persistência");
 
                     // Criar serviços padrão
-                    createDefaultServices(createdUser);
+                    createDefaultServices(managedUser);
 
-                    System.out.println("Inicialização concluída com sucesso!");
+                    System.out.println("🎉 Inicialização concluída com sucesso!");
 
                 } catch (Exception e) {
-                    System.err.println("Erro durante inicialização: " + e.getMessage());
+                    System.err.println("❌ Erro durante inicialização: " + e.getMessage());
                     e.printStackTrace();
                 }
             } else {
-                System.out.println("Banco de dados já possui dados. Inicialização ignorada.");
+                System.out.println("📊 Banco de dados já possui dados. Inicialização ignorada.");
             }
         };
     }
 
-    private void createDefaultServices(UserEntity userCreator) {
+    @Transactional
+    protected void createDefaultServices(UserEntity userCreator) {
         try {
+            System.out.println("🛠️ Criando serviços padrão...");
+
             // Configurar categorias
             CategoryEntity categoryManutencao = new CategoryEntity();
             categoryManutencao.setName("Manutenção");
@@ -157,17 +173,21 @@ public class DataInitializer {
                             base64ServiceImage
                     )
             );
+
             for (ServiceDTO serviceDTO : services) {
                 createServiceDirectly(serviceDTO, userCreator);
             }
-            System.out.println(services.size() + " serviços criados com sucesso!");
+
+            System.out.println("✅ " + services.size() + " serviços criados com sucesso!");
+
         } catch (Exception e) {
-            System.err.println("Erro ao criar serviços: " + e.getMessage());
+            System.err.println("❌ Erro ao criar serviços: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    private void createServiceDirectly(ServiceDTO serviceDTO, UserEntity userCreator) {
+    @Transactional
+    protected void createServiceDirectly(ServiceDTO serviceDTO, UserEntity userCreator) {
         ServiceEntity service = new ServiceEntity();
         service.setTitle(serviceDTO.getTitle());
         service.setDescription(serviceDTO.getDescription());
@@ -178,7 +198,7 @@ public class DataInitializer {
         service.setCategoryEntities(serviceDTO.getCategoryEntities());
         service.setUserCreator(userCreator);
 
-        // Processar imagem
+        // Processar imagem (igual ao register)
         String base64Data = serviceDTO.getServiceImage().trim();
         if (base64Data.contains(",")) {
             base64Data = base64Data.substring(base64Data.indexOf(",") + 1);
