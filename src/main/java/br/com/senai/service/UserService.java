@@ -44,10 +44,12 @@ public class UserService {
                 String token = tokenHeader.substring(7);
 
                 // Valida o token no Supabase
-                SupabaseUserDTO supabaseUser = supabaseAuthService.validateToken(token);
+                SupabaseUserDTO supabaseUserDTO = supabaseAuthService.validateToken(token);
 
                 // Busca o usuário no banco local pelo ID do Supabase usando UserService
-                return authService.findBySupabaseUserId(supabaseUser.getId());
+                UserEntity userEntity = authService.findBySupabaseUserId(supabaseUserDTO.getId());
+                userRepository.findById(userEntity.getId());
+
             }
             throw new UserNotFoundException("Usuário não encontrado.");
         } catch (Exception e) {
