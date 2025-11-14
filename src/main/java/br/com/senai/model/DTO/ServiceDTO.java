@@ -3,12 +3,16 @@ package br.com.senai.model.DTO;
 import br.com.senai.model.entity.CategoryEntity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ServiceDTO {
     @NotBlank(message = "Título do serviço é obrigatório")
     private String title;
