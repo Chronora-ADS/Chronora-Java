@@ -36,7 +36,7 @@ public class ServiceController {
     }
 
     @GetMapping("/get/all")
-    public ResponseEntity<List<ServiceEntity>> getAll() {
-        return ResponseEntity.ok(serviceService.getAll());
+    public ResponseEntity<List<ServiceEntity>> getAll(@RequestHeader("Authorization") String tokenHeader) {
+        return ResponseEntity.ok(serviceService.getAll(tokenHeader));
     }
 }

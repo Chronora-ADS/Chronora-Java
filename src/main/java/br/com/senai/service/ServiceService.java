@@ -92,7 +92,8 @@ public class ServiceService {
                 .orElseThrow(() -> new ServiceNotFoundException("Serviço com ID " + id + " não encontrado."));
     }
 
-    public List<ServiceEntity> getAll() {
+    public List<ServiceEntity> getAll(String tokenHeader) {
+        userService.getLoggedUser(tokenHeader);
         return serviceRepository.findAll();
     }
 }
