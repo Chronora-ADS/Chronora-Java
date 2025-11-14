@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -48,8 +50,11 @@ public class UserService {
 
                 // Busca o usuário no banco local pelo ID do Supabase usando UserService
                 UserEntity userEntity = authService.findBySupabaseUserId(supabaseUserDTO.getId());
-                userRepository.findById(userEntity.getId());
-
+                Optional<UserEntity> optionalUserEntity = userRepository.findById(userEntity.getId());
+                if (optionalUserEntity.isPresent()) {
+                    return optionalUserEntity.get();
+                }
+                throw new UserNotFoundException("Usuário não encontrado.");
             }
             throw new UserNotFoundException("Usuário não encontrado.");
         } catch (Exception e) {
