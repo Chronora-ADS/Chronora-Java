@@ -2,7 +2,7 @@ package br.com.senai.config;
 
 import br.com.senai.model.DTO.DocumentDTO;
 import br.com.senai.model.DTO.ServiceDTO;
-import br.com.senai.model.DTO.SupabaseUserDTO;
+import br.com.senai.model.DTO.SupabaseAuthResponseDTO;
 import br.com.senai.model.DTO.UserDTO;
 import br.com.senai.model.entity.*;
 import br.com.senai.repository.ServiceRepository;
@@ -35,103 +35,136 @@ public class DataInitializer {
     public CommandLineRunner initializeData() {
         return args -> {
             if (userRepository.count() == 0) {
-                // Cria usuário padrão
-                UserDTO defaultUser = new UserDTO();
-                defaultUser.setName("Bertrania Dude");
-                defaultUser.setEmail("email@email.com");
-                defaultUser.setPhoneNumber(5547912345678L);
-                defaultUser.setPassword(passwordEncoder.encode("123123"));
+                try {
+                    String plainPassword = "123123";
 
-                // Configura documento padrão
-                DocumentDTO documentDTO = new DocumentDTO();
-                documentDTO.setName("documento_padrao");
-                documentDTO.setType("application/png");
-                byte[] pdfBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("images.png")).readAllBytes();
-                documentDTO.setData(Base64.getEncoder().encodeToString(pdfBytes));
-                defaultUser.setDocument(documentDTO);
+                    // Criar UserDTO igual ao register
+                    UserDTO defaultUser = new UserDTO();
+                    defaultUser.setName("Bertrania Dude");
+                    defaultUser.setEmail("email@email.com");
+                    defaultUser.setPhoneNumber(5547912345678L);
+                    defaultUser.setPassword(plainPassword);
 
-                Map<String, Object> userMetadata = new HashMap<>();
-                userMetadata.put("name", defaultUser.getName());
-                userMetadata.put("phone", defaultUser.getPhoneNumber());
+                    // Configurar documento padrão
+                    DocumentDTO documentDTO = new DocumentDTO();
+                    documentDTO.setName("documento_padrao.png");
+                    documentDTO.setType("image/png");
 
-                SupabaseUserDTO supabaseUserDTO = supabaseAuthService.signUp(
-                        defaultUser.getEmail(),
-                        defaultUser.getPassword(),
-                        userMetadata
-                );
+                    // Carregar imagem padrão
+                    byte[] imageBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("images.png")).readAllBytes();
+                    String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+                    documentDTO.setData(base64Image);
 
-                // Registrar no banco local com o ID do Supabase
-                UserEntity createdUser = authService.register(defaultUser, supabaseUserDTO.getId());
+                    defaultUser.setDocument(documentDTO);
 
-                // Configura categoria
-                CategoryEntity categoryManutencao = new CategoryEntity();
-                categoryManutencao.setName("Manutenção");
-                CategoryEntity categoryEncanamento = new CategoryEntity();
-                categoryEncanamento.setName("Encanamento");
-                CategoryEntity categoryEletrica = new CategoryEntity();
-                categoryEletrica.setName("Elétrica");
-                CategoryEntity categoryPintura = new CategoryEntity();
-                categoryPintura.setName("Pintura");
+                    System.out.println("Criando usuário no Supabase...");
 
-                // Imagem padrão em Base64
-                byte[] serviceImageBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("images.png")).readAllBytes();
+                    // Registrar no Supabase
+                    Map<String, Object> userMetadata = new HashMap<>();
+                    userMetadata.put("name", defaultUser.getName());
+                    userMetadata.put("phone", defaultUser.getPhoneNumber());
 
-                // Cria serviço padrão
-                ServiceDTO service1 = new ServiceDTO(
-                        "Manutenção Preventiva de Eletrodomésticos",
-                        "Realizamos manutenção preventiva em geladeiras, lavadoras, micro-ondas e outros eletrodomésticos. Inclui limpeza, lubrificação e ajustes necessários para prolongar a vida útil do equipamento.",
-                        6,
-                        "PRESENCIAL",
-                        LocalDate.now().plusDays(15),
-                        List.of(categoryManutencao),
-                        Base64.getEncoder().encodeToString(serviceImageBytes)
-                );
-                ServiceDTO service2 = new ServiceDTO(
-                        "Desentupimento de Pia e Vaso Sanitário",
-                        "Serviço de desentupimento rápido e eficaz para pias, ralos, vasos sanitários e tubulações. Utilizamos equipamentos modernos sem danificar a estrutura do local.",
-                        4,
-                        "PRESENCIAL",
-                        LocalDate.now().plusDays(7),
-                        List.of(categoryEncanamento),
-                        Base64.getEncoder().encodeToString(serviceImageBytes)
-                );
-                ServiceDTO service3 = new ServiceDTO(
-                        "Instalação de Tomadas e Interruptores",
-                        "Instalação elétrica residencial e comercial. Inclui troca de interruptores, tomadas, quadro de luz e adequação à norma técnica. Garantia de segurança e qualidade.",
-                        8,
-                        "PRESENCIAL",
-                        LocalDate.now().plusDays(10),
-                        List.of(categoryEletrica),
-                        Base64.getEncoder().encodeToString(serviceImageBytes)
-                );
-                ServiceDTO service4 = new ServiceDTO(
-                        "Pintura Interna de Quarto (12m²)",
-                        "Pintura completa de quarto com aplicação de massa corrida e duas demãos de tinta acrílica. Inclui proteção de móveis e limpeza pós-serviço.",
-                        16,
-                        "PRESENCIAL",
-                        LocalDate.now().plusDays(20),
-                        List.of(categoryPintura),
-                        Base64.getEncoder().encodeToString(serviceImageBytes)
-                );
-                ServiceDTO service5 = new ServiceDTO(
-                        "Limpeza e Manutenção de Ar Condicionado Split",
-                        "Limpeza profunda, troca de filtros e verificação de gás e funcionamento. Recomendado a cada 6 meses para melhor desempenho e saúde.",
-                        8,
-                        "PRESENCIAL",
-                        LocalDate.now().plusDays(30),
-                        List.of(categoryManutencao),
-                        Base64.getEncoder().encodeToString(serviceImageBytes)
-                );
+                    // Fazer signUp no Supabase (com senha em texto puro)
+                    var supabaseUserDTO = supabaseAuthService.signUp(
+                            defaultUser.getEmail(),
+                            defaultUser.getPassword(), // Senha em texto puro
+                            userMetadata
+                    );
 
-                createServiceDirectly(service1, createdUser);
-                createServiceDirectly(service2, createdUser);
-                createServiceDirectly(service3, createdUser);
-                createServiceDirectly(service4, createdUser);
-                createServiceDirectly(service5, createdUser);
+                    System.out.println("Usuário criado no Supabase: " + supabaseUserDTO.getEmail());
+
+                    // Registrar no banco local
+                    UserEntity createdUser = authService.register(defaultUser, supabaseUserDTO.getId());
+
+                    System.out.println("Usuário criado no banco local: " + createdUser.getEmail());
+
+                    // Criar serviços padrão
+                    createDefaultServices(createdUser);
+
+                    System.out.println("Inicialização concluída com sucesso!");
+
+                } catch (Exception e) {
+                    System.err.println("Erro durante inicialização: " + e.getMessage());
+                    e.printStackTrace();
+                }
             } else {
                 System.out.println("Banco de dados já possui dados. Inicialização ignorada.");
             }
         };
+    }
+
+    private void createDefaultServices(UserEntity userCreator) {
+        try {
+            // Configurar categorias
+            CategoryEntity categoryManutencao = new CategoryEntity();
+            categoryManutencao.setName("Manutenção");
+            CategoryEntity categoryEncanamento = new CategoryEntity();
+            categoryEncanamento.setName("Encanamento");
+            CategoryEntity categoryEletrica = new CategoryEntity();
+            categoryEletrica.setName("Elétrica");
+            CategoryEntity categoryPintura = new CategoryEntity();
+            categoryPintura.setName("Pintura");
+
+            // Carregar imagem para serviços
+            byte[] serviceImageBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("images.png")).readAllBytes();
+            String base64ServiceImage = Base64.getEncoder().encodeToString(serviceImageBytes);
+
+            // Criar serviços
+            List<ServiceDTO> services = Arrays.asList(
+                    new ServiceDTO(
+                            "Manutenção Preventiva de Eletrodomésticos",
+                            "Realizamos manutenção preventiva em geladeiras, lavadoras, micro-ondas e outros eletrodomésticos.",
+                            6,
+                            "PRESENCIAL",
+                            LocalDate.now().plusDays(15),
+                            List.of(categoryManutencao),
+                            base64ServiceImage
+                    ),
+                    new ServiceDTO(
+                            "Desentupimento de Pia e Vaso Sanitário",
+                            "Serviço de desentupimento rápido e eficaz para pias, ralos, vasos sanitários e tubulações.",
+                            4,
+                            "PRESENCIAL",
+                            LocalDate.now().plusDays(7),
+                            List.of(categoryEncanamento),
+                            base64ServiceImage
+                    ),
+                    new ServiceDTO(
+                            "Instalação de Tomadas e Interruptores",
+                            "Instalação elétrica residencial e comercial. Garantia de segurança e qualidade.",
+                            8,
+                            "PRESENCIAL",
+                            LocalDate.now().plusDays(10),
+                            List.of(categoryEletrica),
+                            base64ServiceImage
+                    ),
+                    new ServiceDTO(
+                            "Pintura Interna de Quarto (12m²)",
+                            "Pintura completa de quarto com aplicação de massa corrida e duas demãos de tinta acrílica.",
+                            16,
+                            "PRESENCIAL",
+                            LocalDate.now().plusDays(20),
+                            List.of(categoryPintura),
+                            base64ServiceImage
+                    ),
+                    new ServiceDTO(
+                            "Limpeza e Manutenção de Ar Condicionado Split",
+                            "Limpeza profunda, troca de filtros e verificação de gás e funcionamento.",
+                            8,
+                            "PRESENCIAL",
+                            LocalDate.now().plusDays(30),
+                            List.of(categoryManutencao),
+                            base64ServiceImage
+                    )
+            );
+            for (ServiceDTO serviceDTO : services) {
+                createServiceDirectly(serviceDTO, userCreator);
+            }
+            System.out.println(services.size() + " serviços criados com sucesso!");
+        } catch (Exception e) {
+            System.err.println("Erro ao criar serviços: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void createServiceDirectly(ServiceDTO serviceDTO, UserEntity userCreator) {
@@ -145,10 +178,14 @@ public class DataInitializer {
         service.setCategoryEntities(serviceDTO.getCategoryEntities());
         service.setUserCreator(userCreator);
 
-        // Decodifica o Base64
-        String[] parts = serviceDTO.getServiceImage().split(",");
-        String dataBase64 = (parts.length > 1) ? parts[1] : parts[0];
-        service.setServiceImage(Base64.getDecoder().decode(dataBase64));
+        // Processar imagem
+        String base64Data = serviceDTO.getServiceImage().trim();
+        if (base64Data.contains(",")) {
+            base64Data = base64Data.substring(base64Data.indexOf(",") + 1);
+        }
+        byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+        service.setServiceImage(imageBytes);
+
         serviceRepository.save(service);
     }
 }
