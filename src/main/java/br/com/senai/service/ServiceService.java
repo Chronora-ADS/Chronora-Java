@@ -8,7 +8,9 @@ import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.ServiceRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -92,8 +94,14 @@ public class ServiceService {
                 .orElseThrow(() -> new ServiceNotFoundException("Serviço com ID " + id + " não encontrado."));
     }
 
+    @Transactional
     public List<ServiceEntity> getAll(String tokenHeader) {
-        userService.getLoggedUser(tokenHeader);
-        return serviceRepository.findAll();
+        try {
+            userService.getLoggedUser(tokenHeader);
+            return serviceRepository.findAll();
+        } catch (Exception e) {
+            e.printStackTrace(); // Isso vai mostrar o erro REAL no console
+            throw new AuthException("Erro interno: " + e.getMessage());
+        }
     }
 }

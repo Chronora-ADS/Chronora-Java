@@ -35,7 +35,7 @@ public class ServiceEntity {
     @Column(nullable = false)
     private LocalDateTime postedAt;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     private List<CategoryEntity> categoryEntities;
 
     @Lob
