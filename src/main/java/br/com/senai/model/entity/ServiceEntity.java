@@ -1,5 +1,7 @@
 package br.com.senai.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -38,13 +40,16 @@ public class ServiceEntity {
 
     @Lob
     @Column(name = "service_image", nullable = false)
+    @JsonIgnore
     private byte[] serviceImage;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_creator_id", nullable = false)
+    @JsonIgnoreProperties({"password", "roles", "documentEntity", "supabaseUserId"})
     private UserEntity userCreator;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_accepted_id")
+    @JsonIgnoreProperties({"password", "roles", "documentEntity", "supabaseUserId"})
     private UserEntity userAccepted;
 }
