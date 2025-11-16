@@ -48,7 +48,7 @@ public class DataInitializer {
                     defaultUser.setName("Bertrania Dude");
                     defaultUser.setEmail("email@email.com");
                     defaultUser.setPhoneNumber(5547912345678L);
-                    defaultUser.setPassword(plainPassword); // Senha em texto puro
+                    defaultUser.setPassword(plainPassword);
 
                     // Configurar documento padrão (igual ao register)
                     DocumentDTO documentDTO = new DocumentDTO();
@@ -102,7 +102,6 @@ public class DataInitializer {
         };
     }
 
-    @Transactional
     protected void createDefaultServices(UserEntity userCreator) {
         try {
             System.out.println("🛠️ Criando serviços padrão...");
@@ -185,9 +184,10 @@ public class DataInitializer {
         return categories;
     }
 
-    @Transactional
     protected boolean createServiceDirectly(ServiceDTO serviceDTO, UserEntity userCreator) {
         try {
+            System.out.println("=== CRIANDO SERVIÇO: " + serviceDTO.getTitle() + " ===");
+
             ServiceEntity service = new ServiceEntity();
             service.setTitle(serviceDTO.getTitle());
             service.setDescription(serviceDTO.getDescription());
@@ -196,10 +196,13 @@ public class DataInitializer {
             service.setModality(serviceDTO.getModality());
             service.setPostedAt(LocalDateTime.now());
 
-            // As categorias serão persistidas por cascata
+            // Embeddables - apenas atribuir a lista
             service.setCategoryEntities(serviceDTO.getCategoryEntities());
 
-            service.setUserCreator(userCreator);
+            // **CORREÇÃO: Buscar o usuário através do repository dentro da mesma transação**
+            UserEntity managedUser = userRepository.findById(userCreator.getId())
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + userCreator.getId()));
+            service.setUserCreator(managedUser);
 
             // Processar imagem
             String base64Data = serviceDTO.getServiceImage().trim();
@@ -210,11 +213,11 @@ public class DataInitializer {
             service.setServiceImage(imageBytes);
 
             ServiceEntity savedService = serviceRepository.save(service);
-            System.out.println("Serviço criado: " + savedService.getTitle());
+            System.out.println("✅ Serviço criado: " + savedService.getTitle() + " (ID: " + savedService.getId() + ")");
             return true;
 
         } catch (Exception e) {
-            System.err.println("Erro ao criar serviço '" + serviceDTO.getTitle() + "': " + e.getMessage());
+            System.err.println("❌ Erro ao criar serviço '" + serviceDTO.getTitle() + "': " + e.getMessage());
             e.printStackTrace();
             return false;
         }

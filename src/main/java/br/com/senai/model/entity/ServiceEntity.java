@@ -37,14 +37,14 @@ public class ServiceEntity {
     private List<CategoryEntity> categoryEntities;
 
     @Lob
-    @Column(name = "service_image", nullable = false, columnDefinition = "bytea")
+    @Column(name = "service_image", nullable = false)
     private byte[] serviceImage;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_creator_id", nullable = false)
     private UserEntity userCreator;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_accepted_id")
     private UserEntity userAccepted;
 }
