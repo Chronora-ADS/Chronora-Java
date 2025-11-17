@@ -10,7 +10,6 @@ import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.ServiceRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

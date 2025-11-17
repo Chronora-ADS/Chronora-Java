@@ -1,22 +1,24 @@
 package br.com.senai.config;
 
-import br.com.senai.model.DTO.DocumentDTO;
-import br.com.senai.model.DTO.UserDTO;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.boot.CommandLineRunner;
+import lombok.RequiredArgsConstructor;
+
+import br.com.senai.repository.ServiceRepository;
+import br.com.senai.repository.UserRepository;
+
 import br.com.senai.model.entity.CategoryEntity;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
-import br.com.senai.repository.ServiceRepository;
-import br.com.senai.repository.UserRepository;
-import br.com.senai.service.AuthService;
-import br.com.senai.service.SupabaseAuthService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import br.com.senai.model.DTO.DocumentDTO;
+import br.com.senai.model.DTO.UserDTO;
 
-import java.time.LocalDate;
+import br.com.senai.service.SupabaseAuthService;
+import br.com.senai.service.AuthService;
+
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.*;
 
 @Configuration
@@ -25,7 +27,6 @@ public class DataInitializer {
 
     private final UserRepository userRepository;
     private final ServiceRepository serviceRepository;
-    private final PasswordEncoder passwordEncoder;
     private final SupabaseAuthService supabaseAuthService;
     private final AuthService authService;
 
@@ -33,23 +34,10 @@ public class DataInitializer {
     public CommandLineRunner initializeData() {
         return args -> {
             if (userRepository.count() == 0) {
-                try {
-                    System.out.println("🚀 Iniciando inicialização de dados...");
-
-                    // 1. Criar usuário primeiro
-                    UserEntity user = createDefaultUser();
-
-                    // 2. AGORA criar serviços - dentro do mesmo contexto
-                    createDefaultServices(user);
-
-                    System.out.println("✅ Inicialização concluída com sucesso!");
-
-                } catch (Exception e) {
-                    System.err.println("❌ Erro durante inicialização: " + e.getMessage());
-                    e.printStackTrace();
-                }
+                UserEntity user = createDefaultUser();
+                createDefaultServices(user);
             } else {
-                System.out.println("⏭️ Banco já possui dados. Inicialização ignorada.");
+                System.out.println("Supabase já possui dados. Inicialização ignorada.");
             }
         };
     }
@@ -77,7 +65,6 @@ public class DataInitializer {
         Map<String, Object> userMetadata = new HashMap<>();
         userMetadata.put("name", defaultUser.getName());
         userMetadata.put("phone", defaultUser.getPhoneNumber());
-
         var supabaseUserDTO = supabaseAuthService.signUp(
                 defaultUser.getEmail(),
                 defaultUser.getPassword(),
@@ -86,14 +73,11 @@ public class DataInitializer {
 
         // Registrar no banco local
         UserEntity createdUser = authService.register(defaultUser, supabaseUserDTO.getId());
-        System.out.println("✅ Usuário criado: " + createdUser.getEmail());
-
+        System.out.println("Usuário criado: " + createdUser.getEmail());
         return createdUser;
     }
 
     private void createDefaultServices(UserEntity userCreator) throws Exception {
-        System.out.println("🛠️ Criando serviços padrão...");
-
         // Garantir que temos a entidade mais recente do banco
         UserEntity managedUser = userRepository.findById(userCreator.getId())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado após criação"));
@@ -105,30 +89,40 @@ public class DataInitializer {
         // Lista de serviços para criar
         List<ServiceEntity> servicesToCreate = Arrays.asList(
                 createService("Manutenção Preventiva de Eletrodomésticos",
-                        "Realizamos manutenção preventiva em geladeiras, lavadoras, micro-ondas e outros eletrodomésticos. Inclui limpeza, lubrificação e ajustes necessários para prolongar a vida útil do equipamento.",
+                        "Procuro um técnico qualificado para realizar manutenção preventiva em geladeira, lavadora e micro-ondas em casa. " +
+                                "Preciso de limpeza profunda, verificação de componentes e ajustes para evitar falhas futuras.",
                         6, "PRESENCIAL", LocalDate.now().plusDays(15),
-                        createCategoryList("Manutenção"), base64ServiceImage, managedUser),
-
+                        createCategoryList("Manutenção", "Técnico", "Eletrodomésticos"), base64ServiceImage, managedUser),
                 createService("Desentupimento de Pia e Vaso Sanitário",
-                        "Serviço de desentupimento rápido e eficaz para pias, ralos, vasos sanitários e tubulações. Utilizamos equipamentos modernos sem danificar a estrutura do local.",
+                        "Preciso de um encanador para desentupir a pia da cozinha e o vaso sanitário do banheiro. A situação está urgente e " +
+                                "preciso de um profissional confiável que use equipamentos adequados sem danificar a tubulação.",
                         4, "PRESENCIAL", LocalDate.now().plusDays(7),
-                        createCategoryList("Encanamento"), base64ServiceImage, managedUser),
-
+                        createCategoryList("Encanamento", "Urgente", "Com equipamentos"), base64ServiceImage, managedUser),
                 createService("Instalação de Tomadas e Interruptores",
-                        "Instalação elétrica residencial e comercial. Inclui troca de interruptores, tomadas, quadro de luz e adequação à norma técnica. Garantia de segurança e qualidade.",
+                        "Estou buscando um eletricista para instalar novas tomadas e interruptores no apartamento, além de atualizar o " +
+                                "quadro de luz conforme a norma ABNT NBR 5410. Preciso de segurança e qualidade no serviço.",
                         8, "PRESENCIAL", LocalDate.now().plusDays(10),
-                        createCategoryList("Elétrica"), base64ServiceImage, managedUser)
+                        createCategoryList("Elétrica", "Eletricista", "Tomadas", "Interruptores", "Quadro de Luz"), base64ServiceImage, managedUser),
+                createService("Terapia Cognitivo-Comportamental Online",
+                        "Procuro um psicólogo registrado e especializado em Terapia Cognitivo-Comportamental (TCC) para atendimento online. " +
+                                "Estou enfrentando ansiedade e estresse crônico e busco um profissional com experiência comprovada, que ofereça sessões " +
+                                "seguras e confidenciais via plataforma de videochamada.",
+                        5, "REMOTO", LocalDate.now().plusDays(10),
+                        createCategoryList("Saúde Mental", "Terapia", "TCC", "Ansiedade"), base64ServiceImage, managedUser),
+                createService("Desenvolvimento de APIs com Spring Boot",
+                        "Preciso de um desenvolvedor backend especialista em Spring Boot para criar uma API RESTful robusta, com autenticação JWT," +
+                                " integração com banco de dados PostgreSQL e tratamento personalizado de exceções. Busco boas práticas de código, documentação " +
+                                "clara e entrega em prazo definido.",
+                        9, "REMOTO", LocalDate.now().plusDays(12),
+                        createCategoryList("Desenvolvimento de Software", "Backend", "Spring Boot", "Java", "JWT", "PostgreSQL", "Documentação"),
+                        base64ServiceImage, managedUser)
         );
-
-        // Salvar todos os serviços
         serviceRepository.saveAll(servicesToCreate);
-        System.out.println("✅ " + servicesToCreate.size() + " serviços criados com sucesso!");
+        System.out.println(servicesToCreate.size() + " serviços criados com sucesso!");
     }
 
-    private ServiceEntity createService(String title, String description, int timeChronos,
-                                        String modality, LocalDate deadline,
-                                        List<CategoryEntity> categories, String base64Image,
-                                        UserEntity userCreator) {
+    private ServiceEntity createService(String title, String description, int timeChronos, String modality, LocalDate deadline, List<CategoryEntity> categories,
+                                        String base64Image, UserEntity userCreator) {
         ServiceEntity service = new ServiceEntity();
         service.setTitle(title);
         service.setDescription(description);
@@ -140,11 +134,13 @@ public class DataInitializer {
         service.setUserCreator(userCreator);
 
         // Processar imagem
-        String imageData = base64Image.contains(",")
-                ? base64Image.substring(base64Image.indexOf(",") + 1)
-                : base64Image;
+        String imageData;
+        if (base64Image.contains(",")) {
+            imageData = base64Image.substring(base64Image.indexOf(",") + 1);
+        } else {
+            imageData = base64Image;
+        }
         service.setServiceImage(Base64.getDecoder().decode(imageData));
-
         return service;
     }
 
