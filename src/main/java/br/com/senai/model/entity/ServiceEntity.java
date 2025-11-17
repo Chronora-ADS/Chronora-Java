@@ -35,7 +35,12 @@ public class ServiceEntity {
     @Column(nullable = false)
     private LocalDateTime postedAt;
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "service_entity_category_entities",
+            joinColumns = @JoinColumn(name = "service_entity_id")
+    )
+    @Column(name = "category_name")
     private List<CategoryEntity> categoryEntities;
 
     @Lob
