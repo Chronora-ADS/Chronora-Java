@@ -97,9 +97,7 @@ public class ServiceService {
     public List<ServiceEntity> getAll(String tokenHeader) {
         try {
             userService.getLoggedUser(tokenHeader);
-            List<ServiceEntity> serviceEntities = serviceRepository.findAll();
-            System.out.println(serviceEntities);
-            return serviceEntities;
+            return serviceRepository.findAll();
         } catch (Exception e) {
             e.printStackTrace(); // Isso vai mostrar o erro REAL no console
             throw new AuthException("Erro interno: " + e.getMessage());

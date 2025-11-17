@@ -45,7 +45,7 @@ public class ServiceEntity {
 
     @Lob
     @Column(name = "service_image", nullable = false)
-    @JsonIgnore
+//    @JsonIgnore
     private byte[] serviceImage;
 
     @ManyToOne(fetch = FetchType.EAGER)
