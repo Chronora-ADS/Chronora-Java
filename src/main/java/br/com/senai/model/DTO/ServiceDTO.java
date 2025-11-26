@@ -1,6 +1,5 @@
 package br.com.senai.model.DTO;
 
-import br.com.senai.model.entity.CategoryEntity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -30,7 +29,7 @@ public class ServiceDTO {
     private LocalDate deadline;
 
     @NotBlank(message = "Categoria do serviço é obrigatória")
-    private List<CategoryEntity> categoryEntities;
+    private List<String> categories;
 
     @NotBlank(message = "Imagem de serviço é obrigatória")
     private String serviceImage;

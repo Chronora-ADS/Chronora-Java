@@ -5,6 +5,7 @@ import br.com.senai.exception.NotFound.ServiceNotFoundException;
 import br.com.senai.exception.Validation.QuantityChronosInvalidException;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
+import br.com.senai.model.entity.CategoryEntity;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.ServiceRepository;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -38,7 +40,13 @@ public class ServiceService {
         service.setDeadline(serviceDTO.getDeadline());
         service.setModality(serviceDTO.getModality());
         service.setPostedAt(LocalDateTime.now());
-        service.setCategoryEntities(serviceDTO.getCategoryEntities());
+        List<CategoryEntity> categories = new ArrayList<>();
+        for (String category : serviceDTO.getCategories()) {
+            CategoryEntity categoryEntity = new CategoryEntity();
+            categoryEntity.setName(category);
+            categories.add(categoryEntity);
+        }
+        service.setCategoryEntities(categories);
 
         // Decodifica o Base64
         String[] partes = serviceDTO.getServiceImage().split(",");
