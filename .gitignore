@@ -31,3 +31,62 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Java/Maven build artifacts
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Dependencies
+lib/
+libs/
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Compiled files
+*.o
+*.obj
+*.out
+*.so
+*.dll
+*.a
+*.pyc
+__pycache__/
+
+# Distribution
+dist/
+build/
+
+# Python specific
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+coverage/
+htmlcov/
+.coverage
+
+# Node.js specific
+node_modules/
+
+# Gradle
+.gradle/

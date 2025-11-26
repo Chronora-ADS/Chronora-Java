@@ -13,24 +13,24 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ServiceDTO {
-    @NotBlank(message = "Título do serviço é obrigatório")
+public class RequestDTO {
+    @NotBlank(message = "Título do pedido é obrigatório")
     private String title;
 
-    @NotBlank(message = "Descrição do serviço é obrigatória")
+    @NotBlank(message = "Descrição do pedido é obrigatória")
     private String description;
 
-    @NotNull(message = "Tempo em Chronos do serviço é obrigatório")
+    @NotNull(message = "Tempo em Chronos do pedido é obrigatório")
     private Integer timeChronos;
 
-    @NotNull(message = "Modalidade do serviço é obrigatório")
+    @NotNull(message = "Modalidade do pedido é obrigatória")
     private String modality;
 
-    @NotNull(message = "Prazo do serviço é obrigatório")
+    @NotNull(message = "Prazo do pedido é obrigatório")
     private LocalDate deadline;
 
-    @NotNull(message = "Categoria do serviço é obrigatória")
-    private List<CategoryEntity> categoryEntities;
+    @NotNull(message = "Categorias do pedido são obrigatórias")
+    private List<String> categories;
 
-    private String serviceImage;
+    private String requestImage;
 }
