@@ -28,7 +28,7 @@ public class ServiceDTO {
     @NotNull(message = "Prazo do serviço é obrigatório")
     private LocalDate deadline;
 
-    @NotBlank(message = "Categoria do serviço é obrigatória")
+    @NotNull(message = "Categoria do serviço é obrigatória")
     private List<String> categories;
 
     @NotBlank(message = "Imagem de serviço é obrigatória")
