@@ -3,7 +3,10 @@ package br.com.senai.service;
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.UserNotFoundException;
 import br.com.senai.exception.Validation.QuantityChronosInvalidException;
+import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.DTO.SupabaseUserDTO;
+import br.com.senai.model.DTO.UserEditDTO;
+import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Base64;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -60,5 +65,30 @@ public class UserService {
         } catch (Exception e) {
             throw new AuthException("Token inválido.");
         }
+    }
+
+    public UserEntity put(UserEditDTO userEditDTO, String tokenHeader) {
+        UserEntity userEntity = getLoggedUser(tokenHeader);
+
+        if (!Objects.equals(userEditDTO.getId(), userEntity.getId())) {
+            throw new AuthException("Credenciais inválidas.");
+        }
+        if (userEditDTO.getName() != null && !userEditDTO.getName().trim().isEmpty()) {
+            userEntity.setName(userEditDTO.getName());
+        }
+        if (userEditDTO.getEmail() != null) {
+            userEntity.setEmail(userEditDTO.getEmail());
+        }
+        if (userEditDTO.getPhoneNumber() != null) {
+            userEntity.setPhoneNumber(userEditDTO.getPhoneNumber());
+        }
+        if (userEditDTO.getDocument() != null) {
+            userEntity.setDocumentEntity(userEditDTO.getDocument());
+        }
+        if (userEditDTO.getPassword() != null) {
+            userEntity.setPassword(userEditDTO.getPassword());
+        }
+
+        return userRepository.save(userEntity);
     }
 }
