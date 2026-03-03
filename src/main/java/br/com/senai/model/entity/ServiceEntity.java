@@ -43,10 +43,8 @@ public class ServiceEntity {
     @Column(name = "category_name")
     private List<CategoryEntity> categoryEntities;
 
-    @Lob
-    @Column(name = "service_image", nullable = false)
-//    @JsonIgnore
-    private byte[] serviceImage;
+    @Column(length = 500)
+    private String serviceImageUrl;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_creator_id", nullable = false)

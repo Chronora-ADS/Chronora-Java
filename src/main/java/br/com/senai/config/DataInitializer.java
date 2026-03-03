@@ -1,5 +1,6 @@
 package br.com.senai.config;
 
+import br.com.senai.service.SupabaseStorageService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.boot.CommandLineRunner;
@@ -29,6 +30,7 @@ public class DataInitializer {
     private final ServiceRepository serviceRepository;
     private final SupabaseAuthService supabaseAuthService;
     private final AuthService authService;
+    private final SupabaseStorageService storageService;
 
     @Bean
     public CommandLineRunner initializeData() {
@@ -56,10 +58,16 @@ public class DataInitializer {
         documentDTO.setName("documento_padrao.png");
         documentDTO.setType("image/png");
 
-        byte[] imageBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("images.png")).readAllBytes();
+        byte[] imageBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("imagem.png")).readAllBytes();
         String base64Image = Base64.getEncoder().encodeToString(imageBytes);
         documentDTO.setData(base64Image);
         defaultUser.setDocument(documentDTO);
+
+        String documentUrl = storageService.uploadBase64Image(
+                defaultUser.getDocument().getData(),
+                "users",
+                null
+        );
 
         // Registrar no Supabase
         Map<String, Object> userMetadata = new HashMap<>();
@@ -83,8 +91,10 @@ public class DataInitializer {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado após criação"));
 
         // Carregar imagem uma única vez
-        byte[] serviceImageBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("images.png")).readAllBytes();
+        byte[] serviceImageBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("imagem.png")).readAllBytes();
         String base64ServiceImage = "data:image/png;base64," + Base64.getEncoder().encodeToString(serviceImageBytes);
+        // Fazer o upload para o Storage e obter a URL
+        String serviceImageUrl = storageService.uploadBase64Image(base64ServiceImage, "services", null);
 
         // Lista de serviços para criar
         List<ServiceEntity> servicesToCreate = Arrays.asList(
@@ -92,37 +102,37 @@ public class DataInitializer {
                         "Procuro um técnico qualificado para realizar manutenção preventiva em geladeira, lavadora e micro-ondas em casa. " +
                                 "Preciso de limpeza profunda, verificação de componentes e ajustes para evitar falhas futuras.",
                         6, "PRESENCIAL", LocalDate.now().plusDays(15),
-                        createCategoryList("Manutenção", "Técnico", "Eletrodomésticos"), base64ServiceImage, managedUser),
+                        createCategoryList("Manutenção", "Técnico", "Eletrodomésticos"), serviceImageUrl, managedUser),
                 createService("Desentupimento de Pia e Vaso Sanitário",
                         "Preciso de um encanador para desentupir a pia da cozinha e o vaso sanitário do banheiro. A situação está urgente e " +
                                 "preciso de um profissional confiável que use equipamentos adequados sem danificar a tubulação.",
                         4, "PRESENCIAL", LocalDate.now().plusDays(7),
-                        createCategoryList("Encanamento", "Urgente", "Com equipamentos"), base64ServiceImage, managedUser),
+                        createCategoryList("Encanamento", "Urgente", "Com equipamentos"), serviceImageUrl, managedUser),
                 createService("Instalação de Tomadas e Interruptores",
                         "Estou buscando um eletricista para instalar novas tomadas e interruptores no apartamento, além de atualizar o " +
                                 "quadro de luz conforme a norma ABNT NBR 5410. Preciso de segurança e qualidade no serviço.",
                         8, "PRESENCIAL", LocalDate.now().plusDays(10),
-                        createCategoryList("Elétrica", "Eletricista", "Tomadas", "Interruptores", "Quadro de Luz"), base64ServiceImage, managedUser),
+                        createCategoryList("Elétrica", "Eletricista", "Tomadas", "Interruptores", "Quadro de Luz"), serviceImageUrl, managedUser),
                 createService("Terapia Cognitivo-Comportamental Online",
                         "Procuro um psicólogo registrado e especializado em Terapia Cognitivo-Comportamental (TCC) para atendimento online. " +
                                 "Estou enfrentando ansiedade e estresse crônico e busco um profissional com experiência comprovada, que ofereça sessões " +
                                 "seguras e confidenciais via plataforma de videochamada.",
                         5, "REMOTO", LocalDate.now().plusDays(10),
-                        createCategoryList("Saúde Mental", "Terapia", "TCC", "Ansiedade"), base64ServiceImage, managedUser),
+                        createCategoryList("Saúde Mental", "Terapia", "TCC", "Ansiedade"), serviceImageUrl, managedUser),
                 createService("Desenvolvimento de APIs com Spring Boot",
                         "Preciso de um desenvolvedor backend especialista em Spring Boot para criar uma API RESTful robusta, com autenticação JWT," +
                                 " integração com banco de dados PostgreSQL e tratamento personalizado de exceções. Busco boas práticas de código, documentação " +
                                 "clara e entrega em prazo definido.",
                         9, "REMOTO", LocalDate.now().plusDays(12),
                         createCategoryList("Desenvolvimento de Software", "Backend", "Spring Boot", "Java", "JWT", "PostgreSQL", "Documentação"),
-                        base64ServiceImage, managedUser)
+                        serviceImageUrl, managedUser)
         );
         serviceRepository.saveAll(servicesToCreate);
         System.out.println(servicesToCreate.size() + " serviços criados com sucesso!");
     }
 
     private ServiceEntity createService(String title, String description, int timeChronos, String modality, LocalDate deadline, List<CategoryEntity> categories,
-                                        String base64Image, UserEntity userCreator) {
+                                        String imageUrl, UserEntity userCreator) {
         ServiceEntity service = new ServiceEntity();
         service.setTitle(title);
         service.setDescription(description);
@@ -132,15 +142,7 @@ public class DataInitializer {
         service.setPostedAt(LocalDateTime.now());
         service.setCategoryEntities(categories);
         service.setUserCreator(userCreator);
-
-        // Processar imagem
-        String imageData;
-        if (base64Image.contains(",")) {
-            imageData = base64Image.substring(base64Image.indexOf(",") + 1);
-        } else {
-            imageData = base64Image;
-        }
-        service.setServiceImage(Base64.getDecoder().decode(imageData));
+        service.setServiceImageUrl(imageUrl);
         return service;
     }
 

@@ -12,6 +12,6 @@ public class DocumentEntity {
     @Column(name = "document_type", nullable = false)
     private String type;
 
-    @Column(name = "document_data", nullable = false, columnDefinition = "bytea")
-    private byte[] data;
+    @Column(name = "document_url", nullable = false, length = 500)
+    private String url;
 }

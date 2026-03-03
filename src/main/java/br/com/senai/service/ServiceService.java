@@ -25,6 +25,7 @@ public class ServiceService {
 
     private final ServiceRepository serviceRepository;
     private final UserService userService;
+    private final SupabaseStorageService storageService;
 
     public ServiceEntity create(ServiceDTO serviceDTO, String tokenHeader) {
         UserEntity userEntity = userService.getLoggedUser(tokenHeader);
@@ -48,11 +49,11 @@ public class ServiceService {
         }
         service.setCategoryEntities(categories);
 
-        // Decodifica o Base64
-        String[] partes = serviceDTO.getServiceImage().split(",");
-        String dadosBase64 = (partes.length > 1) ? partes[1] : partes[0];
-        service.setServiceImage(Base64.getDecoder().decode(dadosBase64));
-        service.setUserCreator(userEntity);
+        if (serviceDTO.getServiceImage() != null && !serviceDTO.getServiceImage().isEmpty()) {
+            String jwtToken = tokenHeader.substring(7);
+            String imageUrl = storageService.uploadBase64Image(serviceDTO.getServiceImage(), "services", jwtToken);
+            service.setServiceImageUrl(imageUrl);
+        }
 
         return serviceRepository.save(service);
     }
@@ -86,11 +87,10 @@ public class ServiceService {
         if(serviceEditDTO.getCategoryEntities() != null) {
             service.setCategoryEntities(serviceEditDTO.getCategoryEntities());
         }
-        if(serviceEditDTO.getServiceImage() != null) {
-            // Decodifica o Base64
-            String[] partes = serviceEditDTO.getServiceImage().split(",");
-            String dadosBase64 = (partes.length > 1) ? partes[1] : partes[0];
-            service.setServiceImage(Base64.getDecoder().decode(dadosBase64));
+        if (serviceEditDTO.getServiceImage() != null) {
+            String jwtToken = tokenHeader.substring(7);
+            String imageUrl = storageService.uploadBase64Image(serviceEditDTO.getServiceImage(), "services", jwtToken);
+            service.setServiceImageUrl(imageUrl);
         }
 
         return serviceRepository.save(service);

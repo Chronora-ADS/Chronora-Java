@@ -27,6 +27,7 @@ public class AuthService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SupabaseStorageService storageService;
 
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email)
@@ -55,11 +56,11 @@ public class AuthService implements UserDetailsService {
             throw new PhoneNumberAlreadyExistsException(userDTO.getPhoneNumber().toString());
         }
 
-        // Processa o documento
-        DocumentDTO docDTO = userDTO.getDocument();
-        if (docDTO.getData() == null) {
-            throw new InvalidDocumentException("Documento é obrigatório no cadastro.");
-        }
+        String documentUrl = storageService.uploadBase64Image(
+                userDTO.getDocument().getData(),
+                "users",
+                null
+        );
 
         UserEntity userEntity = new UserEntity();
         userEntity.setName(userDTO.getName());
@@ -70,18 +71,12 @@ public class AuthService implements UserDetailsService {
         userEntity.setRoles(List.of("USER"));
         userEntity.setTimeChronos(12);
 
-        DocumentEntity document = new DocumentEntity();
-        document.setName(docDTO.getName() != null ? docDTO.getName() : "documento_sem_nome");
-        document.setType(docDTO.getType() != null ? docDTO.getType() : "application/octet-stream");
+        DocumentEntity doc = new DocumentEntity();
+        doc.setName(userDTO.getDocument().getName());
+        doc.setType(userDTO.getDocument().getType());
+        doc.setUrl(documentUrl);
+        userEntity.setDocumentEntity(doc);
 
-        String base64Data = docDTO.getData().trim();
-        if (base64Data.contains(",")) {
-            base64Data = base64Data.substring(base64Data.indexOf(",") + 1);
-        }
-        byte[] fileBytes = Base64.getDecoder().decode(base64Data);
-        document.setData(fileBytes);
-
-        userEntity.setDocumentEntity(document);
         return userRepository.save(userEntity);
     }
 
