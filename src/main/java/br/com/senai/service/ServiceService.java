@@ -48,6 +48,7 @@ public class ServiceService {
             categories.add(categoryEntity);
         }
         service.setCategoryEntities(categories);
+        service.setUserCreator(userEntity);
 
         if (serviceDTO.getServiceImage() != null && !serviceDTO.getServiceImage().isEmpty()) {
             String jwtToken = tokenHeader.substring(7);
