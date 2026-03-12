@@ -8,6 +8,7 @@ import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.CategoryEntity;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
+import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.ServiceRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ public class ServiceService {
         service.setDeadline(serviceDTO.getDeadline());
         service.setModality(serviceDTO.getModality());
         service.setPostedAt(LocalDateTime.now());
+        service.setStatus(ServiceStatus.CRIADO);
         List<CategoryEntity> categories = new ArrayList<>();
         for (String category : serviceDTO.getCategories()) {
             CategoryEntity categoryEntity = new CategoryEntity();
@@ -93,6 +95,13 @@ public class ServiceService {
             String imageUrl = storageService.uploadBase64Image(serviceEditDTO.getServiceImage(), "services", jwtToken);
             service.setServiceImageUrl(imageUrl);
         }
+
+        return serviceRepository.save(service);
+    }
+
+    public ServiceEntity changeStatus(Long id, ServiceStatus status) {
+        ServiceEntity service = getById(id);
+        service.setStatus(status);
 
         return serviceRepository.save(service);
     }
