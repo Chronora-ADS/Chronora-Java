@@ -102,7 +102,6 @@ public class ServiceService {
     public ServiceEntity changeStatus(Long id, ServiceStatus status) {
         ServiceEntity service = getById(id);
         service.setStatus(status);
-
         return serviceRepository.save(service);
     }
 
