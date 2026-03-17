@@ -38,7 +38,7 @@ public class UserService {
 
     public UserEntity sellChronos(String tokenHeader, Integer chronos) {
         UserEntity userEntity = getLoggedUser(tokenHeader);
-        if (userEntity.getTimeChronos() - chronos <= 0) {
+        if (userEntity.getTimeChronos() - chronos < 0) {
             throw new QuantityChronosInvalidException("O limite mínimo de chronos é 0 por usuário.");
         }
         userEntity.setTimeChronos(userEntity.getTimeChronos() - chronos);

@@ -3,6 +3,7 @@ package br.com.senai.controller;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
+import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.service.ServiceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,15 @@ public class ServiceController {
         ServiceEntity saved = serviceService.put(serviceEditDTO, tokenHeader);
         logger.info("Serviço editado com sucesso: {}", saved.getId());
         return ResponseEntity.ok(saved);
+    }
+
+    @PutMapping("/changeStatus/{id}")
+    public ResponseEntity<ServiceEntity> changeStatus(@PathVariable Long id, @RequestBody ServiceStatus status) {
+        logger.info("Editando status: {}", id);
+        logger.info("Status: {}", status);
+        ServiceEntity service = serviceService.changeStatus(id, status);
+        logger.info("Status editado com sucesso: {}", service);
+        return ResponseEntity.ok(service);
     }
 
     @GetMapping("/get/{id}")

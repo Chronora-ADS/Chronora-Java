@@ -1,5 +1,6 @@
 package br.com.senai.config;
 
+import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.service.SupabaseStorageService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
@@ -140,6 +141,7 @@ public class DataInitializer {
         service.setModality(modality);
         service.setDeadline(deadline);
         service.setPostedAt(LocalDateTime.now());
+        service.setStatus(ServiceStatus.CRIADO);
         service.setCategoryEntities(categories);
         service.setUserCreator(userCreator);
         service.setServiceImageUrl(imageUrl);
