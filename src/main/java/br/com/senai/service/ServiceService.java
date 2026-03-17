@@ -26,6 +26,7 @@ public class ServiceService {
     private final ServiceRepository serviceRepository;
     private final UserService userService;
     private final SupabaseStorageService storageService;
+    private final NotificationService notificationService;
 
     public ServiceEntity create(ServiceDTO serviceDTO, String tokenHeader) {
         UserEntity userEntity = userService.getLoggedUser(tokenHeader);
@@ -55,6 +56,9 @@ public class ServiceService {
             String imageUrl = storageService.uploadBase64Image(serviceDTO.getServiceImage(), "services", jwtToken);
             service.setServiceImageUrl(imageUrl);
         }
+
+        String notificationMessage = "Você criou um pedido";
+        notificationService.create(notificationMessage, userEntity, service);
 
         return serviceRepository.save(service);
     }
@@ -93,6 +97,9 @@ public class ServiceService {
             String imageUrl = storageService.uploadBase64Image(serviceEditDTO.getServiceImage(), "services", jwtToken);
             service.setServiceImageUrl(imageUrl);
         }
+
+        String notificationMessage = "Você editou um pedido";
+        notificationService.create(notificationMessage, userEntity, service);
 
         return serviceRepository.save(service);
     }
