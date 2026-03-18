@@ -115,6 +115,7 @@ public class ServiceService {
         return serviceRepository.save(service);
     }
 
+    @Transactional
     public ServiceEntity changeStatus(Long id, ServiceStatus status) {
         ServiceEntity service = getById(id);
         service.setStatus(status);

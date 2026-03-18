@@ -25,7 +25,7 @@ public class NotificationEntity {
     @JsonIgnoreProperties({"password", "roles", "documentEntity", "supabaseUserId"})
     private UserEntity user;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "service_id", nullable = false)
     private ServiceEntity service;
 }
