@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
@@ -64,7 +63,7 @@ public class ServiceService {
             service.setServiceImageUrl(imageUrl);
         }
 
-        String notificationMessage = "Você criou um pedido";
+        String notificationMessage = "Pedido criado";
         notificationService.create(notificationMessage, userEntity, service);
 
         return serviceRepository.save(service);
@@ -110,7 +109,7 @@ public class ServiceService {
             service.setServiceImageUrl(imageUrl);
         }
 
-        String notificationMessage = "Você editou um pedido";
+        String notificationMessage = "Pedido editado";
         notificationService.create(notificationMessage, userEntity, service);
 
         return serviceRepository.save(service);
@@ -119,6 +118,7 @@ public class ServiceService {
     public ServiceEntity changeStatus(Long id, ServiceStatus status) {
         ServiceEntity service = getById(id);
         service.setStatus(status);
+        notificationService.create("Pedido " + (status.toString()).toLowerCase(), service.getUserCreator(), service);
         return serviceRepository.save(service);
     }
 
