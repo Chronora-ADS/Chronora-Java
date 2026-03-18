@@ -76,4 +76,12 @@ public class ServiceController {
         logger.info("Total de serviços encontrados: {}", services.size());
         return ResponseEntity.ok(services);
     }
+
+    @GetMapping("/get/all/{status}")
+    public ResponseEntity<List<ServiceEntity>> getAllByStatus(@PathVariable ServiceStatus status, @RequestHeader("Authorization") String tokenHeader) {
+        logger.info("Listando todos os serviços por status");
+        List<ServiceEntity> services = serviceService.getAllByStatus(status, tokenHeader);
+        logger.info("Total de serviços encontrados por status: {}", services.size());
+        return ResponseEntity.ok(services);
+    }
 }

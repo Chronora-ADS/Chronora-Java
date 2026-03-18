@@ -138,4 +138,15 @@ public class ServiceService {
             throw new AuthException("Erro interno: " + e.getMessage());
         }
     }
+
+    @Transactional
+    public List<ServiceEntity> getAllByStatus(ServiceStatus status, String tokenHeader) {
+        try {
+            userService.getLoggedUser(tokenHeader);
+            return serviceRepository.findAllByStatus(status);
+        } catch (Exception e) {
+            e.printStackTrace(); // Isso vai mostrar o erro REAL no console
+            throw new AuthException("Erro interno: " + e.getMessage());
+        }
+    }
 }

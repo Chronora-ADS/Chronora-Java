@@ -41,4 +41,10 @@ public class UserController {
         logger.info("Serviço editado com sucesso: {}", saved.getId());
         return ResponseEntity.ok(saved);
     }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> delete(@RequestHeader("Authorization") String tokenHeader) {
+        userService.delete(tokenHeader);
+        return ResponseEntity.ok().build();
+    }
 }
