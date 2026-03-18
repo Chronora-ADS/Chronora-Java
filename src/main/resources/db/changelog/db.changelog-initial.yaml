@@ -1,0 +1,371 @@
+﻿databaseChangeLog:
+  - changeSet:
+      id: 0001-create-service
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            tableExists:
+              tableName: service
+      changes:
+        - createTable:
+            tableName: service
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: service_pkey
+                    nullable: false
+              - column:
+                  name: deadline
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(2500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: modality
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: posted_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: service_image_url
+                  type: VARCHAR(500)
+              - column:
+                  name: status
+                  type: SMALLINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: time_chronos
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_accepted_id
+                  type: BIGINT
+              - column:
+                  name: user_creator_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 0002-create-app-user
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            tableExists:
+              tableName: app_user
+      changes:
+        - createTable:
+            tableName: app_user
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: app_user_pkey
+                    nullable: false
+              - column:
+                  name: document_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: document_type
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: document_url
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: phone_number
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: supabase_user_id
+                  type: VARCHAR(255)
+              - column:
+                  name: time_chronos
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 0003-unique-app-user-email
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            uniqueConstraintExists:
+              tableName: app_user
+              constraintName: uk1j9d9a06i600gd43uu3km82jw
+      changes:
+        - addUniqueConstraint:
+            tableName: app_user
+            columnNames: email
+            constraintName: uk1j9d9a06i600gd43uu3km82jw
+
+  - changeSet:
+      id: 0004-unique-app-user-supabase-id
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            uniqueConstraintExists:
+              tableName: app_user
+              constraintName: ukdcsldswbexnkyd0ft7nywanjw
+      changes:
+        - addUniqueConstraint:
+            tableName: app_user
+            columnNames: supabase_user_id
+            constraintName: ukdcsldswbexnkyd0ft7nywanjw
+
+  - changeSet:
+      id: 0005-unique-app-user-phone
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            uniqueConstraintExists:
+              tableName: app_user
+              constraintName: uksgg0yjxgl80p392p9ygv0yk4n
+      changes:
+        - addUniqueConstraint:
+            tableName: app_user
+            columnNames: phone_number
+            constraintName: uksgg0yjxgl80p392p9ygv0yk4n
+
+  - changeSet:
+      id: 0006-create-notification
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            tableExists:
+              tableName: notification
+      changes:
+        - createTable:
+            tableName: notification
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: notification_pkey
+                    nullable: false
+              - column:
+                  name: message
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notification_time
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: service_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 0007-create-service-category-join
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            tableExists:
+              tableName: service_entity_category_entities
+      changes:
+        - createTable:
+            tableName: service_entity_category_entities
+            columns:
+              - column:
+                  name: service_entity_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 0008-create-user-roles
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            tableExists:
+              tableName: user_roles
+      changes:
+        - createTable:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: 0009-fk-user-roles-user
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            foreignKeyConstraintExists:
+              foreignKeyName: fk6fql8djp64yp4q9b3qeyhr82b
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: user_roles
+            baseColumnNames: user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fk6fql8djp64yp4q9b3qeyhr82b
+
+  - changeSet:
+      id: 0010-fk-service-user-creator
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            foreignKeyConstraintExists:
+              foreignKeyName: fk99ctg9nbaupaoxoj4wcqxw30r
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: service
+            baseColumnNames: user_creator_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fk99ctg9nbaupaoxoj4wcqxw30r
+
+  - changeSet:
+      id: 0011-fk-notification-user
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            foreignKeyConstraintExists:
+              foreignKeyName: fkcxbqr6g1py0j4m9qeq44h1ju6
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: notification
+            baseColumnNames: user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fkcxbqr6g1py0j4m9qeq44h1ju6
+
+  - changeSet:
+      id: 0012-fk-notification-service
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            foreignKeyConstraintExists:
+              foreignKeyName: fkojuicb4x6bktn1565je997xdo
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: notification
+            baseColumnNames: service_id
+            referencedTableName: service
+            referencedColumnNames: id
+            constraintName: fkojuicb4x6bktn1565je997xdo
+
+  - changeSet:
+      id: 0013-fk-service-user-accepted
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            foreignKeyConstraintExists:
+              foreignKeyName: fkpgunrgau8uia9ihcexnnhvc3m
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: service
+            baseColumnNames: user_accepted_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fkpgunrgau8uia9ihcexnnhvc3m
+
+  - changeSet:
+      id: 0014-fk-service-category-service
+      author: cadug
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            foreignKeyConstraintExists:
+              foreignKeyName: fks9fp0bfljm46lhhwsk06kip1y
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: service_entity_category_entities
+            baseColumnNames: service_entity_id
+            referencedTableName: service
+            referencedColumnNames: id
+            constraintName: fks9fp0bfljm46lhhwsk06kip1y

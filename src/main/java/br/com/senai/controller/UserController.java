@@ -5,7 +5,6 @@ import br.com.senai.model.DTO.UserEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +12,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
-@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
     private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PutMapping("/put/buy-chronos")
     public ResponseEntity<UserEntity> buyChronos(@RequestHeader("Authorization") String tokenHeader, @RequestHeader("Chronos") Integer chronos) {
