@@ -115,6 +115,7 @@ public class ServiceService {
         return serviceRepository.save(service);
     }
 
+    @Transactional
     public ServiceEntity changeStatus(Long id, ServiceStatus status) {
         ServiceEntity service = getById(id);
         service.setStatus(status);
@@ -132,6 +133,17 @@ public class ServiceService {
         try {
             userService.getLoggedUser(tokenHeader);
             return serviceRepository.findAll();
+        } catch (Exception e) {
+            e.printStackTrace(); // Isso vai mostrar o erro REAL no console
+            throw new AuthException("Erro interno: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public List<ServiceEntity> getAllByStatus(ServiceStatus status, String tokenHeader) {
+        try {
+            userService.getLoggedUser(tokenHeader);
+            return serviceRepository.findAllByStatus(status);
         } catch (Exception e) {
             e.printStackTrace(); // Isso vai mostrar o erro REAL no console
             throw new AuthException("Erro interno: " + e.getMessage());

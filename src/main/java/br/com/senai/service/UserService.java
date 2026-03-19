@@ -91,4 +91,9 @@ public class UserService {
 
         return userRepository.save(userEntity);
     }
+
+    public void delete(String tokenHeader) {
+        UserEntity user = getLoggedUser(tokenHeader);
+        userRepository.delete(user);
+    }
 }
