@@ -116,10 +116,21 @@ public class ServiceService {
     }
 
     @Transactional
+    public ServiceEntity acceptService(Long id, String tokenHeader) {
+        UserEntity userAccepted = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = changeStatus(id, ServiceStatus.ACEITO);
+        service.setUserAccepted(userAccepted);
+
+        notificationService.create("Pedido aceito", userAccepted, service);
+        notificationService.create("Pedido aceito por " + userAccepted.getName(), service.getUserCreator(), service);
+
+        return serviceRepository.save(service);
+    }
+
+    @Transactional
     public ServiceEntity changeStatus(Long id, ServiceStatus status) {
         ServiceEntity service = getById(id);
         service.setStatus(status);
-        notificationService.create("Pedido " + (status.toString()).toLowerCase(), service.getUserCreator(), service);
         return serviceRepository.save(service);
     }
 

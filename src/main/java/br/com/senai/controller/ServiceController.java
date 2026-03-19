@@ -47,9 +47,15 @@ public class ServiceController {
     @PutMapping("/put")
     public ResponseEntity<ServiceEntity> put(@RequestHeader("Authorization") String tokenHeader, @RequestBody ServiceEditDTO serviceEditDTO) {
         logger.info("Editando serviço: {}", serviceEditDTO);
-        ServiceEntity saved = serviceService.put(serviceEditDTO, tokenHeader);
-        logger.info("Serviço editado com sucesso: {}", saved.getId());
-        return ResponseEntity.ok(saved);
+        ServiceEntity service = serviceService.put(serviceEditDTO, tokenHeader);
+        logger.info("Serviço editado com sucesso: {}", service.getId());
+        return ResponseEntity.ok(service);
+    }
+
+    @PutMapping("/acceptService/{id}")
+    public ResponseEntity<ServiceEntity> acceptService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
+        ServiceEntity service = serviceService.acceptService(id, tokenHeader);
+        return ResponseEntity.ok(service);
     }
 
     @PutMapping("/changeStatus/{id}")
