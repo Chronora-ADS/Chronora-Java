@@ -24,7 +24,6 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Configuration
-@RequiredArgsConstructor
 public class DataInitializer {
 
     private final UserRepository userRepository;
@@ -32,6 +31,20 @@ public class DataInitializer {
     private final SupabaseAuthService supabaseAuthService;
     private final AuthService authService;
     private final SupabaseStorageService storageService;
+
+    public DataInitializer(
+            UserRepository userRepository,
+            ServiceRepository serviceRepository,
+            SupabaseAuthService supabaseAuthService,
+            AuthService authService,
+            SupabaseStorageService storageService
+    ) {
+        this.userRepository = userRepository;
+        this.serviceRepository = serviceRepository;
+        this.supabaseAuthService = supabaseAuthService;
+        this.authService = authService;
+        this.storageService = storageService;
+    }
 
     @Bean
     public CommandLineRunner initializeData() {

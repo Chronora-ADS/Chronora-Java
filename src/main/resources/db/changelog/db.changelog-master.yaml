@@ -1,0 +1,11 @@
+﻿---
+databaseChangeLog:
+  - include:
+      file: db/changelog/db.changelog-initial.yaml
+  - changeSet:
+      id: baseline-2026-03-17
+      author: codex
+      comment: Baseline para iniciar controle via Liquibase sem alterar schema existente.
+      changes:
+        - tagDatabase:
+            tag: baseline-2026-03-17

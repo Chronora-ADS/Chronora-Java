@@ -58,4 +58,100 @@ public class ServiceEntity {
     @JoinColumn(name = "user_accepted_id")
     @JsonIgnoreProperties({"password", "roles", "documentEntity", "supabaseUserId"})
     private UserEntity userAccepted;
+    // Explicit getters/setters to avoid IDE issues when Lombok isn't processed
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Integer getTimeChronos() {
+        return timeChronos;
+    }
+
+    public void setTimeChronos(Integer timeChronos) {
+        this.timeChronos = timeChronos;
+    }
+
+    public LocalDate getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDate deadline) {
+        this.deadline = deadline;
+    }
+
+    public String getModality() {
+        return modality;
+    }
+
+    public void setModality(String modality) {
+        this.modality = modality;
+    }
+
+    public LocalDateTime getPostedAt() {
+        return postedAt;
+    }
+
+    public void setPostedAt(LocalDateTime postedAt) {
+        this.postedAt = postedAt;
+    }
+
+    public ServiceStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ServiceStatus status) {
+        this.status = status;
+    }
+
+    public List<CategoryEntity> getCategoryEntities() {
+        return categoryEntities;
+    }
+
+    public void setCategoryEntities(List<CategoryEntity> categoryEntities) {
+        this.categoryEntities = categoryEntities;
+    }
+
+    public String getServiceImageUrl() {
+        return serviceImageUrl;
+    }
+
+    public void setServiceImageUrl(String serviceImageUrl) {
+        this.serviceImageUrl = serviceImageUrl;
+    }
+
+    public UserEntity getUserCreator() {
+        return userCreator;
+    }
+
+    public void setUserCreator(UserEntity userCreator) {
+        this.userCreator = userCreator;
+    }
+
+    public UserEntity getUserAccepted() {
+        return userAccepted;
+    }
+
+    public void setUserAccepted(UserEntity userAccepted) {
+        this.userAccepted = userAccepted;
+    }
 }
