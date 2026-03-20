@@ -33,7 +33,7 @@ public class JWTFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // Se for rota pública, pula a validação do token
-        if (path.startsWith("/auth/")) {
+        if (path.startsWith("/auth/") || path.equals("/health") || path.equals("/healthz")) {
             filterChain.doFilter(request, response);
             return;
         }
