@@ -115,22 +115,26 @@ public class ServiceService {
         return serviceRepository.save(service);
     }
 
-    @Transactional
+    private ServiceEntity changeStatus(Long id, ServiceStatus status) {
+        ServiceEntity service = getById(id);
+        service.setStatus(status);
+        return serviceRepository.save(service);
+    }
+
+    private String generateVerificationCode() {
+        Integer verificationCode = (int) (Math.random() * 10000);
+        return String.format("%04d", verificationCode);
+    }
+
     public ServiceEntity acceptService(Long id, String tokenHeader) {
         UserEntity userAccepted = userService.getLoggedUser(tokenHeader);
         ServiceEntity service = changeStatus(id, ServiceStatus.ACEITO);
         service.setUserAccepted(userAccepted);
+        service.setVerificationCode(generateVerificationCode());
 
         notificationService.create("Pedido aceito", userAccepted, service);
         notificationService.create("Pedido aceito por " + userAccepted.getName(), service.getUserCreator(), service);
 
-        return serviceRepository.save(service);
-    }
-
-    @Transactional
-    public ServiceEntity changeStatus(Long id, ServiceStatus status) {
-        ServiceEntity service = getById(id);
-        service.setStatus(status);
         return serviceRepository.save(service);
     }
 

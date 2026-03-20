@@ -58,15 +58,6 @@ public class ServiceController {
         return ResponseEntity.ok(service);
     }
 
-    @PutMapping("/changeStatus/{id}")
-    public ResponseEntity<ServiceEntity> changeStatus(@PathVariable Long id, @RequestBody ServiceStatus status) {
-        logger.info("Editando status: {}", id);
-        logger.info("Status: {}", status);
-        ServiceEntity service = serviceService.changeStatus(id, status);
-        logger.info("Status editado com sucesso: {}", service);
-        return ResponseEntity.ok(service);
-    }
-
     @GetMapping("/get/{id}")
     public ResponseEntity<ServiceEntity> getById(@PathVariable Long id) {
         logger.info("Buscando serviço por ID: {}", id);

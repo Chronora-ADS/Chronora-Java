@@ -38,6 +38,8 @@ public class ServiceEntity {
     @Column(nullable = false)
     private ServiceStatus status;
 
+    private String verificationCode;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "service_entity_category_entities",
