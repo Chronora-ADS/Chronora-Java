@@ -58,6 +58,24 @@ public class ServiceController {
         return ResponseEntity.ok(service);
     }
 
+    @PutMapping("/startService/{id}")
+    public ResponseEntity<ServiceEntity> startService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id, @RequestBody String verificationCode) {
+        ServiceEntity service = serviceService.startService(id, tokenHeader, verificationCode);
+        return ResponseEntity.ok(service);
+    }
+
+    @PutMapping("/finishService/{id}")
+    public ResponseEntity<ServiceEntity> finishService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
+        ServiceEntity service = serviceService.finishService(id, tokenHeader);
+        return ResponseEntity.ok(service);
+    }
+
+    @PutMapping("/cancelService/{id}")
+    public ResponseEntity<ServiceEntity> cancelService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
+        ServiceEntity service = serviceService.cancelService(id, tokenHeader);
+        return ResponseEntity.ok(service);
+    }
+
     @GetMapping("/get/{id}")
     public ResponseEntity<ServiceEntity> getById(@PathVariable Long id) {
         logger.info("Buscando serviço por ID: {}", id);

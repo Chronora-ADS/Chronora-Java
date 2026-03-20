@@ -2,6 +2,7 @@ package br.com.senai.service;
 
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.ServiceNotFoundException;
+import br.com.senai.exception.Validation.IncorrectValidationCodeException;
 import br.com.senai.exception.Validation.QuantityChronosInvalidException;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
@@ -135,6 +136,47 @@ public class ServiceService {
         notificationService.create("Pedido aceito", userAccepted, service);
         notificationService.create("Pedido aceito por " + userAccepted.getName(), service.getUserCreator(), service);
 
+        return serviceRepository.save(service);
+    }
+
+    public ServiceEntity startService(Long id, String tokenHeader, String verificationCode) {
+        UserEntity userAccepted = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getById(id);
+        if (!Objects.equals(verificationCode, service.getVerificationCode())) {
+            throw new IncorrectValidationCodeException("Código de verificação incorreto");
+        }
+
+        service = changeStatus(id, ServiceStatus.EM_ANDAMENTO);
+        notificationService.create("Pedido iniciado", userAccepted, service);
+        notificationService.create("Pedido iniciado", service.getUserCreator(), service);
+        return serviceRepository.save(service);
+    }
+
+    public ServiceEntity finishService(Long id, String tokenHeader) {
+        userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = changeStatus(id, ServiceStatus.CONCLUIDO);
+
+        notificationService.create("Pedido finalizado", service.getUserCreator(), service);
+        notificationService.create("Pedido finalizado", service.getUserAccepted(), service);
+        return serviceRepository.save(service);
+    }
+
+    public ServiceEntity cancelService(Long id, String tokenHeader) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getById(id);
+
+        if (user == service.getUserCreator()) {
+            service = changeStatus(id, ServiceStatus.CANCELADO);
+            notificationService.create("Pedido cancelado", user, service);
+            if (service.getUserAccepted() != null) {
+                notificationService.create("Pedido cancelado por " + user, service.getUserAccepted(), service);
+            }
+        } else {
+            service.setUserAccepted(null);
+            service = changeStatus(id, ServiceStatus.CRIADO);
+            notificationService.create("Pedido cancelado", user, service);
+            notificationService.create("Pedido cancelado por " + user, service.getUserCreator(), service);
+        }
         return serviceRepository.save(service);
     }
 
