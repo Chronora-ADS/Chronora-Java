@@ -369,3 +369,16 @@
             referencedTableName: service
             referencedColumnNames: id
             constraintName: fks9fp0bfljm46lhhwsk06kip1y
+
+  - changeSet:
+      id: 0015-add-verification-code-to-service
+      author: miujinho
+      changes:
+        - addColumn:
+            tableName: service
+            columns:
+              - column:
+                  name: verification_code
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
