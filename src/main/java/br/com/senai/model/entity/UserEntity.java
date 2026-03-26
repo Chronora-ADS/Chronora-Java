@@ -38,4 +38,8 @@ public class UserEntity {
 
     @Column(name = "supabase_user_id", unique = true)
     private String supabaseUserId;
+
+    public Long getId() {
+        return id;
+    }
 }
