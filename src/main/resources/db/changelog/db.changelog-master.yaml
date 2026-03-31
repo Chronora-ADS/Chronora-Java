@@ -4,6 +4,8 @@ databaseChangeLog:
       file: db/changelog/db.changelog-initial.yaml
   - include:
       file: db/changelog/db.changelog-uptime.yaml
+  - include:
+      file: db/changelog/db.changelog-service-verification-code-expiration.yaml
   - changeSet:
       id: baseline-2026-03-17
       author: codex

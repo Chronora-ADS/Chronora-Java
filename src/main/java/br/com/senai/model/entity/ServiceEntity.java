@@ -40,6 +40,8 @@ public class ServiceEntity {
 
     private String verificationCode;
 
+    private LocalDateTime verificationCodeExpiresAt;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "service_entity_category_entities",

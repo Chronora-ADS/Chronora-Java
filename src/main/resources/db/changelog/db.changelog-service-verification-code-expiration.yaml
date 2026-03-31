@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0016-add-verification-code-expiration-to-service
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            columnExists:
+              tableName: service
+              columnName: verification_code_expires_at
+      changes:
+        - addColumn:
+            tableName: service
+            columns:
+              - column:
+                  name: verification_code_expires_at
+                  type: TIMESTAMP WITHOUT TIME ZONE

@@ -3,7 +3,9 @@ package br.com.senai.exception;
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.NotFoundException;
 import br.com.senai.exception.Validation.EmailAlreadyExistsException;
+import br.com.senai.exception.Validation.ExpiredValidationCodeException;
 import br.com.senai.exception.Validation.InvalidDocumentException;
+import br.com.senai.exception.Validation.IncorrectValidationCodeException;
 import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,8 +40,12 @@ public class GlobalExceptionHandler {
     }
 
     // 4. Trata outras validações → 400
-    @ExceptionHandler(InvalidDocumentException.class)
-    public ResponseEntity<?> handleInvalidDoc(InvalidDocumentException ex) {
+    @ExceptionHandler({
+            InvalidDocumentException.class,
+            IncorrectValidationCodeException.class,
+            ExpiredValidationCodeException.class
+    })
+    public ResponseEntity<?> handleValidation(RuntimeException ex) {
         return ResponseEntity.badRequest()
                 .body(errorBody(ex.getMessage(), HttpStatus.BAD_REQUEST));
     }
