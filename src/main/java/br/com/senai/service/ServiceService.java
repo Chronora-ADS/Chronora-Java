@@ -67,10 +67,12 @@ public class ServiceService {
             service.setServiceImageUrl(imageUrl);
         }
 
+        service = serviceRepository.save(service);
+
         String notificationMessage = "Pedido criado";
         notificationService.create(notificationMessage, userEntity, service);
 
-        return serviceRepository.save(service);
+        return service;
     }
 
     public ServiceEntity put(ServiceEditDTO serviceEditDTO, String tokenHeader) {
@@ -113,10 +115,12 @@ public class ServiceService {
             service.setServiceImageUrl(imageUrl);
         }
 
+        service = serviceRepository.save(service);
+
         String notificationMessage = "Pedido editado";
         notificationService.create(notificationMessage, userEntity, service);
 
-        return serviceRepository.save(service);
+        return service;
     }
 
     private ServiceEntity changeStatus(Long id, ServiceStatus status) {
@@ -137,15 +141,17 @@ public class ServiceService {
 
     public ServiceEntity acceptService(Long id, String tokenHeader) {
         UserEntity userAccepted = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = changeStatus(id, ServiceStatus.ACEITO);
+        ServiceEntity service = getById(id);
+        service.setStatus(ServiceStatus.ACEITO);
         service.setUserAccepted(userAccepted);
         service.setVerificationCode(generateVerificationCode());
         service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES));
+        service = serviceRepository.save(service);
 
         notificationService.create("Pedido aceito", userAccepted, service);
         notificationService.create("Pedido aceito por " + userAccepted.getName(), service.getUserCreator(), service);
 
-        return serviceRepository.save(service);
+        return service;
     }
 
     public ServiceEntity startService(Long id, String tokenHeader, String verificationCode) {
@@ -166,20 +172,23 @@ public class ServiceService {
             throw new IncorrectValidationCodeException("Codigo de verificacao incorreto");
         }
 
-        service = changeStatus(id, ServiceStatus.EM_ANDAMENTO);
+        service.setStatus(ServiceStatus.EM_ANDAMENTO);
         clearVerificationCode(service);
+        service = serviceRepository.save(service);
         notificationService.create("Pedido iniciado", userAccepted, service);
         notificationService.create("Pedido iniciado", service.getUserCreator(), service);
-        return serviceRepository.save(service);
+        return service;
     }
 
     public ServiceEntity finishService(Long id, String tokenHeader) {
         userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = changeStatus(id, ServiceStatus.CONCLUIDO);
+        ServiceEntity service = getById(id);
+        service.setStatus(ServiceStatus.CONCLUIDO);
+        service = serviceRepository.save(service);
 
         notificationService.create("Pedido finalizado", service.getUserCreator(), service);
         notificationService.create("Pedido finalizado", service.getUserAccepted(), service);
-        return serviceRepository.save(service);
+        return service;
     }
 
     public ServiceEntity cancelService(Long id, String tokenHeader) {
@@ -187,20 +196,22 @@ public class ServiceService {
         ServiceEntity service = getById(id);
 
         if (user == service.getUserCreator()) {
-            service = changeStatus(id, ServiceStatus.CANCELADO);
+            service.setStatus(ServiceStatus.CANCELADO);
             clearVerificationCode(service);
+            service = serviceRepository.save(service);
             notificationService.create("Pedido cancelado", user, service);
             if (service.getUserAccepted() != null) {
                 notificationService.create("Pedido cancelado por " + user, service.getUserAccepted(), service);
             }
         } else {
             service.setUserAccepted(null);
-            service = changeStatus(id, ServiceStatus.CRIADO);
+            service.setStatus(ServiceStatus.CRIADO);
             clearVerificationCode(service);
+            service = serviceRepository.save(service);
             notificationService.create("Pedido cancelado", user, service);
             notificationService.create("Pedido cancelado por " + user, service.getUserCreator(), service);
         }
-        return serviceRepository.save(service);
+        return service;
     }
 
     public ServiceEntity getById(Long id) {
