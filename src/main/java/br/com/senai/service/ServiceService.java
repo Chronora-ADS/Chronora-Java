@@ -139,9 +139,35 @@ public class ServiceService {
         service.setVerificationCodeExpiresAt(null);
     }
 
+    private boolean isAcceptedByAnotherUser(ServiceEntity service, UserEntity user) {
+        return service.getUserAccepted() != null &&
+                !Objects.equals(service.getUserAccepted().getId(), user.getId());
+    }
+
     public ServiceEntity acceptService(Long id, String tokenHeader) {
         UserEntity userAccepted = userService.getLoggedUser(tokenHeader);
         ServiceEntity service = getById(id);
+
+        if (isAcceptedByAnotherUser(service, userAccepted)) {
+            throw new AuthException("Pedido ja foi aceito por outro usuario.");
+        }
+
+        if (Objects.equals(service.getUserCreator().getId(), userAccepted.getId())) {
+            throw new AuthException("Voce nao pode aceitar o proprio pedido.");
+        }
+
+        if (Objects.equals(service.getStatus(), ServiceStatus.EM_ANDAMENTO) ||
+                Objects.equals(service.getStatus(), ServiceStatus.CONCLUIDO) ||
+                Objects.equals(service.getStatus(), ServiceStatus.CANCELADO)) {
+            throw new AuthException("Este pedido nao pode mais ser aceito.");
+        }
+
+        if (service.getUserAccepted() != null &&
+                Objects.equals(service.getUserAccepted().getId(), userAccepted.getId()) &&
+                Objects.equals(service.getStatus(), ServiceStatus.ACEITO)) {
+            return service;
+        }
+
         service.setStatus(ServiceStatus.ACEITO);
         service.setUserAccepted(userAccepted);
         service.setVerificationCode(generateVerificationCode());
