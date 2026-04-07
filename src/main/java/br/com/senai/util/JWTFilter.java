@@ -8,48 +8,56 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 @Component
-@RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
-//    private final JWTUtils jwtUtils;
     private final SupabaseAuthService supabaseAuthService;
     private final UserRepository userRepository;
+    private final JWTBlacklist jwtBlacklist;
+
+    public JWTFilter(
+            SupabaseAuthService supabaseAuthService,
+            UserRepository userRepository,
+            JWTBlacklist jwtBlacklist
+    ) {
+        this.supabaseAuthService = supabaseAuthService;
+        this.userRepository = userRepository;
+        this.jwtBlacklist = jwtBlacklist;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Lista de rotas públicas que NÃO precisam de token
         String path = request.getRequestURI();
 
-        // Se for rota pública, pula a validação do token
         if (path.startsWith("/auth/")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // A partir daqui, aplica-se a validação do token apenas para rotas protegidas
         String token = getToken(request);
         if (token == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invÃ¡lido");
+            return;
+        }
+
+        if (jwtBlacklist.contains(token)) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expirado");
             return;
         }
 
         try {
-            // Valida o token com Supabase
             SupabaseUserDTO supabaseUserDTO = supabaseAuthService.validateToken(token);
-
-            // Busca usuário no banco local pelo ID do Supabase
             Optional<UserEntity> userOptional = userRepository.findBySupabaseUserId(supabaseUserDTO.getId());
 
             if (userOptional.isPresent()) {
@@ -61,11 +69,11 @@ public class JWTFilter extends OncePerRequestFilter {
                         userEntity.getEmail(), null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Usuário não encontrado no sistema");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "UsuÃ¡rio nÃ£o encontrado no sistema");
                 return;
             }
         } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido: " + e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invÃ¡lido: " + e.getMessage());
             return;
         }
         filterChain.doFilter(request, response);

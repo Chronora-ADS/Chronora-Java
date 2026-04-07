@@ -3,8 +3,8 @@ package br.com.senai.config;
 import br.com.senai.service.SupabaseStorageService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.CommandLineRunner;
-import lombok.RequiredArgsConstructor;
 
 import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
@@ -23,7 +23,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Configuration
-@RequiredArgsConstructor
+@ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true")
 public class DataInitializer {
 
     private final UserRepository userRepository;
@@ -31,6 +31,20 @@ public class DataInitializer {
     private final SupabaseAuthService supabaseAuthService;
     private final AuthService authService;
     private final SupabaseStorageService storageService;
+
+    public DataInitializer(
+            UserRepository userRepository,
+            ServiceRepository serviceRepository,
+            SupabaseAuthService supabaseAuthService,
+            AuthService authService,
+            SupabaseStorageService storageService
+    ) {
+        this.userRepository = userRepository;
+        this.serviceRepository = serviceRepository;
+        this.supabaseAuthService = supabaseAuthService;
+        this.authService = authService;
+        this.storageService = storageService;
+    }
 
     @Bean
     public CommandLineRunner initializeData() {
@@ -62,12 +76,6 @@ public class DataInitializer {
         String base64Image = Base64.getEncoder().encodeToString(imageBytes);
         documentDTO.setData(base64Image);
         defaultUser.setDocument(documentDTO);
-
-        String documentUrl = storageService.uploadBase64Image(
-                defaultUser.getDocument().getData(),
-                "users",
-                null
-        );
 
         // Registrar no Supabase
         Map<String, Object> userMetadata = new HashMap<>();

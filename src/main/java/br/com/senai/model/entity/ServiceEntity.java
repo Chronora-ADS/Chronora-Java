@@ -1,16 +1,23 @@
 package br.com.senai.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
-import lombok.Data;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Data
 @Table(name = "service")
 public class ServiceEntity {
     @Id
@@ -55,4 +62,92 @@ public class ServiceEntity {
     @JoinColumn(name = "user_accepted_id")
     @JsonIgnoreProperties({"password", "roles", "documentEntity", "supabaseUserId"})
     private UserEntity userAccepted;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Integer getTimeChronos() {
+        return timeChronos;
+    }
+
+    public void setTimeChronos(Integer timeChronos) {
+        this.timeChronos = timeChronos;
+    }
+
+    public LocalDate getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDate deadline) {
+        this.deadline = deadline;
+    }
+
+    public String getModality() {
+        return modality;
+    }
+
+    public void setModality(String modality) {
+        this.modality = modality;
+    }
+
+    public LocalDateTime getPostedAt() {
+        return postedAt;
+    }
+
+    public void setPostedAt(LocalDateTime postedAt) {
+        this.postedAt = postedAt;
+    }
+
+    public List<CategoryEntity> getCategoryEntities() {
+        return categoryEntities;
+    }
+
+    public void setCategoryEntities(List<CategoryEntity> categoryEntities) {
+        this.categoryEntities = categoryEntities;
+    }
+
+    public String getServiceImageUrl() {
+        return serviceImageUrl;
+    }
+
+    public void setServiceImageUrl(String serviceImageUrl) {
+        this.serviceImageUrl = serviceImageUrl;
+    }
+
+    public UserEntity getUserCreator() {
+        return userCreator;
+    }
+
+    public void setUserCreator(UserEntity userCreator) {
+        this.userCreator = userCreator;
+    }
+
+    public UserEntity getUserAccepted() {
+        return userAccepted;
+    }
+
+    public void setUserAccepted(UserEntity userAccepted) {
+        this.userAccepted = userAccepted;
+    }
 }

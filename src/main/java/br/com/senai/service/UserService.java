@@ -2,69 +2,69 @@ package br.com.senai.service;
 
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.UserNotFoundException;
+import br.com.senai.exception.Validation.EmailAlreadyExistsException;
+import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
 import br.com.senai.exception.Validation.QuantityChronosInvalidException;
-import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.DTO.SupabaseUserDTO;
 import br.com.senai.model.DTO.UserEditDTO;
-import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Base64;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
     private final UserRepository userRepository;
     private final SupabaseAuthService supabaseAuthService;
-    private final AuthService authService;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserService(
+            UserRepository userRepository,
+            SupabaseAuthService supabaseAuthService,
+            PasswordEncoder passwordEncoder
+    ) {
+        this.userRepository = userRepository;
+        this.supabaseAuthService = supabaseAuthService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public UserEntity buyChronos(String tokenHeader, Integer chronos) {
         UserEntity userEntity = getLoggedUser(tokenHeader);
+        validateChronosAmount(chronos);
+
         if (userEntity.getTimeChronos() + chronos > 300) {
             throw new QuantityChronosInvalidException("Excedido limite de chronos de 300 por usuário.");
         }
+
         userEntity.setTimeChronos(userEntity.getTimeChronos() + chronos);
         return userRepository.save(userEntity);
     }
 
     public UserEntity sellChronos(String tokenHeader, Integer chronos) {
         UserEntity userEntity = getLoggedUser(tokenHeader);
-        if (userEntity.getTimeChronos() - chronos <= 0) {
+        validateChronosAmount(chronos);
+
+        if (userEntity.getTimeChronos() - chronos < 0) {
             throw new QuantityChronosInvalidException("O limite mínimo de chronos é 0 por usuário.");
         }
+
         userEntity.setTimeChronos(userEntity.getTimeChronos() - chronos);
         return userRepository.save(userEntity);
     }
 
     public UserEntity getLoggedUser(String tokenHeader) {
-        try {
-            if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
-                String token = tokenHeader.substring(7);
-
-                // Valida o token no Supabase
-                SupabaseUserDTO supabaseUserDTO = supabaseAuthService.validateToken(token);
-
-                // Busca o usuário no banco local pelo ID do Supabase usando UserService
-                UserEntity userEntity = authService.findBySupabaseUserId(supabaseUserDTO.getId());
-                Optional<UserEntity> optionalUserEntity = userRepository.findById(userEntity.getId());
-                if (optionalUserEntity.isPresent()) {
-                    return optionalUserEntity.get();
-                }
-                throw new UserNotFoundException("Usuário não encontrado.");
-            }
-            throw new UserNotFoundException("Usuário não encontrado.");
-        } catch (Exception e) {
+        if (tokenHeader == null || !tokenHeader.startsWith("Bearer ")) {
             throw new AuthException("Token inválido.");
         }
+
+        String token = tokenHeader.substring(7);
+        SupabaseUserDTO supabaseUserDTO = supabaseAuthService.validateToken(token);
+
+        return userRepository.findBySupabaseUserId(supabaseUserDTO.getId())
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado."));
     }
 
     public UserEntity put(UserEditDTO userEditDTO, String tokenHeader) {
@@ -76,19 +76,31 @@ public class UserService {
         if (userEditDTO.getName() != null && !userEditDTO.getName().trim().isEmpty()) {
             userEntity.setName(userEditDTO.getName());
         }
-        if (userEditDTO.getEmail() != null) {
+        if (userEditDTO.getEmail() != null && !userEditDTO.getEmail().equals(userEntity.getEmail())) {
+            if (userRepository.findByEmail(userEditDTO.getEmail()).isPresent()) {
+                throw new EmailAlreadyExistsException(userEditDTO.getEmail());
+            }
             userEntity.setEmail(userEditDTO.getEmail());
         }
-        if (userEditDTO.getPhoneNumber() != null) {
+        if (userEditDTO.getPhoneNumber() != null && !userEditDTO.getPhoneNumber().equals(userEntity.getPhoneNumber())) {
+            if (userRepository.findByPhoneNumber(userEditDTO.getPhoneNumber()).isPresent()) {
+                throw new PhoneNumberAlreadyExistsException(userEditDTO.getPhoneNumber().toString());
+            }
             userEntity.setPhoneNumber(userEditDTO.getPhoneNumber());
         }
         if (userEditDTO.getDocument() != null) {
             userEntity.setDocumentEntity(userEditDTO.getDocument());
         }
-        if (userEditDTO.getPassword() != null) {
-            userEntity.setPassword(userEditDTO.getPassword());
+        if (userEditDTO.getPassword() != null && !userEditDTO.getPassword().trim().isEmpty()) {
+            userEntity.setPassword(passwordEncoder.encode(userEditDTO.getPassword()));
         }
 
         return userRepository.save(userEntity);
+    }
+
+    private void validateChronosAmount(Integer chronos) {
+        if (chronos == null || chronos <= 0) {
+            throw new QuantityChronosInvalidException("A quantidade de chronos deve ser maior que zero.");
+        }
     }
 }
