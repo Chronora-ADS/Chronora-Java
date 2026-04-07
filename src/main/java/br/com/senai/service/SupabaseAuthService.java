@@ -166,4 +166,55 @@ public class SupabaseAuthService {
             throw new SupabaseIntegrationException("Erro inesperado no login", e);
         }
     }
+
+    public void updateUser(
+            String accessToken,
+            String email,
+            String password,
+            Map<String, Object> userMetadata
+    ) {
+        try {
+            String url = supabaseUrl + USER_ENDPOINT;
+
+            Map<String, Object> body = new HashMap<>();
+            if (email != null && !email.isBlank()) {
+                body.put("email", email);
+            }
+            if (password != null && !password.isBlank()) {
+                body.put("password", password);
+            }
+            if (userMetadata != null && !userMetadata.isEmpty()) {
+                body.put("data", userMetadata);
+            }
+
+            if (body.isEmpty()) {
+                return;
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("apikey", supabaseAnonKey);
+            headers.set("Authorization", "Bearer " + accessToken);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT,
+                    new HttpEntity<>(body, headers),
+                    String.class
+            );
+
+            if (response.getStatusCode() != HttpStatus.OK && response.getStatusCode() != HttpStatus.CREATED) {
+                throw new SupabaseIntegrationException(
+                        "Erro ao atualizar usuario no Supabase: " + response.getStatusCode(),
+                        null
+                );
+            }
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            throw new SupabaseIntegrationException("Erro ao atualizar usuario no Supabase", e);
+        } catch (RestClientException e) {
+            throw new SupabaseIntegrationException("Falha de conexao com o Supabase", e);
+        } catch (Exception e) {
+            throw new SupabaseIntegrationException("Erro inesperado ao atualizar usuario no Supabase", e);
+        }
+    }
 }
