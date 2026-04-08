@@ -9,10 +9,9 @@ import br.com.senai.model.DTO.SupabaseUserDTO;
 import br.com.senai.model.DTO.UserEditDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.UserRepository;
+import java.util.Objects;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 @Service
 public class UserService {
@@ -36,7 +35,7 @@ public class UserService {
         validateChronosAmount(chronos);
 
         if (userEntity.getTimeChronos() + chronos > 300) {
-            throw new QuantityChronosInvalidException("Excedido limite de chronos de 300 por usuário.");
+            throw new QuantityChronosInvalidException("Excedido limite de chronos de 300 por usuario.");
         }
 
         userEntity.setTimeChronos(userEntity.getTimeChronos() + chronos);
@@ -48,7 +47,7 @@ public class UserService {
         validateChronosAmount(chronos);
 
         if (userEntity.getTimeChronos() - chronos < 0) {
-            throw new QuantityChronosInvalidException("O limite mínimo de chronos é 0 por usuário.");
+            throw new QuantityChronosInvalidException("O limite minimo de chronos e 0 por usuario.");
         }
 
         userEntity.setTimeChronos(userEntity.getTimeChronos() - chronos);
@@ -57,21 +56,21 @@ public class UserService {
 
     public UserEntity getLoggedUser(String tokenHeader) {
         if (tokenHeader == null || !tokenHeader.startsWith("Bearer ")) {
-            throw new AuthException("Token inválido.");
+            throw new AuthException("Token invalido.");
         }
 
         String token = tokenHeader.substring(7);
         SupabaseUserDTO supabaseUserDTO = supabaseAuthService.validateToken(token);
 
         return userRepository.findBySupabaseUserId(supabaseUserDTO.getId())
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado."));
+                .orElseThrow(() -> new UserNotFoundException("Usuario nao encontrado."));
     }
 
     public UserEntity put(UserEditDTO userEditDTO, String tokenHeader) {
         UserEntity userEntity = getLoggedUser(tokenHeader);
 
         if (!Objects.equals(userEditDTO.getId(), userEntity.getId())) {
-            throw new AuthException("Credenciais inválidas.");
+            throw new AuthException("Credenciais invalidas.");
         }
         if (userEditDTO.getName() != null && !userEditDTO.getName().trim().isEmpty()) {
             userEntity.setName(userEditDTO.getName());
@@ -96,6 +95,11 @@ public class UserService {
         }
 
         return userRepository.save(userEntity);
+    }
+
+    public void delete(String tokenHeader) {
+        UserEntity userEntity = getLoggedUser(tokenHeader);
+        userRepository.delete(userEntity);
     }
 
     private void validateChronosAmount(Integer chronos) {

@@ -3,18 +3,19 @@ package br.com.senai.exception;
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.NotFoundException;
 import br.com.senai.exception.Validation.EmailAlreadyExistsException;
+import br.com.senai.exception.Validation.ExpiredValidationCodeException;
+import br.com.senai.exception.Validation.IncorrectValidationCodeException;
 import br.com.senai.exception.Validation.InvalidDocumentException;
 import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
 import br.com.senai.exception.Validation.ValidationException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -37,7 +38,13 @@ public class GlobalExceptionHandler {
                 .body(errorBody(ex.getMessage(), HttpStatus.CONFLICT));
     }
 
-    @ExceptionHandler({InvalidDocumentException.class, ValidationException.class, IllegalArgumentException.class})
+    @ExceptionHandler({
+            InvalidDocumentException.class,
+            ValidationException.class,
+            IncorrectValidationCodeException.class,
+            ExpiredValidationCodeException.class,
+            IllegalArgumentException.class
+    })
     public ResponseEntity<?> handleValidation(RuntimeException ex) {
         return ResponseEntity.badRequest()
                 .body(errorBody(ex.getMessage(), HttpStatus.BAD_REQUEST));
@@ -48,7 +55,7 @@ public class GlobalExceptionHandler {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(error -> error.getDefaultMessage())
-                .orElse("Dados inválidos");
+                .orElse("Dados invalidos");
 
         return ResponseEntity.badRequest()
                 .body(errorBody(message, HttpStatus.BAD_REQUEST));
@@ -57,7 +64,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SupabaseIntegrationException.class)
     public ResponseEntity<?> handleSupabase(SupabaseIntegrationException ex) {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                .body(errorBody("Serviço externo indisponível", HttpStatus.BAD_GATEWAY));
+                .body(errorBody("Servico externo indisponivel", HttpStatus.BAD_GATEWAY));
     }
 
     @ExceptionHandler(Exception.class)

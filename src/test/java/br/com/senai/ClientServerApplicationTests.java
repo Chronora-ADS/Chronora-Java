@@ -2,8 +2,13 @@ package br.com.senai;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(properties = "app.seed.enabled=false")
+@ActiveProfiles("dev")
+@SpringBootTest(properties = {
+        "spring.task.scheduling.enabled=false",
+        "app.seed.enabled=false"
+})
 class ClientServerApplicationTests {
 
     @Test

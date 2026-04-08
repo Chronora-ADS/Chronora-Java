@@ -1,10 +1,13 @@
 package br.com.senai.model.entity;
 
+import br.com.senai.model.enums.ServiceStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -41,6 +44,14 @@ public class ServiceEntity {
 
     @Column(nullable = false)
     private LocalDateTime postedAt;
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = false)
+    private ServiceStatus status;
+
+    private String verificationCode;
+
+    private LocalDateTime verificationCodeExpiresAt;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
@@ -117,6 +128,30 @@ public class ServiceEntity {
 
     public void setPostedAt(LocalDateTime postedAt) {
         this.postedAt = postedAt;
+    }
+
+    public ServiceStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ServiceStatus status) {
+        this.status = status;
+    }
+
+    public String getVerificationCode() {
+        return verificationCode;
+    }
+
+    public void setVerificationCode(String verificationCode) {
+        this.verificationCode = verificationCode;
+    }
+
+    public LocalDateTime getVerificationCodeExpiresAt() {
+        return verificationCodeExpiresAt;
+    }
+
+    public void setVerificationCodeExpiresAt(LocalDateTime verificationCodeExpiresAt) {
+        this.verificationCodeExpiresAt = verificationCodeExpiresAt;
     }
 
     public List<CategoryEntity> getCategoryEntities() {

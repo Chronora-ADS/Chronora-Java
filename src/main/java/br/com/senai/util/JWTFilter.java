@@ -8,15 +8,14 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
 
 @Component
 public class JWTFilter extends OncePerRequestFilter {
@@ -40,14 +39,14 @@ public class JWTFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        if (path.startsWith("/auth/")) {
+        if (path.startsWith("/auth/") || path.equals("/health") || path.equals("/healthz")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String token = getToken(request);
         if (token == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invÃ¡lido");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalido");
             return;
         }
 
@@ -69,11 +68,11 @@ public class JWTFilter extends OncePerRequestFilter {
                         userEntity.getEmail(), null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "UsuÃ¡rio nÃ£o encontrado no sistema");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Usuario nao encontrado no sistema");
                 return;
             }
         } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invÃ¡lido: " + e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalido: " + e.getMessage());
             return;
         }
         filterChain.doFilter(request, response);

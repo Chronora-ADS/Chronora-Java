@@ -1,9 +1,9 @@
 package br.com.senai.config;
 
 import br.com.senai.service.SupabaseStorageService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.CommandLineRunner;
 
 import br.com.senai.repository.ServiceRepository;
@@ -23,7 +23,6 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Configuration
-@ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true")
 public class DataInitializer {
 
     private final UserRepository userRepository;
@@ -47,6 +46,7 @@ public class DataInitializer {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true", matchIfMissing = true)
     public CommandLineRunner initializeData() {
         return args -> {
             if (userRepository.count() == 0) {
@@ -148,6 +148,7 @@ public class DataInitializer {
         service.setModality(modality);
         service.setDeadline(deadline);
         service.setPostedAt(LocalDateTime.now());
+        service.setStatus(br.com.senai.model.enums.ServiceStatus.CRIADO);
         service.setCategoryEntities(categories);
         service.setUserCreator(userCreator);
         service.setServiceImageUrl(imageUrl);

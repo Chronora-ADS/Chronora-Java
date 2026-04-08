@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,8 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/user")
 public class UserController {
 
-    private final UserService userService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
+    private final UserService userService;
 
     @Autowired
     public UserController(UserService userService) {
@@ -58,5 +60,11 @@ public class UserController {
         UserEntity saved = userService.put(userEditDTO, tokenHeader);
         logger.info("Servico editado com sucesso: {}", saved.getId());
         return ResponseEntity.ok(UserResponseDTO.fromEntity(saved));
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> delete(@RequestHeader("Authorization") String tokenHeader) {
+        userService.delete(tokenHeader);
+        return ResponseEntity.ok().build();
     }
 }
