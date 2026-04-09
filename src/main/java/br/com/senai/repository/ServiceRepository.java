@@ -11,4 +11,6 @@ import java.util.List;
 @Repository
 public interface ServiceRepository extends JpaRepository<ServiceEntity, Long> {
     List<ServiceEntity> findAllByStatus(ServiceStatus status);
+    List<ServiceEntity> findAllByUserCreator(UserEntity userCreator);
+    List<ServiceEntity> findAllByUserAccepted(UserEntity userAccepted);
 }

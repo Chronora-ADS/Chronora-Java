@@ -29,10 +29,14 @@ public class SupabaseAuthService {
     @Value("${supabase.anon-key}")
     private String supabaseAnonKey;
 
+    @Value("${supabase.service-role}")
+    private String supabaseServiceRole;
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
     private static final String USER_ENDPOINT = "/auth/v1/user";
+    private static final String ADMIN_USERS_ENDPOINT = "/auth/v1/admin/users/";
     private static final String SIGNUP_ENDPOINT = "/auth/v1/signup";
     private static final String TOKEN_ENDPOINT = "/auth/v1/token?grant_type=password";
 
@@ -215,6 +219,39 @@ public class SupabaseAuthService {
             throw new SupabaseIntegrationException("Falha de conexao com o Supabase", e);
         } catch (Exception e) {
             throw new SupabaseIntegrationException("Erro inesperado ao atualizar usuario no Supabase", e);
+        }
+    }
+
+    public void deleteUser(String supabaseUserId) {
+        try {
+            String url = supabaseUrl + ADMIN_USERS_ENDPOINT + supabaseUserId;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("apikey", supabaseServiceRole);
+            headers.set("Authorization", "Bearer " + supabaseServiceRole);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.DELETE,
+                    new HttpEntity<>(headers),
+                    String.class
+            );
+
+            if (response.getStatusCode() != HttpStatus.OK
+                    && response.getStatusCode() != HttpStatus.NO_CONTENT
+                    && response.getStatusCode() != HttpStatus.CREATED) {
+                throw new SupabaseIntegrationException(
+                        "Erro ao excluir usuario no Supabase: " + response.getStatusCode(),
+                        null
+                );
+            }
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            throw new SupabaseIntegrationException("Erro ao excluir usuario no Supabase", e);
+        } catch (RestClientException e) {
+            throw new SupabaseIntegrationException("Falha de conexao com o Supabase", e);
+        } catch (Exception e) {
+            throw new SupabaseIntegrationException("Erro inesperado ao excluir usuario no Supabase", e);
         }
     }
 }

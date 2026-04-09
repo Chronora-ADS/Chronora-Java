@@ -9,8 +9,12 @@ import br.com.senai.model.DTO.DocumentDTO;
 import br.com.senai.model.DTO.SupabaseUserDTO;
 import br.com.senai.model.DTO.UserEditDTO;
 import br.com.senai.model.entity.DocumentEntity;
+import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
+import br.com.senai.repository.NotificationRepository;
+import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,6 +33,8 @@ public class UserService {
     private final AuthService authService;
     private final SupabaseStorageService storageService;
     private final PasswordEncoder passwordEncoder;
+    private final ServiceRepository serviceRepository;
+    private final NotificationRepository notificationRepository;
 
     public UserEntity buyChronos(String tokenHeader, Integer chronos) {
         UserEntity userEntity = getLoggedUser(tokenHeader);
@@ -119,8 +125,13 @@ public class UserService {
         return userRepository.save(userEntity);
     }
 
+    @Transactional
     public void delete(String tokenHeader) {
         UserEntity user = getLoggedUser(tokenHeader);
+        deleteUserDependencies(user);
+        if (user.getSupabaseUserId() != null && !user.getSupabaseUserId().isBlank()) {
+            supabaseAuthService.deleteUser(user.getSupabaseUserId());
+        }
         userRepository.delete(user);
     }
 
@@ -167,5 +178,20 @@ public class UserService {
                 password,
                 metadata
         );
+    }
+
+    private void deleteUserDependencies(UserEntity user) {
+        notificationRepository.deleteAllByUser(user);
+
+        for (ServiceEntity acceptedService : serviceRepository.findAllByUserAccepted(user)) {
+            acceptedService.setUserAccepted(null);
+            serviceRepository.save(acceptedService);
+        }
+
+        java.util.List<ServiceEntity> createdServices = serviceRepository.findAllByUserCreator(user);
+        if (!createdServices.isEmpty()) {
+            notificationRepository.deleteAllByServiceIn(createdServices);
+            serviceRepository.deleteAll(createdServices);
+        }
     }
 }
