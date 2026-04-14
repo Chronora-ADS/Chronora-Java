@@ -64,12 +64,6 @@ public class ServiceController {
         return ResponseEntity.ok(service);
     }
 
-    @PutMapping("/expireAcceptedService/{id}")
-    public ResponseEntity<ServiceEntity> expireAcceptedService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
-        ServiceEntity service = serviceService.expireAcceptedService(id, tokenHeader);
-        return ResponseEntity.ok(service);
-    }
-
     @PutMapping("/finishService/{id}")
     public ResponseEntity<ServiceEntity> finishService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
         ServiceEntity service = serviceService.finishService(id, tokenHeader);
