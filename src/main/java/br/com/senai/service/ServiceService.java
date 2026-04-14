@@ -139,9 +139,42 @@ public class ServiceService {
         service.setVerificationCodeExpiresAt(null);
     }
 
+    private boolean isAcceptedByAnotherUser(ServiceEntity service, UserEntity user) {
+        return service.getUserAccepted() != null &&
+                !Objects.equals(service.getUserAccepted().getId(), user.getId());
+    }
+
+    private boolean canManageAcceptedService(ServiceEntity service, UserEntity user) {
+        return Objects.equals(service.getUserCreator().getId(), user.getId()) ||
+                (service.getUserAccepted() != null &&
+                        Objects.equals(service.getUserAccepted().getId(), user.getId()));
+    }
+
+    @Transactional
     public ServiceEntity acceptService(Long id, String tokenHeader) {
         UserEntity userAccepted = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getById(id);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (isAcceptedByAnotherUser(service, userAccepted)) {
+            throw new AuthException("Pedido ja foi aceito por outro usuario.");
+        }
+
+        if (Objects.equals(service.getUserCreator().getId(), userAccepted.getId())) {
+            throw new AuthException("Voce nao pode aceitar o proprio pedido.");
+        }
+
+        if (Objects.equals(service.getStatus(), ServiceStatus.EM_ANDAMENTO) ||
+                Objects.equals(service.getStatus(), ServiceStatus.CONCLUIDO) ||
+                Objects.equals(service.getStatus(), ServiceStatus.CANCELADO)) {
+            throw new AuthException("Este pedido nao pode mais ser aceito.");
+        }
+
+        if (service.getUserAccepted() != null &&
+                Objects.equals(service.getUserAccepted().getId(), userAccepted.getId()) &&
+                Objects.equals(service.getStatus(), ServiceStatus.ACEITO)) {
+            return service;
+        }
+
         service.setStatus(ServiceStatus.ACEITO);
         service.setUserAccepted(userAccepted);
         service.setVerificationCode(generateVerificationCode());
@@ -154,9 +187,15 @@ public class ServiceService {
         return service;
     }
 
+    @Transactional
     public ServiceEntity startService(Long id, String tokenHeader, String verificationCode) {
         UserEntity userAccepted = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getById(id);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (service.getUserAccepted() == null ||
+                !Objects.equals(service.getUserAccepted().getId(), userAccepted.getId())) {
+            throw new AuthException("Credenciais invalidas.");
+        }
 
         if (service.getVerificationCode() == null || service.getVerificationCodeExpiresAt() == null) {
             throw new IncorrectValidationCodeException("Codigo de verificacao indisponivel");
@@ -172,11 +211,44 @@ public class ServiceService {
             throw new IncorrectValidationCodeException("Codigo de verificacao incorreto");
         }
 
-        service.setStatus(ServiceStatus.EM_ANDAMENTO);
+        UserEntity serviceCreator = service.getUserCreator();
         clearVerificationCode(service);
+        service.setUserAccepted(null);
+        service.setStatus(ServiceStatus.CRIADO);
         service = serviceRepository.save(service);
-        notificationService.create("Pedido iniciado", userAccepted, service);
-        notificationService.create("Pedido iniciado", service.getUserCreator(), service);
+        notificationService.create("Pedido confirmado pelo codigo de inicio", userAccepted, service);
+        notificationService.create("Pedido confirmado pelo codigo de inicio", serviceCreator, service);
+        return service;
+    }
+
+    @Transactional
+    public ServiceEntity expireAcceptedService(Long id, String tokenHeader) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (!Objects.equals(service.getStatus(), ServiceStatus.ACEITO) ||
+                service.getUserAccepted() == null ||
+                service.getVerificationCodeExpiresAt() == null) {
+            return service;
+        }
+
+        if (!canManageAcceptedService(service, user)) {
+            throw new AuthException("Credenciais invalidas.");
+        }
+
+        if (LocalDateTime.now().isBefore(service.getVerificationCodeExpiresAt())) {
+            return service;
+        }
+
+        UserEntity acceptedUser = service.getUserAccepted();
+        clearVerificationCode(service);
+        service.setUserAccepted(null);
+        service.setStatus(ServiceStatus.CRIADO);
+        service = serviceRepository.save(service);
+
+        notificationService.create("Tempo para iniciar o pedido expirou", service.getUserCreator(), service);
+        notificationService.create("Tempo para iniciar o pedido expirou", acceptedUser, service);
+
         return service;
     }
 
@@ -216,6 +288,11 @@ public class ServiceService {
 
     public ServiceEntity getById(Long id) {
         return serviceRepository.findById(id)
+                .orElseThrow(() -> new ServiceNotFoundException("Servico com ID " + id + " nao encontrado."));
+    }
+
+    public ServiceEntity getByIdForUpdate(Long id) {
+        return serviceRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ServiceNotFoundException("Servico com ID " + id + " nao encontrado."));
     }
 
