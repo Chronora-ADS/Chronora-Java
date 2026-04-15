@@ -15,7 +15,7 @@ O deploy de producao esta preparado para a branch `main` com o arquivo `render.y
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE`
 
-### Variavel opcional
+### Variaveis opcionais
 
 - `SUPABASE_STORAGE_BUCKET` (padrao: `service-images`)
 - `APP_SEED_ENABLED` (padrao: `false`)
@@ -36,15 +36,39 @@ O deploy de producao esta preparado para a branch `main` com o arquivo `render.y
 
 ## Rodar localmente
 
-Use Java 17.
+Use Java 17 JDK.
 
-### Opcao 1: arquivo local ignorado pelo Git
+### Arquivos locais
 
-Preencha um arquivo `.env.local` na raiz com base em `.env.local.example` e execute:
+- Crie um arquivo `.env.local` na raiz com base em `.env.local.example`
+- O arquivo `.env.local` esta no `.gitignore` e nao deve ser commitado
+
+### Exemplo de `.env.local`
+
+```text
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_ANON_KEY=cole_a_chave_anon_aqui
+SUPABASE_SERVICE_ROLE=cole_a_chave_service_role_aqui
+SPRING_DATASOURCE_URL=jdbc:postgresql://seu-host:5432/postgres?sslmode=require
+SPRING_DATASOURCE_USERNAME=postgres.seu_project_ref
+SPRING_DATASOURCE_PASSWORD=cole_a_senha_do_banco_aqui
+SUPABASE_STORAGE_BUCKET=service-images
+APP_SEED_ENABLED=false
+```
+
+### Opcao recomendada
+
+Execute:
 
 ```powershell
 .\scripts\run-local.ps1
 ```
+
+Esse script:
+
+- carrega as variaveis de `.env.local`
+- tenta usar um JDK 17 instalado na maquina
+- sobe o backend na porta `8085`
 
 ### Opcao 2: variaveis no terminal
 
@@ -53,3 +77,13 @@ Defina as mesmas variaveis de ambiente e execute:
 ```powershell
 .\mvnw spring-boot:run
 ```
+
+### Observacoes
+
+- Se o PowerShell bloquear a execucao do script, rode:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-local.ps1
+```
+
+- Se a porta `8085` ja estiver em uso, feche a outra instancia do backend antes de subir novamente
