@@ -18,6 +18,7 @@ O deploy de desenvolvimento esta preparado para a branch `master` com o arquivo 
 ### Variavel opcional
 
 - `SUPABASE_STORAGE_BUCKET` (padrao: `service-images`)
+- `APP_SEED_ENABLED` (padrao: `false`)
 
 ### Subir no Render
 

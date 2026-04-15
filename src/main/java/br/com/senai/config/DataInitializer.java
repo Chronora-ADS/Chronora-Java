@@ -5,6 +5,7 @@ import br.com.senai.service.SupabaseStorageService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import lombok.RequiredArgsConstructor;
 
 import br.com.senai.repository.ServiceRepository;
@@ -47,6 +48,7 @@ public class DataInitializer {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true")
     public CommandLineRunner initializeData() {
         return args -> {
             if (userRepository.count() == 0) {
