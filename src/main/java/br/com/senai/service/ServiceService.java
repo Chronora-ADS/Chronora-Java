@@ -214,7 +214,7 @@ public class ServiceService {
         UserEntity serviceCreator = service.getUserCreator();
         clearVerificationCode(service);
         service.setUserAccepted(null);
-        service.setStatus(ServiceStatus.CRIADO);
+        service.setStatus(ServiceStatus.EM_ANDAMENTO);
         service = serviceRepository.save(service);
         notificationService.create("Pedido confirmado pelo codigo de inicio", userAccepted, service);
         notificationService.create("Pedido confirmado pelo codigo de inicio", serviceCreator, service);
