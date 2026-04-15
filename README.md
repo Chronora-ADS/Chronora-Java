@@ -35,7 +35,19 @@ O deploy de desenvolvimento esta preparado para a branch `master` com o arquivo 
 
 ## Rodar localmente
 
-Use Java 17, defina as mesmas variaveis de ambiente e execute:
+Use Java 17.
+
+### Opcao 1: arquivo local ignorado pelo Git
+
+Preencha um arquivo `.env.local` na raiz com base em `.env.local.example` e execute:
+
+```powershell
+.\scripts\run-local.ps1
+```
+
+### Opcao 2: variaveis no terminal
+
+Defina as mesmas variaveis de ambiente e execute:
 
 ```powershell
 .\mvnw spring-boot:run
