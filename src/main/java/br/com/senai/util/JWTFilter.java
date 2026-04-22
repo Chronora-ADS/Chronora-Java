@@ -75,6 +75,7 @@ public class JWTFilter extends OncePerRequestFilter {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalido: " + e.getMessage());
             return;
         }
+
         filterChain.doFilter(request, response);
     }
 

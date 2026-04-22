@@ -46,6 +46,7 @@ public class ServiceService {
         this.notificationService = notificationService;
     }
 
+    @Transactional
     public ServiceEntity create(ServiceDTO serviceDTO, String tokenHeader) {
         UserEntity userEntity = userService.getLoggedUser(tokenHeader);
         validateServiceChronos(serviceDTO.getTimeChronos());
@@ -67,8 +68,8 @@ public class ServiceService {
         service.setCategoryEntities(buildCategories(serviceDTO.getCategories()));
         service.setUserCreator(userEntity);
 
-        if (serviceDTO.getServiceImage() != null && !serviceDTO.getServiceImage().isEmpty()) {
-            String jwtToken = tokenHeader.substring(7);
+        if (serviceDTO.getServiceImage() != null && !serviceDTO.getServiceImage().isBlank()) {
+            String jwtToken = extractBearerToken(tokenHeader);
             String imageUrl = storageService.uploadBase64Image(serviceDTO.getServiceImage(), "services", jwtToken);
             service.setServiceImageUrl(imageUrl);
         }
@@ -79,6 +80,7 @@ public class ServiceService {
         return service;
     }
 
+    @Transactional
     public ServiceEntity put(ServiceEditDTO serviceEditDTO, String tokenHeader) {
         UserEntity userEntity = userService.getLoggedUser(tokenHeader);
         ServiceEntity service = getById(serviceEditDTO.getId());
@@ -86,18 +88,19 @@ public class ServiceService {
         if (!Objects.equals(service.getUserCreator().getId(), userEntity.getId())) {
             throw new AuthException("Credenciais invalidas.");
         }
-        if (serviceEditDTO.getTimeChronos() != null) {
-            validateServiceChronos(serviceEditDTO.getTimeChronos());
+
+        if (serviceEditDTO.getTitle() != null && !serviceEditDTO.getTitle().isBlank()) {
+            service.setTitle(serviceEditDTO.getTitle().trim());
         }
 
-        if (serviceEditDTO.getTitle() != null) {
-            service.setTitle(serviceEditDTO.getTitle());
-        }
         if (serviceEditDTO.getDescription() != null) {
             validateDescription(serviceEditDTO.getDescription());
             service.setDescription(serviceEditDTO.getDescription());
         }
+
         if (serviceEditDTO.getTimeChronos() != null) {
+            validateServiceChronos(serviceEditDTO.getTimeChronos());
+
             int chronosDifference = serviceEditDTO.getTimeChronos() - service.getTimeChronos();
             if (chronosDifference > 0) {
                 if (chronosDifference > userEntity.getTimeChronos()) {
@@ -107,22 +110,27 @@ public class ServiceService {
             } else if (chronosDifference < 0) {
                 userService.buyChronos(tokenHeader, -chronosDifference);
             }
+
             service.setTimeChronos(serviceEditDTO.getTimeChronos());
         }
+
         if (serviceEditDTO.getDeadline() != null) {
             service.setDeadline(serviceEditDTO.getDeadline());
         }
+
         if (serviceEditDTO.getModality() != null) {
             service.setModality(ServiceModality.fromValue(serviceEditDTO.getModality()));
         }
+
         if (serviceEditDTO.getCategories() != null) {
             validateCategories(serviceEditDTO.getCategories());
             service.setCategoryEntities(buildCategories(serviceEditDTO.getCategories()));
         } else if (serviceEditDTO.getCategoryEntities() != null) {
             service.setCategoryEntities(copyCategories(serviceEditDTO.getCategoryEntities()));
         }
-        if (serviceEditDTO.getServiceImage() != null && !serviceEditDTO.getServiceImage().isEmpty()) {
-            String jwtToken = tokenHeader.substring(7);
+
+        if (serviceEditDTO.getServiceImage() != null && !serviceEditDTO.getServiceImage().isBlank()) {
+            String jwtToken = extractBearerToken(tokenHeader);
             String imageUrl = storageService.uploadBase64Image(serviceEditDTO.getServiceImage(), "services", jwtToken);
             service.setServiceImageUrl(imageUrl);
         }
@@ -132,41 +140,71 @@ public class ServiceService {
         return service;
     }
 
+    @Transactional
     public ServiceEntity acceptService(Long id, String tokenHeader) {
         UserEntity userAccepted = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getById(id);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (isAcceptedByAnotherUser(service, userAccepted)) {
+            throw new AuthException("Pedido ja foi aceito por outro usuario.");
+        }
+
+        if (Objects.equals(service.getUserCreator().getId(), userAccepted.getId())) {
+            throw new AuthException("Voce nao pode aceitar o proprio pedido.");
+        }
+
+        if (service.getStatus() == ServiceStatus.EM_ANDAMENTO
+                || service.getStatus() == ServiceStatus.CONCLUIDO
+                || service.getStatus() == ServiceStatus.CANCELADO) {
+            throw new AuthException("Este pedido nao pode mais ser aceito.");
+        }
+
+        if (service.getUserAccepted() != null
+                && Objects.equals(service.getUserAccepted().getId(), userAccepted.getId())
+                && service.getStatus() == ServiceStatus.ACEITO) {
+            return service;
+        }
 
         service.setStatus(ServiceStatus.ACEITO);
         service.setUserAccepted(userAccepted);
         service.setVerificationCode(generateVerificationCode());
         service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES));
-
         service = serviceRepository.save(service);
+
         notificationService.create("Pedido aceito", userAccepted, service);
         notificationService.create("Pedido aceito por " + userAccepted.getName(), service.getUserCreator(), service);
         return service;
     }
 
+    @Transactional
     public ServiceEntity startService(Long id, String tokenHeader, String verificationCode) {
         UserEntity userAccepted = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getById(id);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (service.getUserAccepted() == null
+                || !Objects.equals(service.getUserAccepted().getId(), userAccepted.getId())) {
+            throw new AuthException("Credenciais invalidas.");
+        }
 
         if (service.getVerificationCode() == null || service.getVerificationCodeExpiresAt() == null) {
             throw new IncorrectValidationCodeException("Codigo de verificacao indisponivel");
         }
 
         if (LocalDateTime.now().isAfter(service.getVerificationCodeExpiresAt())) {
-            clearVerificationCode(service);
-            serviceRepository.save(service);
+            UserEntity acceptedUser = service.getUserAccepted();
+            reopenAcceptedService(service);
+            notificationService.create("Tempo para iniciar o pedido expirou", service.getUserCreator(), service);
+            notificationService.create("Tempo para iniciar o pedido expirou", acceptedUser, service);
             throw new ExpiredValidationCodeException("Codigo de verificacao expirado");
         }
 
-        if (!Objects.equals(verificationCode, service.getVerificationCode())) {
+        String normalizedVerificationCode = normalizeVerificationCode(verificationCode);
+        if (!Objects.equals(normalizedVerificationCode, service.getVerificationCode())) {
             throw new IncorrectValidationCodeException("Codigo de verificacao incorreto");
         }
 
-        service.setStatus(ServiceStatus.EM_ANDAMENTO);
         clearVerificationCode(service);
+        service.setStatus(ServiceStatus.EM_ANDAMENTO);
         service = serviceRepository.save(service);
 
         notificationService.create("Pedido iniciado", userAccepted, service);
@@ -174,11 +212,43 @@ public class ServiceService {
         return service;
     }
 
+    @Transactional
+    public ServiceEntity expireAcceptedService(Long id, String tokenHeader) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (service.getStatus() != ServiceStatus.ACEITO
+                || service.getUserAccepted() == null
+                || service.getVerificationCodeExpiresAt() == null) {
+            return service;
+        }
+
+        if (!canManageAcceptedService(service, user)) {
+            throw new AuthException("Credenciais invalidas.");
+        }
+
+        if (LocalDateTime.now().isBefore(service.getVerificationCodeExpiresAt())) {
+            return service;
+        }
+
+        UserEntity acceptedUser = service.getUserAccepted();
+        reopenAcceptedService(service);
+        notificationService.create("Tempo para iniciar o pedido expirou", service.getUserCreator(), service);
+        notificationService.create("Tempo para iniciar o pedido expirou", acceptedUser, service);
+        return service;
+    }
+
+    @Transactional
     public ServiceEntity finishService(Long id, String tokenHeader) {
-        userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getById(id);
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (!canManageAcceptedService(service, user)) {
+            throw new AuthException("Credenciais invalidas.");
+        }
 
         service.setStatus(ServiceStatus.CONCLUIDO);
+        clearVerificationCode(service);
         service = serviceRepository.save(service);
 
         notificationService.create("Pedido finalizado", service.getUserCreator(), service);
@@ -189,26 +259,20 @@ public class ServiceService {
     }
 
     @Transactional
-    public void cancelService(Long id, String tokenHeader) {
+    public ServiceEntity cancelService(Long id, String tokenHeader) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getById(id);
+        ServiceEntity service = getByIdForUpdate(id);
 
         if (Objects.equals(user.getId(), service.getUserCreator().getId())) {
-            if (canHardDelete(service)) {
-                userService.buyChronos(tokenHeader, service.getTimeChronos());
-                notificationService.deleteByService(service);
-                serviceRepository.delete(service);
-                return;
-            }
-
             service.setStatus(ServiceStatus.CANCELADO);
             clearVerificationCode(service);
             service = serviceRepository.save(service);
+
             notificationService.create("Pedido cancelado", user, service);
             if (service.getUserAccepted() != null) {
                 notificationService.create("Pedido cancelado por " + user.getName(), service.getUserAccepted(), service);
             }
-            return;
+            return service;
         }
 
         if (service.getUserAccepted() == null || !Objects.equals(user.getId(), service.getUserAccepted().getId())) {
@@ -216,16 +280,35 @@ public class ServiceService {
         }
 
         if (service.getStatus() == ServiceStatus.ACEITO) {
-            service.setUserAccepted(null);
-            service.setStatus(ServiceStatus.CRIADO);
+            reopenAcceptedService(service);
         } else {
+            clearVerificationCode(service);
+            service.setUserAccepted(null);
             service.setStatus(ServiceStatus.CANCELADO);
+            service = serviceRepository.save(service);
         }
 
-        clearVerificationCode(service);
-        service = serviceRepository.save(service);
         notificationService.create("Pedido cancelado", user, service);
         notificationService.create("Pedido cancelado por " + user.getName(), service.getUserCreator(), service);
+        return service;
+    }
+
+    @Transactional
+    public void deleteService(Long id, String tokenHeader) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getById(id);
+
+        if (!Objects.equals(user.getId(), service.getUserCreator().getId())) {
+            throw new AuthException("Credenciais invalidas.");
+        }
+
+        if (!canHardDelete(service)) {
+            throw new AuthException("Somente pedidos criados ou aceitos podem ser excluidos.");
+        }
+
+        userService.buyChronos(tokenHeader, service.getTimeChronos());
+        notificationService.deleteByService(service);
+        serviceRepository.delete(service);
     }
 
     public ServiceEntity getById(Long id) {
@@ -233,10 +316,21 @@ public class ServiceService {
                 .orElseThrow(() -> new ServiceNotFoundException("Servico com ID " + id + " nao encontrado."));
     }
 
+    public ServiceEntity getByIdForUpdate(Long id) {
+        return serviceRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ServiceNotFoundException("Servico com ID " + id + " nao encontrado."));
+    }
+
     @Transactional
     public Page<ServiceEntity> getAll(String tokenHeader, int page, int size) {
         userService.getLoggedUser(tokenHeader);
         return serviceRepository.findAll(PageRequest.of(page, size));
+    }
+
+    @Transactional
+    public List<ServiceEntity> getAll(String tokenHeader) {
+        userService.getLoggedUser(tokenHeader);
+        return serviceRepository.findAll();
     }
 
     @Transactional
@@ -270,6 +364,13 @@ public class ServiceService {
         return buildCategories(categoryNames);
     }
 
+    private ServiceEntity reopenAcceptedService(ServiceEntity service) {
+        clearVerificationCode(service);
+        service.setUserAccepted(null);
+        service.setStatus(ServiceStatus.CRIADO);
+        return serviceRepository.save(service);
+    }
+
     private void clearVerificationCode(ServiceEntity service) {
         service.setVerificationCode(null);
         service.setVerificationCodeExpiresAt(null);
@@ -277,6 +378,28 @@ public class ServiceService {
 
     private String generateVerificationCode() {
         return String.format("%04d", ThreadLocalRandom.current().nextInt(10000));
+    }
+
+    private String normalizeVerificationCode(String verificationCode) {
+        if (verificationCode == null) {
+            return null;
+        }
+        return verificationCode.replace("\"", "").trim();
+    }
+
+    private boolean isAcceptedByAnotherUser(ServiceEntity service, UserEntity user) {
+        return service.getUserAccepted() != null
+                && !Objects.equals(service.getUserAccepted().getId(), user.getId());
+    }
+
+    private boolean canManageAcceptedService(ServiceEntity service, UserEntity user) {
+        return Objects.equals(service.getUserCreator().getId(), user.getId())
+                || (service.getUserAccepted() != null
+                && Objects.equals(service.getUserAccepted().getId(), user.getId()));
+    }
+
+    private boolean canHardDelete(ServiceEntity service) {
+        return service.getStatus() == ServiceStatus.CRIADO || service.getStatus() == ServiceStatus.ACEITO;
     }
 
     private void validateServiceChronos(Integer timeChronos) {
@@ -312,7 +435,10 @@ public class ServiceService {
         }
     }
 
-    private boolean canHardDelete(ServiceEntity service) {
-        return service.getStatus() == ServiceStatus.CRIADO || service.getStatus() == ServiceStatus.ACEITO;
+    private String extractBearerToken(String tokenHeader) {
+        if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
+            return tokenHeader.substring(7);
+        }
+        return tokenHeader;
     }
 }

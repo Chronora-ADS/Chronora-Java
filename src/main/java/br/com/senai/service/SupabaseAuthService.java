@@ -88,9 +88,11 @@ public class SupabaseAuthService {
                         .createdAt(userData.get("created_at").asText())
                         .build();
             }
+
             if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                 throw new AuthException("Token invalido ou expirado");
             }
+
             throw new SupabaseIntegrationException("Resposta inesperada do Supabase: " + response.getStatusCode(), null);
         } catch (HttpClientErrorException.Unauthorized e) {
             throw new AuthException("Token invalido");
@@ -109,7 +111,7 @@ public class SupabaseAuthService {
                 throw new EmailAlreadyExistsException(email);
             }
 
-            Object phone = userMetadata.get("phone");
+            Object phone = userMetadata == null ? null : userMetadata.get("phone");
             return SupabaseUserDTO.builder()
                     .id("local-user-" + UUID.randomUUID())
                     .email(email)
@@ -140,9 +142,11 @@ public class SupabaseAuthService {
                         .createdAt(userData.get("created_at").asText())
                         .build();
             }
+
             if (response.getStatusCode() == HttpStatus.CONFLICT) {
                 throw new EmailAlreadyExistsException(email);
             }
+
             throw new SupabaseIntegrationException("Erro no cadastro no Supabase: " + response.getStatusCode(), null);
         } catch (HttpClientErrorException.Conflict e) {
             throw new EmailAlreadyExistsException(email);
@@ -187,9 +191,11 @@ public class SupabaseAuthService {
             if (response.getStatusCode() == HttpStatus.OK) {
                 return parseAuthResponse(response.getBody());
             }
+
             if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                 throw new AuthException("Credenciais invalidas");
             }
+
             throw new SupabaseIntegrationException("Erro no login no Supabase", null);
         } catch (HttpClientErrorException.Unauthorized e) {
             throw new AuthException("Credenciais invalidas");
@@ -231,9 +237,11 @@ public class SupabaseAuthService {
             if (response.getStatusCode() == HttpStatus.OK) {
                 return parseAuthResponse(response.getBody());
             }
+
             if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                 throw new AuthException("Refresh token invalido");
             }
+
             throw new SupabaseIntegrationException("Erro ao renovar sessao no Supabase", null);
         } catch (HttpClientErrorException.Unauthorized e) {
             throw new AuthException("Refresh token invalido");
@@ -307,6 +315,56 @@ public class SupabaseAuthService {
         authService.updatePassword(user.getId(), newPassword);
     }
 
+    public void updateUser(
+            String accessToken,
+            String email,
+            String password,
+            Map<String, Object> userMetadata
+    ) {
+        if (!isSupabaseConfigured()) {
+            return;
+        }
+
+        if (!StringUtils.hasText(accessToken)) {
+            throw new AuthException("Token obrigatorio");
+        }
+
+        Map<String, Object> body = new HashMap<>();
+        if (StringUtils.hasText(email)) {
+            body.put("email", email);
+        }
+        if (StringUtils.hasText(password)) {
+            body.put("password", password);
+        }
+        if (userMetadata != null && !userMetadata.isEmpty()) {
+            body.put("data", userMetadata);
+        }
+
+        if (body.isEmpty()) {
+            return;
+        }
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(
+                    supabaseUrl + USER_ENDPOINT,
+                    HttpMethod.PUT,
+                    new HttpEntity<>(body, buildBearerHeaders(accessToken, supabaseAnonKey)),
+                    String.class
+            );
+
+            if (response.getStatusCode() != HttpStatus.OK && response.getStatusCode() != HttpStatus.CREATED) {
+                throw new SupabaseIntegrationException(
+                        "Erro ao atualizar usuario no Supabase: " + response.getStatusCode(),
+                        null
+                );
+            }
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            throw new SupabaseIntegrationException("Erro ao atualizar usuario no Supabase", e);
+        } catch (RestClientException e) {
+            throw new SupabaseIntegrationException("Falha de conexao com o Supabase", e);
+        }
+    }
+
     public void deleteUser(String supabaseUserId) {
         if (!isSupabaseConfigured() || !StringUtils.hasText(supabaseServiceRole) || !StringUtils.hasText(supabaseUserId)) {
             return;
@@ -320,7 +378,7 @@ public class SupabaseAuthService {
 
             restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
         } catch (RestClientException ignored) {
-            // rollback compensatorio best-effort para nao esconder erro principal do cadastro
+            // best effort para nao mascarar o erro principal da operacao chamadora
         }
     }
 

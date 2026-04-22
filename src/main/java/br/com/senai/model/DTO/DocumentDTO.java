@@ -1,19 +1,20 @@
 package br.com.senai.model.DTO;
 
-import jakarta.validation.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import jakarta.validation.constraints.NotBlank;
+
 public class DocumentDTO {
-    @NotBlank(message = "Nome do documento é obrigatório")
+    @NotBlank(message = "Nome do documento e obrigatorio")
     @JsonAlias("Name")
     private String name;
 
-    @NotBlank(message = "Tipo do documento é obrigatório")
+    @NotBlank(message = "Tipo do documento e obrigatorio")
     @JsonAlias("Type")
     private String type;
 
-    @NotBlank(message = "Documento é obrigatório")
+    @NotBlank(message = "Documento e obrigatorio")
     @JsonAlias({"Data", "base64"})
-    private String data; // Base64 string
+    private String data;
 
     public String getName() {
         return name;

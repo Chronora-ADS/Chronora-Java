@@ -21,8 +21,8 @@ RUN useradd -r -u 1001 appuser
 USER appuser
 
 COPY --from=builder /app/target/*.jar app.jar
-EXPOSE 8080
+EXPOSE 8085
 
 # Basic JVM memory limits (override via JAVA_TOOL_OPTIONS)
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0"
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8085}"]

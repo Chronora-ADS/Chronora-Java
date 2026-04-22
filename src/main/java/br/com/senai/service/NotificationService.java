@@ -1,9 +1,9 @@
 package br.com.senai.service;
 
+import br.com.senai.model.DTO.NotificationEventDTO;
 import br.com.senai.model.entity.NotificationEntity;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
-import br.com.senai.model.DTO.NotificationEventDTO;
 import br.com.senai.repository.NotificationRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -34,6 +34,7 @@ public class NotificationService {
         notification.setUser(user);
         notification.setService(service);
         notification.setNotificationTime(LocalDateTime.now());
+
         NotificationEntity saved = notificationRepository.save(notification);
 
         NotificationEventDTO event = new NotificationEventDTO();

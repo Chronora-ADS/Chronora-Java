@@ -7,7 +7,6 @@ import br.com.senai.service.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +24,6 @@ public class UserController {
 
     private final UserService userService;
 
-    @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -56,9 +54,9 @@ public class UserController {
             @RequestHeader("Authorization") String tokenHeader,
             @RequestBody @Valid UserEditDTO userEditDTO
     ) {
-        logger.info("Editando servico: {}", userEditDTO);
+        logger.info("Editando usuario {}", userEditDTO.getId());
         UserEntity saved = userService.put(userEditDTO, tokenHeader);
-        logger.info("Servico editado com sucesso: {}", saved.getId());
+        logger.info("Usuario editado com sucesso: {}", saved.getId());
         return ResponseEntity.ok(UserResponseDTO.fromEntity(saved));
     }
 

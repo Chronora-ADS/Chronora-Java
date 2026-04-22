@@ -43,23 +43,9 @@ public class ServiceController {
             @RequestHeader("Authorization") String tokenHeader,
             @RequestBody @Valid ServiceDTO serviceDTO
     ) {
-        logger.info("=== INICIANDO CRIACAO DE SERVICO ===");
-        logger.info("Token header: {}", tokenHeader != null ? tokenHeader.substring(0, Math.min(20, tokenHeader.length())) + "..." : "NULL");
-        logger.info("ServiceDTO recebido: {}", serviceDTO);
-        logger.info("Titulo: {}", serviceDTO.getTitle());
-        logger.info("Descricao: {}", serviceDTO.getDescription());
-        logger.info("TimeChronos: {}", serviceDTO.getTimeChronos());
-        logger.info("Deadline: {}", serviceDTO.getDeadline());
-        logger.info("Modality: {}", serviceDTO.getModality());
-        logger.info("Categories: {}", serviceDTO.getCategories());
-        logger.info("ServiceImage: {}", serviceDTO.getServiceImage() != null ? "PRESENTE" : "AUSENTE");
-
+        logger.info("Iniciando criacao de servico");
         ServiceEntity saved = serviceService.create(serviceDTO, tokenHeader);
-
-        logger.info("ServiceEntity salvo: {}", saved);
-        logger.info("ID do servico salvo: {}", saved.getId());
-        logger.info("=== FIM DA CRIACAO DE SERVICO ===");
-
+        logger.info("Servico criado com id {}", saved.getId());
         return ResponseEntity.ok(saved);
     }
 
@@ -68,7 +54,7 @@ public class ServiceController {
             @RequestHeader("Authorization") String tokenHeader,
             @RequestBody @Valid ServiceEditDTO serviceEditDTO
     ) {
-        logger.info("Editando servico: {}", serviceEditDTO);
+        logger.info("Editando servico {}", serviceEditDTO.getId());
         ServiceEntity service = serviceService.put(serviceEditDTO, tokenHeader);
         logger.info("Servico editado com sucesso: {}", service.getId());
         return ResponseEntity.ok(service);
@@ -91,6 +77,14 @@ public class ServiceController {
         return ResponseEntity.ok(serviceService.startService(id, tokenHeader, verificationCode));
     }
 
+    @PutMapping("/expireAcceptedService/{id}")
+    public ResponseEntity<ServiceEntity> expireAcceptedService(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(serviceService.expireAcceptedService(id, tokenHeader));
+    }
+
     @PutMapping("/finishService/{id}")
     public ResponseEntity<ServiceEntity> finishService(
             @RequestHeader("Authorization") String tokenHeader,
@@ -100,12 +94,11 @@ public class ServiceController {
     }
 
     @PutMapping("/cancelService/{id}")
-    public ResponseEntity<Void> cancelService(
+    public ResponseEntity<ServiceEntity> cancelService(
             @RequestHeader("Authorization") String tokenHeader,
             @PathVariable Long id
     ) {
-        serviceService.cancelService(id, tokenHeader);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(serviceService.cancelService(id, tokenHeader));
     }
 
     @DeleteMapping("/delete/{id}")
@@ -113,15 +106,14 @@ public class ServiceController {
             @RequestHeader("Authorization") String tokenHeader,
             @PathVariable Long id
     ) {
-        serviceService.cancelService(id, tokenHeader);
+        serviceService.deleteService(id, tokenHeader);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/get/{id}")
     public ResponseEntity<ServiceEntity> getById(@PathVariable Long id) {
-        logger.info("Buscando servico por ID: {}", id);
+        logger.info("Buscando servico por id {}", id);
         ServiceEntity service = serviceService.getById(id);
-        logger.info("Servico encontrado: {}", service);
         return ResponseEntity.ok(service);
     }
 
@@ -131,9 +123,7 @@ public class ServiceController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) int size
     ) {
-        logger.info("Listando todos os servicos");
         Page<ServiceEntity> services = serviceService.getAll(tokenHeader, page, size);
-        logger.info("Total de servicos encontrados: {}", services.getTotalElements());
         return ResponseEntity.ok(ApiResponse.ofPage(
                 services.getContent(),
                 page,
@@ -150,9 +140,7 @@ public class ServiceController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) int size
     ) {
-        logger.info("Listando todos os servicos por status");
         Page<ServiceEntity> services = serviceService.getAllByStatus(status, tokenHeader, page, size);
-        logger.info("Total de servicos encontrados por status: {}", services.getTotalElements());
         return ResponseEntity.ok(ApiResponse.ofPage(
                 services.getContent(),
                 page,

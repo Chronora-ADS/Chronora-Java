@@ -1,16 +1,17 @@
 package br.com.senai.model.DTO;
 
-import br.com.senai.model.entity.DocumentEntity;
 import jakarta.validation.constraints.Email;
 
 public class UserEditDTO {
     private Long id;
     private String name;
-    @Email(message = "Email do usuário é inválido")
+
+    @Email(message = "Email do usuario e invalido")
     private String email;
+
     private Long phoneNumber;
     private String password;
-    private DocumentEntity document;
+    private DocumentDTO document;
 
     public Long getId() {
         return id;
@@ -52,11 +53,11 @@ public class UserEditDTO {
         this.password = password;
     }
 
-    public DocumentEntity getDocument() {
+    public DocumentDTO getDocument() {
         return document;
     }
 
-    public void setDocument(DocumentEntity document) {
+    public void setDocument(DocumentDTO document) {
         this.document = document;
     }
 }
