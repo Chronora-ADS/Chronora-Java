@@ -1,15 +1,20 @@
 package br.com.senai.controller;
 
+import br.com.senai.model.DTO.ApiResponse;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.service.ServiceService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,10 +22,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/service")
+@Validated
 public class ServiceController {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
@@ -93,11 +100,21 @@ public class ServiceController {
     }
 
     @PutMapping("/cancelService/{id}")
-    public ResponseEntity<ServiceEntity> cancelService(
+    public ResponseEntity<Void> cancelService(
             @RequestHeader("Authorization") String tokenHeader,
             @PathVariable Long id
     ) {
-        return ResponseEntity.ok(serviceService.cancelService(id, tokenHeader));
+        serviceService.cancelService(id, tokenHeader);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteService(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long id
+    ) {
+        serviceService.cancelService(id, tokenHeader);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/get/{id}")
@@ -109,21 +126,39 @@ public class ServiceController {
     }
 
     @GetMapping("/get/all")
-    public ResponseEntity<List<ServiceEntity>> getAll(@RequestHeader("Authorization") String tokenHeader) {
+    public ResponseEntity<ApiResponse<List<ServiceEntity>>> getAll(
+            @RequestHeader("Authorization") String tokenHeader,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) int size
+    ) {
         logger.info("Listando todos os servicos");
-        List<ServiceEntity> services = serviceService.getAll(tokenHeader);
-        logger.info("Total de servicos encontrados: {}", services.size());
-        return ResponseEntity.ok(services);
+        Page<ServiceEntity> services = serviceService.getAll(tokenHeader, page, size);
+        logger.info("Total de servicos encontrados: {}", services.getTotalElements());
+        return ResponseEntity.ok(ApiResponse.ofPage(
+                services.getContent(),
+                page,
+                size,
+                services.getTotalElements(),
+                services.getTotalPages()
+        ));
     }
 
     @GetMapping("/get/all/{status}")
-    public ResponseEntity<List<ServiceEntity>> getAllByStatus(
+    public ResponseEntity<ApiResponse<List<ServiceEntity>>> getAllByStatus(
             @PathVariable ServiceStatus status,
-            @RequestHeader("Authorization") String tokenHeader
+            @RequestHeader("Authorization") String tokenHeader,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) int size
     ) {
         logger.info("Listando todos os servicos por status");
-        List<ServiceEntity> services = serviceService.getAllByStatus(status, tokenHeader);
-        logger.info("Total de servicos encontrados por status: {}", services.size());
-        return ResponseEntity.ok(services);
+        Page<ServiceEntity> services = serviceService.getAllByStatus(status, tokenHeader, page, size);
+        logger.info("Total de servicos encontrados por status: {}", services.getTotalElements());
+        return ResponseEntity.ok(ApiResponse.ofPage(
+                services.getContent(),
+                page,
+                size,
+                services.getTotalElements(),
+                services.getTotalPages()
+        ));
     }
 }

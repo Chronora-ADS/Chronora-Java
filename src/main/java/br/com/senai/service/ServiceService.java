@@ -10,6 +10,7 @@ import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.CategoryEntity;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
+import br.com.senai.model.enums.ServiceModality;
 import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.ServiceRepository;
 import jakarta.transaction.Transactional;
@@ -18,12 +19,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ServiceService {
 
     private static final long VERIFICATION_CODE_EXPIRATION_MINUTES = 2;
+    private static final int MAX_CATEGORY_COUNT = 10;
 
     private final ServiceRepository serviceRepository;
     private final UserService userService;
@@ -45,6 +49,8 @@ public class ServiceService {
     public ServiceEntity create(ServiceDTO serviceDTO, String tokenHeader) {
         UserEntity userEntity = userService.getLoggedUser(tokenHeader);
         validateServiceChronos(serviceDTO.getTimeChronos());
+        validateDescription(serviceDTO.getDescription());
+        validateCategories(serviceDTO.getCategories());
 
         if (serviceDTO.getTimeChronos() > userEntity.getTimeChronos()) {
             throw new QuantityChronosInvalidException("Quantidade de chronos do servico superior a quantidade em carteira.");
@@ -55,7 +61,7 @@ public class ServiceService {
         service.setDescription(serviceDTO.getDescription());
         service.setTimeChronos(serviceDTO.getTimeChronos());
         service.setDeadline(serviceDTO.getDeadline());
-        service.setModality(serviceDTO.getModality());
+        service.setModality(ServiceModality.fromValue(serviceDTO.getModality()));
         service.setPostedAt(LocalDateTime.now());
         service.setStatus(ServiceStatus.CRIADO);
         service.setCategoryEntities(buildCategories(serviceDTO.getCategories()));
@@ -88,6 +94,7 @@ public class ServiceService {
             service.setTitle(serviceEditDTO.getTitle());
         }
         if (serviceEditDTO.getDescription() != null) {
+            validateDescription(serviceEditDTO.getDescription());
             service.setDescription(serviceEditDTO.getDescription());
         }
         if (serviceEditDTO.getTimeChronos() != null) {
@@ -106,10 +113,13 @@ public class ServiceService {
             service.setDeadline(serviceEditDTO.getDeadline());
         }
         if (serviceEditDTO.getModality() != null) {
-            service.setModality(serviceEditDTO.getModality());
+            service.setModality(ServiceModality.fromValue(serviceEditDTO.getModality()));
         }
-        if (serviceEditDTO.getCategoryEntities() != null) {
-            service.setCategoryEntities(serviceEditDTO.getCategoryEntities());
+        if (serviceEditDTO.getCategories() != null) {
+            validateCategories(serviceEditDTO.getCategories());
+            service.setCategoryEntities(buildCategories(serviceEditDTO.getCategories()));
+        } else if (serviceEditDTO.getCategoryEntities() != null) {
+            service.setCategoryEntities(copyCategories(serviceEditDTO.getCategoryEntities()));
         }
         if (serviceEditDTO.getServiceImage() != null && !serviceEditDTO.getServiceImage().isEmpty()) {
             String jwtToken = tokenHeader.substring(7);
@@ -178,11 +188,19 @@ public class ServiceService {
         return service;
     }
 
-    public ServiceEntity cancelService(Long id, String tokenHeader) {
+    @Transactional
+    public void cancelService(Long id, String tokenHeader) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
         ServiceEntity service = getById(id);
 
         if (Objects.equals(user.getId(), service.getUserCreator().getId())) {
+            if (canHardDelete(service)) {
+                userService.buyChronos(tokenHeader, service.getTimeChronos());
+                notificationService.deleteByService(service);
+                serviceRepository.delete(service);
+                return;
+            }
+
             service.setStatus(ServiceStatus.CANCELADO);
             clearVerificationCode(service);
             service = serviceRepository.save(service);
@@ -190,16 +208,24 @@ public class ServiceService {
             if (service.getUserAccepted() != null) {
                 notificationService.create("Pedido cancelado por " + user.getName(), service.getUserAccepted(), service);
             }
-            return service;
+            return;
         }
 
-        service.setUserAccepted(null);
-        service.setStatus(ServiceStatus.CRIADO);
+        if (service.getUserAccepted() == null || !Objects.equals(user.getId(), service.getUserAccepted().getId())) {
+            throw new AuthException("Credenciais invalidas.");
+        }
+
+        if (service.getStatus() == ServiceStatus.ACEITO) {
+            service.setUserAccepted(null);
+            service.setStatus(ServiceStatus.CRIADO);
+        } else {
+            service.setStatus(ServiceStatus.CANCELADO);
+        }
+
         clearVerificationCode(service);
         service = serviceRepository.save(service);
         notificationService.create("Pedido cancelado", user, service);
         notificationService.create("Pedido cancelado por " + user.getName(), service.getUserCreator(), service);
-        return service;
     }
 
     public ServiceEntity getById(Long id) {
@@ -208,9 +234,9 @@ public class ServiceService {
     }
 
     @Transactional
-    public List<ServiceEntity> getAll(String tokenHeader) {
+    public Page<ServiceEntity> getAll(String tokenHeader, int page, int size) {
         userService.getLoggedUser(tokenHeader);
-        return serviceRepository.findAll();
+        return serviceRepository.findAll(PageRequest.of(page, size));
     }
 
     @Transactional
@@ -219,14 +245,29 @@ public class ServiceService {
         return serviceRepository.findAllByStatus(status);
     }
 
+    @Transactional
+    public Page<ServiceEntity> getAllByStatus(ServiceStatus status, String tokenHeader, int page, int size) {
+        userService.getLoggedUser(tokenHeader);
+        return serviceRepository.findAllByStatus(status, PageRequest.of(page, size));
+    }
+
     private List<CategoryEntity> buildCategories(List<String> categories) {
+        validateCategories(categories);
+
         List<CategoryEntity> categoryEntities = new ArrayList<>();
         for (String category : categories) {
             CategoryEntity categoryEntity = new CategoryEntity();
-            categoryEntity.setName(category);
+            categoryEntity.setName(category.trim());
             categoryEntities.add(categoryEntity);
         }
         return categoryEntities;
+    }
+
+    private List<CategoryEntity> copyCategories(List<CategoryEntity> categories) {
+        List<String> categoryNames = categories.stream()
+                .map(CategoryEntity::getName)
+                .toList();
+        return buildCategories(categoryNames);
     }
 
     private void clearVerificationCode(ServiceEntity service) {
@@ -245,5 +286,33 @@ public class ServiceService {
         if (timeChronos > 100) {
             throw new QuantityChronosInvalidException("Limite de chronos de 100 por servico excedido.");
         }
+    }
+
+    private void validateDescription(String description) {
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("Descricao do servico e obrigatoria");
+        }
+        if (description.length() > 2500) {
+            throw new IllegalArgumentException("Descricao do servico deve ter no maximo 2500 caracteres");
+        }
+    }
+
+    private void validateCategories(List<String> categories) {
+        if (categories == null || categories.isEmpty()) {
+            throw new IllegalArgumentException("Categoria do servico e obrigatoria");
+        }
+        if (categories.size() > MAX_CATEGORY_COUNT) {
+            throw new IllegalArgumentException("O servico pode ter no maximo 10 categorias");
+        }
+
+        boolean hasBlankCategory = categories.stream()
+                .anyMatch(category -> category == null || category.isBlank());
+        if (hasBlankCategory) {
+            throw new IllegalArgumentException("Categoria do servico e obrigatoria");
+        }
+    }
+
+    private boolean canHardDelete(ServiceEntity service) {
+        return service.getStatus() == ServiceStatus.CRIADO || service.getStatus() == ServiceStatus.ACEITO;
     }
 }

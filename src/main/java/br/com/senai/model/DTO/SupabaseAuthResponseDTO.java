@@ -4,14 +4,16 @@ public class SupabaseAuthResponseDTO {
     private SupabaseUserDTO user;
     private String accessToken;
     private String refreshToken;
+    private Long expiresIn;
 
     public SupabaseAuthResponseDTO() {
     }
 
-    public SupabaseAuthResponseDTO(SupabaseUserDTO user, String accessToken, String refreshToken) {
+    public SupabaseAuthResponseDTO(SupabaseUserDTO user, String accessToken, String refreshToken, Long expiresIn) {
         this.user = user;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
+        this.expiresIn = expiresIn;
     }
 
     public static Builder builder() {
@@ -42,10 +44,19 @@ public class SupabaseAuthResponseDTO {
         this.refreshToken = refreshToken;
     }
 
+    public Long getExpiresIn() {
+        return expiresIn;
+    }
+
+    public void setExpiresIn(Long expiresIn) {
+        this.expiresIn = expiresIn;
+    }
+
     public static class Builder {
         private SupabaseUserDTO user;
         private String accessToken;
         private String refreshToken;
+        private Long expiresIn;
 
         public Builder user(SupabaseUserDTO user) {
             this.user = user;
@@ -62,8 +73,13 @@ public class SupabaseAuthResponseDTO {
             return this;
         }
 
+        public Builder expiresIn(Long expiresIn) {
+            this.expiresIn = expiresIn;
+            return this;
+        }
+
         public SupabaseAuthResponseDTO build() {
-            return new SupabaseAuthResponseDTO(user, accessToken, refreshToken);
+            return new SupabaseAuthResponseDTO(user, accessToken, refreshToken, expiresIn);
         }
     }
 }

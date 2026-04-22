@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,6 +15,7 @@ public class ServiceDTO {
     private String title;
 
     @NotBlank(message = "Descricao do servico e obrigatoria")
+    @Size(max = 2500, message = "Descricao do servico deve ter no maximo 2500 caracteres")
     private String description;
 
     @NotNull(message = "Tempo em Chronos do servico e obrigatorio")
@@ -28,7 +30,8 @@ public class ServiceDTO {
     private LocalDate deadline;
 
     @NotEmpty(message = "Categoria do servico e obrigatoria")
-    private List<String> categories;
+    @Size(max = 10, message = "O servico pode ter no maximo 10 categorias")
+    private List<@NotBlank(message = "Categoria do servico e obrigatoria") String> categories;
 
     @NotBlank(message = "Imagem de servico e obrigatoria")
     private String serviceImage;

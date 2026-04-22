@@ -1,7 +1,9 @@
 package br.com.senai.model.entity;
 
+import br.com.senai.model.enums.ServiceModality;
 import br.com.senai.model.enums.ServiceStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -18,6 +20,7 @@ import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -39,8 +42,9 @@ public class ServiceEntity {
     @Column(nullable = false)
     private LocalDate deadline;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String modality;
+    private ServiceModality modality;
 
     @Column(nullable = false)
     private LocalDateTime postedAt;
@@ -114,11 +118,11 @@ public class ServiceEntity {
         this.deadline = deadline;
     }
 
-    public String getModality() {
+    public ServiceModality getModality() {
         return modality;
     }
 
-    public void setModality(String modality) {
+    public void setModality(ServiceModality modality) {
         this.modality = modality;
     }
 
@@ -154,12 +158,27 @@ public class ServiceEntity {
         this.verificationCodeExpiresAt = verificationCodeExpiresAt;
     }
 
+    @JsonProperty("categoryEntities")
     public List<CategoryEntity> getCategoryEntities() {
+        if (categoryEntities == null) {
+            return Collections.emptyList();
+        }
         return categoryEntities;
     }
 
     public void setCategoryEntities(List<CategoryEntity> categoryEntities) {
         this.categoryEntities = categoryEntities;
+    }
+
+    @JsonProperty("categories")
+    public List<String> getCategories() {
+        if (categoryEntities == null) {
+            return Collections.emptyList();
+        }
+
+        return categoryEntities.stream()
+                .map(CategoryEntity::getName)
+                .toList();
     }
 
     public String getServiceImageUrl() {
@@ -168,6 +187,11 @@ public class ServiceEntity {
 
     public void setServiceImageUrl(String serviceImageUrl) {
         this.serviceImageUrl = serviceImageUrl;
+    }
+
+    @JsonProperty("serviceImage")
+    public String getServiceImage() {
+        return serviceImageUrl;
     }
 
     public UserEntity getUserCreator() {

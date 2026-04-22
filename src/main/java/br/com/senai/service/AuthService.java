@@ -54,13 +54,7 @@ public class AuthService implements UserDetailsService {
     }
 
     public UserEntity register(UserDTO userDTO, String supabaseUserId) {
-        if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
-            throw new EmailAlreadyExistsException(userDTO.getEmail());
-        }
-
-        if (userRepository.findByPhoneNumber(userDTO.getPhoneNumber()).isPresent()) {
-            throw new PhoneNumberAlreadyExistsException(userDTO.getPhoneNumber().toString());
-        }
+        validateUniqueEmailAndPhone(userDTO.getEmail(), userDTO.getPhoneNumber());
 
         String documentUrl = storageService.uploadBase64Image(
                 userDTO.getDocument().getData(),
@@ -86,11 +80,27 @@ public class AuthService implements UserDetailsService {
         return userRepository.save(userEntity);
     }
 
+    public void validateUniqueEmailAndPhone(String email, Long phoneNumber) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new EmailAlreadyExistsException(email);
+        }
+
+        if (userRepository.findByPhoneNumber(phoneNumber).isPresent()) {
+            throw new PhoneNumberAlreadyExistsException(phoneNumber.toString());
+        }
+    }
+
     public Map<String, Object> buildUserMetadata(UserDTO userDTO) {
         Map<String, Object> userMetadata = new HashMap<>();
         userMetadata.put("name", userDTO.getName());
         userMetadata.put("phone", userDTO.getPhoneNumber());
         return userMetadata;
+    }
+
+    public void updatePassword(String supabaseUserId, String rawPassword) {
+        UserEntity userEntity = findBySupabaseUserId(supabaseUserId);
+        userEntity.setPassword(passwordEncoder.encode(rawPassword));
+        userRepository.save(userEntity);
     }
 
     public UserEntity authenticate(LoginDTO loginDTO) {

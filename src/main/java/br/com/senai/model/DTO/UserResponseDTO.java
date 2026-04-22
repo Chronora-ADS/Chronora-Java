@@ -1,6 +1,7 @@
 package br.com.senai.model.DTO;
 
 import br.com.senai.model.entity.UserEntity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UserResponseDTO {
     private Long id;
@@ -8,6 +9,8 @@ public class UserResponseDTO {
     private String email;
     private Long phoneNumber;
     private Integer timeChronos;
+    private Double rating;
+    private String profileImage;
     private DocumentResponseDTO document;
 
     public static UserResponseDTO fromEntity(UserEntity userEntity) {
@@ -17,6 +20,8 @@ public class UserResponseDTO {
         response.setEmail(userEntity.getEmail());
         response.setPhoneNumber(userEntity.getPhoneNumber());
         response.setTimeChronos(userEntity.getTimeChronos());
+        response.setRating(0.0);
+        response.setProfileImage(null);
         response.setDocument(DocumentResponseDTO.fromEntity(userEntity.getDocumentEntity()));
         return response;
     }
@@ -59,6 +64,27 @@ public class UserResponseDTO {
 
     public void setTimeChronos(Integer timeChronos) {
         this.timeChronos = timeChronos;
+    }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    @JsonProperty("saldoChronos")
+    public Integer getSaldoChronos() {
+        return timeChronos;
     }
 
     public DocumentResponseDTO getDocument() {
