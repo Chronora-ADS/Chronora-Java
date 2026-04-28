@@ -3,6 +3,7 @@ package br.com.senai.controller;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
+import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.service.ServiceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,9 +47,39 @@ public class ServiceController {
     @PutMapping("/put")
     public ResponseEntity<ServiceEntity> put(@RequestHeader("Authorization") String tokenHeader, @RequestBody ServiceEditDTO serviceEditDTO) {
         logger.info("Editando serviço: {}", serviceEditDTO);
-        ServiceEntity saved = serviceService.put(serviceEditDTO, tokenHeader);
-        logger.info("Serviço editado com sucesso: {}", saved.getId());
-        return ResponseEntity.ok(saved);
+        ServiceEntity service = serviceService.put(serviceEditDTO, tokenHeader);
+        logger.info("Serviço editado com sucesso: {}", service.getId());
+        return ResponseEntity.ok(service);
+    }
+
+    @PutMapping("/acceptService/{id}")
+    public ResponseEntity<ServiceEntity> acceptService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
+        ServiceEntity service = serviceService.acceptService(id, tokenHeader);
+        return ResponseEntity.ok(service);
+    }
+
+    @PutMapping("/startService/{id}")
+    public ResponseEntity<ServiceEntity> startService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id, @RequestBody String verificationCode) {
+        ServiceEntity service = serviceService.startService(id, tokenHeader, verificationCode);
+        return ResponseEntity.ok(service);
+    }
+
+    @PutMapping("/expireAcceptedService/{id}")
+    public ResponseEntity<ServiceEntity> expireAcceptedService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
+        ServiceEntity service = serviceService.expireAcceptedService(id, tokenHeader);
+        return ResponseEntity.ok(service);
+    }
+
+    @PutMapping("/finishService/{id}")
+    public ResponseEntity<ServiceEntity> finishService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
+        ServiceEntity service = serviceService.finishService(id, tokenHeader);
+        return ResponseEntity.ok(service);
+    }
+
+    @PutMapping("/cancelService/{id}")
+    public ResponseEntity<ServiceEntity> cancelService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
+        ServiceEntity service = serviceService.cancelService(id, tokenHeader);
+        return ResponseEntity.ok(service);
     }
 
     @GetMapping("/get/{id}")
@@ -64,6 +95,14 @@ public class ServiceController {
         logger.info("Listando todos os serviços");
         List<ServiceEntity> services = serviceService.getAll(tokenHeader);
         logger.info("Total de serviços encontrados: {}", services.size());
+        return ResponseEntity.ok(services);
+    }
+
+    @GetMapping("/get/all/{status}")
+    public ResponseEntity<List<ServiceEntity>> getAllByStatus(@PathVariable ServiceStatus status, @RequestHeader("Authorization") String tokenHeader) {
+        logger.info("Listando todos os serviços por status");
+        List<ServiceEntity> services = serviceService.getAllByStatus(status, tokenHeader);
+        logger.info("Total de serviços encontrados por status: {}", services.size());
         return ResponseEntity.ok(services);
     }
 }

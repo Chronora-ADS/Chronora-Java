@@ -1,6 +1,6 @@
 package br.com.senai.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import br.com.senai.model.enums.ServiceStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -34,6 +34,13 @@ public class ServiceEntity {
 
     @Column(nullable = false)
     private LocalDateTime postedAt;
+
+    @Column(nullable = false)
+    private ServiceStatus status;
+
+    private String verificationCode;
+
+    private LocalDateTime verificationCodeExpiresAt;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(

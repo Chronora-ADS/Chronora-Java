@@ -2,9 +2,9 @@
 
 Backend Spring Boot da Chronora.
 
-## Render production
+## Render dev
 
-O deploy de producao esta preparado para a branch `main` com o arquivo `render.yaml`.
+O deploy de desenvolvimento esta preparado para a branch `master` com o arquivo `render.yaml`.
 
 ### Variaveis obrigatorias
 
@@ -36,29 +36,11 @@ O deploy de producao esta preparado para a branch `main` com o arquivo `render.y
 
 ## Rodar localmente
 
-Use Java 17 JDK.
+Use Java 17.
 
-### Arquivos locais
+### Opcao 1: arquivo local ignorado pelo Git
 
-- Crie um arquivo `.env.local` na raiz com base em `.env.local.example`
-- O arquivo `.env.local` esta no `.gitignore` e nao deve ser commitado
-
-### Exemplo de `.env.local`
-
-```text
-SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_ANON_KEY=cole_a_chave_anon_aqui
-SUPABASE_SERVICE_ROLE=cole_a_chave_service_role_aqui
-SPRING_DATASOURCE_URL=jdbc:postgresql://seu-host:5432/postgres?sslmode=require
-SPRING_DATASOURCE_USERNAME=postgres.seu_project_ref
-SPRING_DATASOURCE_PASSWORD=cole_a_senha_do_banco_aqui
-SUPABASE_STORAGE_BUCKET=service-images
-APP_SEED_ENABLED=false
-```
-
-### Opcao recomendada
-
-Execute:
+Preencha um arquivo `.env.local` na raiz com base em `.env.local.example` e execute:
 
 ```powershell
 .\scripts\run-local.ps1
@@ -77,7 +59,6 @@ Defina as mesmas variaveis de ambiente e execute:
 ```powershell
 .\mvnw spring-boot:run
 ```
-
 ### Observacoes
 
 - Se o PowerShell bloquear a execucao do script, rode:

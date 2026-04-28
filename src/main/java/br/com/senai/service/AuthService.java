@@ -59,7 +59,8 @@ public class AuthService implements UserDetailsService {
         String documentUrl = storageService.uploadBase64Image(
                 userDTO.getDocument().getData(),
                 "users",
-                null
+                null,
+                userDTO.getDocument().getType()
         );
 
         UserEntity userEntity = new UserEntity();

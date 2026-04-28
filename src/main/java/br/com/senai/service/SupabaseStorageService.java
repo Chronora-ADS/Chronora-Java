@@ -1,11 +1,17 @@
 package br.com.senai.service;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Base64;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -25,38 +31,23 @@ public class SupabaseStorageService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    /**
-     * Faz upload de uma imagem codificada em Base64 e retorna a URL pública.
-     * @param base64Image A string Base64 da imagem (pode conter prefixo data:image/...)
-     * @param folder Subpasta dentro do bucket (ex: "users", "services")
-     */
     public String uploadBase64Image(String base64Image, String folder, String userJwtToken) {
-        // 1. Extrair os dados Base64 (remover prefixo data:image/... se existir)
+        return uploadBase64Image(base64Image, folder, userJwtToken, null);
+    }
+
+    public String uploadBase64Image(String base64Image, String folder, String userJwtToken, String fileTypeHint) {
         String[] partes = base64Image.split(",");
         String dadosBase64 = (partes.length > 1) ? partes[1] : partes[0];
         byte[] imageBytes = Base64.getDecoder().decode(dadosBase64);
 
-        // 2. Gerar nome único para o arquivo (UUID + extensão)
-        String extension = guessExtension(base64Image); // você pode implementar ou fixar .png
-        String fileName = folder + "/" + UUID.randomUUID().toString() + extension;
-
-        // 3. Fazer upload via API REST do Supabase Storage
+        String extension = guessExtension(base64Image, fileTypeHint);
+        String fileName = folder + "/" + UUID.randomUUID() + extension;
         String uploadUrl = supabaseUrl + "/storage/v1/object/" + bucketName + "/" + fileName;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.IMAGE_PNG); // Ajuste conforme o tipo real
+        headers.setContentType(resolveMediaType(extension));
         headers.set("apikey", anonKey);
-
-        String tokenToUse;
-        if (userJwtToken != null && !userJwtToken.isEmpty()) {
-            // Se temos um token do usuário logado, usamos ele
-            tokenToUse = userJwtToken;
-        } else {
-            // Operação interna (sem usuário logado), usamos a service role key
-            tokenToUse = serviceRole;
-        }
-
-        headers.set("Authorization", "Bearer " + tokenToUse);
+        headers.set("Authorization", "Bearer " + resolveToken(userJwtToken));
 
         HttpEntity<byte[]> requestEntity = new HttpEntity<>(imageBytes, headers);
 
@@ -67,27 +58,56 @@ public class SupabaseStorageService {
                 String.class
         );
 
-        if (response.getStatusCode() == HttpStatus.OK) {
-            // 4. Retornar URL pública
+        if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED) {
             return supabaseUrl + "/storage/v1/object/public/" + bucketName + "/" + fileName;
-        } else {
-            throw new RuntimeException("Falha no upload da imagem: " + response.getStatusCode());
         }
+
+        throw new RuntimeException("Falha no upload da imagem: " + response.getStatusCode());
     }
 
-    /**
-     * Adivinha a extensão do arquivo a partir do prefixo Base64 (ex: "data:image/png;base64,")
-     * Se não conseguir, retorna ".png" como padrão.
-     */
-    private String guessExtension(String base64Image) {
+    private String resolveToken(String userJwtToken) {
+        if (userJwtToken != null && !userJwtToken.isEmpty()) {
+            return userJwtToken;
+        }
+        return serviceRole;
+    }
+
+    private String guessExtension(String base64Image, String fileTypeHint) {
+        if (fileTypeHint != null && !fileTypeHint.isBlank()) {
+            String normalized = normalizeExtension(fileTypeHint);
+            if (!normalized.isBlank()) {
+                return "." + normalized;
+            }
+        }
+
         if (base64Image.startsWith("data:image/")) {
             int start = "data:image/".length();
             int end = base64Image.indexOf(";", start);
             if (end != -1) {
-                String type = base64Image.substring(start, end);
-                return "." + type; // "png", "jpeg", etc.
+                return "." + normalizeExtension(base64Image.substring(start, end));
             }
         }
-        return ".png"; // padrão
+
+        return ".png";
+    }
+
+    private String normalizeExtension(String extension) {
+        String normalized = extension.trim().toLowerCase(Locale.ROOT);
+        if (normalized.startsWith(".")) {
+            normalized = normalized.substring(1);
+        }
+        if ("jpeg".equals(normalized)) {
+            return "jpg";
+        }
+        return normalized;
+    }
+
+    private MediaType resolveMediaType(String extension) {
+        return switch (normalizeExtension(extension)) {
+            case "jpg" -> MediaType.IMAGE_JPEG;
+            case "gif" -> MediaType.IMAGE_GIF;
+            case "webp" -> MediaType.parseMediaType("image/webp");
+            default -> MediaType.IMAGE_PNG;
+        };
     }
 }

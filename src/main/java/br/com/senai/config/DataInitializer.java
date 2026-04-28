@@ -1,5 +1,6 @@
 package br.com.senai.config;
 
+import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.service.SupabaseStorageService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +25,6 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Configuration
-@RequiredArgsConstructor
 public class DataInitializer {
 
     private final UserRepository userRepository;
@@ -32,6 +32,20 @@ public class DataInitializer {
     private final SupabaseAuthService supabaseAuthService;
     private final AuthService authService;
     private final SupabaseStorageService storageService;
+
+    public DataInitializer(
+            UserRepository userRepository,
+            ServiceRepository serviceRepository,
+            SupabaseAuthService supabaseAuthService,
+            AuthService authService,
+            SupabaseStorageService storageService
+    ) {
+        this.userRepository = userRepository;
+        this.serviceRepository = serviceRepository;
+        this.supabaseAuthService = supabaseAuthService;
+        this.authService = authService;
+        this.storageService = storageService;
+    }
 
     @Bean
     @ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true")
@@ -142,6 +156,7 @@ public class DataInitializer {
         service.setModality(modality);
         service.setDeadline(deadline);
         service.setPostedAt(LocalDateTime.now());
+        service.setStatus(ServiceStatus.CRIADO);
         service.setCategoryEntities(categories);
         service.setUserCreator(userCreator);
         service.setServiceImageUrl(imageUrl);
