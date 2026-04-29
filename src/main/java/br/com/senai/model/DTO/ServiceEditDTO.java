@@ -14,6 +14,7 @@ public class ServiceEditDTO {
     private Integer timeChronos;
     private String modality;
     private LocalDate deadline;
+    private List<String> categories;
     private List<CategoryEntity> categoryEntities;
     private String serviceImage;
 }

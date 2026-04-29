@@ -52,13 +52,7 @@ public class ServiceService {
         service.setModality(serviceDTO.getModality());
         service.setPostedAt(LocalDateTime.now());
         service.setStatus(ServiceStatus.CRIADO);
-        List<CategoryEntity> categories = new ArrayList<>();
-        for (String category : serviceDTO.getCategories()) {
-            CategoryEntity categoryEntity = new CategoryEntity();
-            categoryEntity.setName(category);
-            categories.add(categoryEntity);
-        }
-        service.setCategoryEntities(categories);
+        service.setCategoryEntities(toCategoryEntities(serviceDTO.getCategories()));
         service.setUserCreator(userEntity);
 
         if (serviceDTO.getServiceImage() != null && !serviceDTO.getServiceImage().isEmpty()) {
@@ -83,7 +77,7 @@ public class ServiceService {
             throw new AuthException("Credenciais invalidas.");
         }
 
-        if (serviceEditDTO.getTimeChronos() > 100) {
+        if (serviceEditDTO.getTimeChronos() != null && serviceEditDTO.getTimeChronos() > 100) {
             throw new QuantityChronosInvalidException("Limite de chronos de 100 por servico excedido.");
         }
 
@@ -106,7 +100,9 @@ public class ServiceService {
         if (serviceEditDTO.getModality() != null) {
             service.setModality(serviceEditDTO.getModality());
         }
-        if (serviceEditDTO.getCategoryEntities() != null) {
+        if (serviceEditDTO.getCategories() != null) {
+            service.setCategoryEntities(toCategoryEntities(serviceEditDTO.getCategories()));
+        } else if (serviceEditDTO.getCategoryEntities() != null) {
             service.setCategoryEntities(serviceEditDTO.getCategoryEntities());
         }
         if (serviceEditDTO.getServiceImage() != null) {
@@ -121,6 +117,20 @@ public class ServiceService {
         notificationService.create(notificationMessage, userEntity, service);
 
         return service;
+    }
+
+    private List<CategoryEntity> toCategoryEntities(List<String> categoryNames) {
+        List<CategoryEntity> categories = new ArrayList<>();
+        for (String categoryName : categoryNames) {
+            if (categoryName == null || categoryName.trim().isEmpty()) {
+                continue;
+            }
+
+            CategoryEntity categoryEntity = new CategoryEntity();
+            categoryEntity.setName(categoryName.trim());
+            categories.add(categoryEntity);
+        }
+        return categories;
     }
 
     private ServiceEntity changeStatus(Long id, ServiceStatus status) {
