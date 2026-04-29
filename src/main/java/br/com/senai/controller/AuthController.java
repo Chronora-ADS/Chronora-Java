@@ -49,7 +49,8 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody UserDTO userDTO) {
         try {
-            // 1. Registrar no Supabase
+            authService.validateRegistrationAvailable(userDTO);
+
             Map<String, Object> userMetadata = new HashMap<>();
             userMetadata.put("name", userDTO.getName());
             userMetadata.put("phone", userDTO.getPhoneNumber());
@@ -60,8 +61,13 @@ public class AuthController {
                     userMetadata
             );
 
-            // 2. Registrar no banco local com o ID do Supabase
-            UserEntity newUser = authService.register(userDTO, supabaseUserDTO.getId());
+            UserEntity newUser;
+            try {
+                newUser = authService.register(userDTO, supabaseUserDTO.getId());
+            } catch (Exception e) {
+                supabaseAuthService.deleteUser(supabaseUserDTO.getId());
+                throw e;
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Usuário criado com sucesso");

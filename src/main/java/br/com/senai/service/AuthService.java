@@ -47,7 +47,7 @@ public class AuthService implements UserDetailsService {
                 .orElseThrow(() -> new UserNotFoundException("Usuário com ID Supabase " + supabaseUserId + " não encontrado."));
     }
 
-    public UserEntity register(UserDTO userDTO, String supabaseUserId) throws RuntimeException {
+    public void validateRegistrationAvailable(UserDTO userDTO) {
         if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException(userDTO.getEmail());
         }
@@ -55,6 +55,10 @@ public class AuthService implements UserDetailsService {
         if (userRepository.findByPhoneNumber(userDTO.getPhoneNumber()).isPresent()) {
             throw new PhoneNumberAlreadyExistsException(userDTO.getPhoneNumber().toString());
         }
+    }
+
+    public UserEntity register(UserDTO userDTO, String supabaseUserId) throws RuntimeException {
+        validateRegistrationAvailable(userDTO);
 
         String documentUrl = storageService.uploadBase64Image(
                 userDTO.getDocument().getData(),
