@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0017-add-deadline-notified-to-service
+      author: seu-nome
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            columnExists:
+              tableName: service
+              columnName: deadline_notified
+      changes:
+        - addColumn:
+            tableName: service
+            columns:
+              - column:
+                  name: deadline_notified
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

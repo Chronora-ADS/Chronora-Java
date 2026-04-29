@@ -3,6 +3,7 @@ package br.com.senai.model.entity;
 import br.com.senai.model.enums.ServiceStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -62,4 +63,7 @@ public class ServiceEntity {
     @JoinColumn(name = "user_accepted_id")
     @JsonIgnoreProperties({"password", "roles", "documentEntity", "supabaseUserId"})
     private UserEntity userAccepted;
+
+    @Column(nullable = false)
+    private boolean deadlineNotified = false;
 }
