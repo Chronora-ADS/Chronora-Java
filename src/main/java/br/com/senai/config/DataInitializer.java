@@ -117,29 +117,29 @@ public class DataInitializer {
                 createService("Manutenção Preventiva de Eletrodomésticos",
                         "Procuro um técnico qualificado para realizar manutenção preventiva em geladeira, lavadora e micro-ondas em casa. " +
                                 "Preciso de limpeza profunda, verificação de componentes e ajustes para evitar falhas futuras.",
-                        6, "PRESENCIAL", LocalDate.now().plusDays(15),
+                        6, "Presencial", LocalDate.now().plusDays(15),
                         createCategoryList("Manutenção", "Técnico", "Eletrodomésticos"), serviceImageUrl, managedUser),
                 createService("Desentupimento de Pia e Vaso Sanitário",
                         "Preciso de um encanador para desentupir a pia da cozinha e o vaso sanitário do banheiro. A situação está urgente e " +
                                 "preciso de um profissional confiável que use equipamentos adequados sem danificar a tubulação.",
-                        4, "PRESENCIAL", LocalDate.now().plusDays(7),
+                        4, "Presencial", LocalDate.now().plusDays(7),
                         createCategoryList("Encanamento", "Urgente", "Com equipamentos"), serviceImageUrl, managedUser),
                 createService("Instalação de Tomadas e Interruptores",
                         "Estou buscando um eletricista para instalar novas tomadas e interruptores no apartamento, além de atualizar o " +
                                 "quadro de luz conforme a norma ABNT NBR 5410. Preciso de segurança e qualidade no serviço.",
-                        8, "PRESENCIAL", LocalDate.now().plusDays(10),
+                        8, "Presencial", LocalDate.now().plusDays(10),
                         createCategoryList("Elétrica", "Eletricista", "Tomadas", "Interruptores", "Quadro de Luz"), serviceImageUrl, managedUser),
                 createService("Terapia Cognitivo-Comportamental Online",
                         "Procuro um psicólogo registrado e especializado em Terapia Cognitivo-Comportamental (TCC) para atendimento online. " +
                                 "Estou enfrentando ansiedade e estresse crônico e busco um profissional com experiência comprovada, que ofereça sessões " +
                                 "seguras e confidenciais via plataforma de videochamada.",
-                        5, "REMOTO", LocalDate.now().plusDays(10),
+                        5, "Remoto", LocalDate.now().plusDays(10),
                         createCategoryList("Saúde Mental", "Terapia", "TCC", "Ansiedade"), serviceImageUrl, managedUser),
                 createService("Desenvolvimento de APIs com Spring Boot",
                         "Preciso de um desenvolvedor backend especialista em Spring Boot para criar uma API RESTful robusta, com autenticação JWT," +
                                 " integração com banco de dados PostgreSQL e tratamento personalizado de exceções. Busco boas práticas de código, documentação " +
                                 "clara e entrega em prazo definido.",
-                        9, "REMOTO", LocalDate.now().plusDays(12),
+                        9, "Remoto", LocalDate.now().plusDays(12),
                         createCategoryList("Desenvolvimento de Software", "Backend", "Spring Boot", "Java", "JWT", "PostgreSQL", "Documentação"),
                         serviceImageUrl, managedUser)
         );
