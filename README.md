@@ -45,6 +45,8 @@ Preencha um arquivo `.env.local` na raiz com base em `.env.local.example` e exec
 .\scripts\run-local.ps1
 ```
 
+Por padrao, o backend fica disponivel em `http://localhost:8085/` quando a variavel `PORT` nao estiver definida.
+
 ### Opcao 2: variaveis no terminal
 
 Defina as mesmas variaveis de ambiente e execute:
