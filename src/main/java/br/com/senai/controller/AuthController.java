@@ -48,7 +48,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody UserDTO userDTO) {
-        authService.validateUniqueEmailAndPhone(userDTO.getEmail(), userDTO.getPhoneNumber());
+        authService.validateRegistrationAvailable(userDTO);
 
         SupabaseUserDTO supabaseUserDTO = supabaseAuthService.signUp(
                 userDTO.getEmail(),

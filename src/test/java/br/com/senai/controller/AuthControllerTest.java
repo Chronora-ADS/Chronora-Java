@@ -3,11 +3,15 @@ package br.com.senai.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
 import br.com.senai.model.DTO.DocumentDTO;
 import br.com.senai.model.DTO.LoginDTO;
 import br.com.senai.model.DTO.SupabaseAuthResponseDTO;
@@ -83,9 +87,27 @@ class AuthControllerTest {
         assertEquals(1L, response.getBody().getId());
         assertEquals("Ana Silva", response.getBody().getName());
         assertEquals("ana@chronora.com", response.getBody().getEmail());
-        verify(authService).validateUniqueEmailAndPhone("ana@chronora.com", 11999999999L);
+        verify(authService).validateRegistrationAvailable(userDTO);
         verify(supabaseAuthService).signUp(eq("ana@chronora.com"), eq("senha123"), anyMap());
         verify(authService).register(userDTO, "supabase-123");
+    }
+
+    @Test
+    void deveNaoCriarUsuarioSupabaseQuandoTelefoneJaExiste() {
+        UserDTO userDTO = criarUserDTO();
+        PhoneNumberAlreadyExistsException erro = new PhoneNumberAlreadyExistsException(
+                userDTO.getPhoneNumber().toString()
+        );
+        doThrow(erro).when(authService).validateRegistrationAvailable(userDTO);
+
+        PhoneNumberAlreadyExistsException thrown = assertThrows(
+                PhoneNumberAlreadyExistsException.class,
+                () -> authController.register(userDTO)
+        );
+
+        assertSame(erro, thrown);
+        verify(supabaseAuthService, never()).signUp(any(), any(), anyMap());
+        verify(authService, never()).register(any(), any());
     }
 
     @Test

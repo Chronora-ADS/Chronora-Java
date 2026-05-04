@@ -123,7 +123,6 @@ public class ServiceService {
         }
 
         if (serviceEditDTO.getCategories() != null) {
-            validateCategories(serviceEditDTO.getCategories());
             service.setCategoryEntities(buildCategories(serviceEditDTO.getCategories()));
         } else if (serviceEditDTO.getCategoryEntities() != null) {
             service.setCategoryEntities(copyCategories(serviceEditDTO.getCategoryEntities()));

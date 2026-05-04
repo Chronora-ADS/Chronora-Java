@@ -176,6 +176,42 @@ class ServiceServiceTest {
     }
 
     @Test
+    void deveAtualizarCategoriasAPartirDoCampoCategoriesNaEdicao() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        ServiceEditDTO editDTO = new ServiceEditDTO();
+        editDTO.setId(10L);
+        editDTO.setCategories(List.of(" Categoria nova A ", "Categoria nova B"));
+
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(any(ServiceEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ServiceEntity atualizado = serviceService.put(editDTO, TOKEN_HEADER);
+
+        assertEquals(List.of("Categoria nova A", "Categoria nova B"), atualizado.getCategories());
+        ArgumentCaptor<ServiceEntity> serviceCaptor = ArgumentCaptor.forClass(ServiceEntity.class);
+        verify(serviceRepository).save(serviceCaptor.capture());
+        assertEquals(List.of("Categoria nova A", "Categoria nova B"), serviceCaptor.getValue().getCategories());
+        verify(notificationService).create("Pedido editado", criador, service);
+    }
+
+    @Test
+    void deveRejeitarCategoriaEmBrancoNaEdicao() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        ServiceEditDTO editDTO = new ServiceEditDTO();
+        editDTO.setId(10L);
+        editDTO.setCategories(List.of("Categoria valida", " "));
+
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
+
+        assertThrows(IllegalArgumentException.class, () -> serviceService.put(editDTO, TOKEN_HEADER));
+
+        verify(serviceRepository, never()).save(any());
+        verify(notificationService, never()).create(any(), any(), any());
+    }
+
+    @Test
     void deveEditarPedidoComSucessoQuandoUsuarioForProprietarioEDevolverChronos() {
         ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 40);
         ServiceEditDTO editDTO = new ServiceEditDTO();
@@ -284,6 +320,25 @@ class ServiceServiceTest {
         assertEquals(ServiceStatus.CRIADO, service.getStatus());
         assertNull(service.getUserAccepted());
         assertNull(service.getVerificationCode());
+        verify(notificationService).create("Tempo para iniciar o pedido expirou", criador, service);
+        verify(notificationService).create("Tempo para iniciar o pedido expirou", prestador, service);
+    }
+
+    @Test
+    void deveExpirarAceiteDePedidoQuandoPrazoVencido() {
+        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
+        service.setVerificationCode("1234");
+        service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        ServiceEntity expirado = serviceService.expireAcceptedService(10L, TOKEN_HEADER);
+
+        assertSame(service, expirado);
+        assertEquals(ServiceStatus.CRIADO, expirado.getStatus());
+        assertNull(expirado.getUserAccepted());
+        assertNull(expirado.getVerificationCode());
         verify(notificationService).create("Tempo para iniciar o pedido expirou", criador, service);
         verify(notificationService).create("Tempo para iniciar o pedido expirou", prestador, service);
     }

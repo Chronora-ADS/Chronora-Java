@@ -9,17 +9,16 @@ import br.com.senai.model.DTO.UserDTO;
 import br.com.senai.model.entity.DocumentEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.UserRepository;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class AuthService implements UserDetailsService {
@@ -45,16 +44,22 @@ public class AuthService implements UserDetailsService {
                         .password(userEntity.getPassword())
                         .roles(userEntity.getRoles().toArray(new String[0]))
                         .build())
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado."));
     }
 
     public UserEntity findBySupabaseUserId(String supabaseUserId) {
         return userRepository.findBySupabaseUserId(supabaseUserId)
-                .orElseThrow(() -> new UserNotFoundException("Usuário com ID Supabase " + supabaseUserId + " não encontrado."));
+                .orElseThrow(() -> new UserNotFoundException(
+                        "Usuario com ID Supabase " + supabaseUserId + " nao encontrado."
+                ));
+    }
+
+    public void validateRegistrationAvailable(UserDTO userDTO) {
+        validateUniqueEmailAndPhone(userDTO.getEmail(), userDTO.getPhoneNumber());
     }
 
     public UserEntity register(UserDTO userDTO, String supabaseUserId) {
-        validateUniqueEmailAndPhone(userDTO.getEmail(), userDTO.getPhoneNumber());
+        validateRegistrationAvailable(userDTO);
 
         String documentUrl = storageService.uploadBase64Image(
                 userDTO.getDocument().getData(),
@@ -107,12 +112,12 @@ public class AuthService implements UserDetailsService {
     public UserEntity authenticate(LoginDTO loginDTO) {
         Optional<UserEntity> userOptional = userRepository.findByEmail(loginDTO.getEmail());
         if (userOptional.isEmpty()) {
-            throw new AuthException("Credenciais inválidas");
+            throw new AuthException("Credenciais invalidas");
         }
 
         UserEntity user = userOptional.get();
         if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
-            throw new AuthException("Credenciais inválidas");
+            throw new AuthException("Credenciais invalidas");
         }
         return user;
     }
