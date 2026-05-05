@@ -1,5 +1,8 @@
 package br.com.senai.service;
 
+import java.util.Base64;
+import java.util.Locale;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -8,11 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Base64;
-import java.util.Locale;
-import java.util.UUID;
 
 @Service
 public class SupabaseStorageService {
@@ -29,6 +29,9 @@ public class SupabaseStorageService {
     @Value("${supabase.service-role}")
     private String serviceRole;
 
+    @Value("${server.port:8085}")
+    private String serverPort;
+
     private final RestTemplate restTemplate = new RestTemplate();
 
     public String uploadBase64Image(String base64Image, String folder, String userJwtToken) {
@@ -36,9 +39,13 @@ public class SupabaseStorageService {
     }
 
     public String uploadBase64Image(String base64Image, String folder, String userJwtToken, String fileTypeHint) {
-        String[] partes = base64Image.split(",");
-        String dadosBase64 = (partes.length > 1) ? partes[1] : partes[0];
-        byte[] imageBytes = Base64.getDecoder().decode(dadosBase64);
+        if (!isSupabaseConfigured()) {
+            return "http://localhost:" + serverPort + "/assets/fundo.jpg";
+        }
+
+        String[] parts = base64Image.split(",");
+        String base64Data = (parts.length > 1) ? parts[1] : parts[0];
+        byte[] imageBytes = Base64.getDecoder().decode(base64Data);
 
         String extension = guessExtension(base64Image, fileTypeHint);
         String fileName = folder + "/" + UUID.randomUUID() + extension;
@@ -66,14 +73,14 @@ public class SupabaseStorageService {
     }
 
     private String resolveToken(String userJwtToken) {
-        if (userJwtToken != null && !userJwtToken.isEmpty()) {
+        if (StringUtils.hasText(userJwtToken)) {
             return userJwtToken;
         }
         return serviceRole;
     }
 
     private String guessExtension(String base64Image, String fileTypeHint) {
-        if (fileTypeHint != null && !fileTypeHint.isBlank()) {
+        if (StringUtils.hasText(fileTypeHint)) {
             String normalized = normalizeExtension(fileTypeHint);
             if (!normalized.isBlank()) {
                 return "." + normalized;
@@ -109,5 +116,11 @@ public class SupabaseStorageService {
             case "webp" -> MediaType.parseMediaType("image/webp");
             default -> MediaType.IMAGE_PNG;
         };
+    }
+
+    private boolean isSupabaseConfigured() {
+        return StringUtils.hasText(supabaseUrl)
+                && StringUtils.hasText(anonKey)
+                && StringUtils.hasText(serviceRole);
     }
 }

@@ -1,4 +1,11 @@
-.git
-.idea
-target
-*.iml
+**/target
+**/.idea
+**/.vscode
+**/.git
+**/*.iml
+**/.mvn
+**/mvnw
+**/mvnw.cmd
+**/README.md
+**/Leia-Me.md
+**/ProjetoAplicado.iml

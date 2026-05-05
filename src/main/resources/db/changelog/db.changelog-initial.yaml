@@ -1,4 +1,4 @@
-﻿databaseChangeLog:
+databaseChangeLog:
   - changeSet:
       id: 0001-create-service
       author: cadug

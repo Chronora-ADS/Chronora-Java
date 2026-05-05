@@ -1,13 +1,19 @@
 package br.com.senai.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import lombok.Data;
-
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
 import java.util.List;
 
 @Entity
-@Data
 @Table(name = "app_user")
 public class UserEntity {
     @Id
@@ -33,14 +39,14 @@ public class UserEntity {
     @Embedded
     private DocumentEntity documentEntity;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     private List<String> roles;
 
     @Column(name = "supabase_user_id", unique = true)
     private String supabaseUserId;
-    // Explicit getters/setters to avoid IDE issues when Lombok isn't processed
+
     public Long getId() {
         return id;
     }

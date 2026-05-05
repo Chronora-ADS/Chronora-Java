@@ -1,8 +1,10 @@
 package br.com.senai.controller;
 
 import br.com.senai.model.DTO.UserEditDTO;
+import br.com.senai.model.DTO.UserResponseDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.service.UserService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -27,35 +29,35 @@ public class UserController {
     }
 
     @PutMapping("/put/buy-chronos")
-    public ResponseEntity<UserEntity> buyChronos(
+    public ResponseEntity<UserResponseDTO> buyChronos(
             @RequestHeader("Authorization") String tokenHeader,
             @RequestHeader("Chronos") Integer chronos
     ) {
-        return ResponseEntity.ok(userService.buyChronos(tokenHeader, chronos));
+        return ResponseEntity.ok(UserResponseDTO.fromEntity(userService.buyChronos(tokenHeader, chronos)));
     }
 
     @PutMapping("/put/sell-chronos")
-    public ResponseEntity<UserEntity> sellChronos(
+    public ResponseEntity<UserResponseDTO> sellChronos(
             @RequestHeader("Authorization") String tokenHeader,
             @RequestHeader("Chronos") Integer chronos
     ) {
-        return ResponseEntity.ok(userService.sellChronos(tokenHeader, chronos));
+        return ResponseEntity.ok(UserResponseDTO.fromEntity(userService.sellChronos(tokenHeader, chronos)));
     }
 
     @GetMapping("/get")
-    public ResponseEntity<UserEntity> getLoggedUser(@RequestHeader("Authorization") String tokenHeader) {
-        return ResponseEntity.ok(userService.getLoggedUser(tokenHeader));
+    public ResponseEntity<UserResponseDTO> getLoggedUser(@RequestHeader("Authorization") String tokenHeader) {
+        return ResponseEntity.ok(UserResponseDTO.fromEntity(userService.getLoggedUser(tokenHeader)));
     }
 
     @PutMapping("/put")
-    public ResponseEntity<UserEntity> put(
+    public ResponseEntity<UserResponseDTO> put(
             @RequestHeader("Authorization") String tokenHeader,
-            @RequestBody UserEditDTO userEditDTO
+            @RequestBody @Valid UserEditDTO userEditDTO
     ) {
-        logger.info("Editando usuario: {}", userEditDTO.getId());
+        logger.info("Editando usuario {}", userEditDTO.getId());
         UserEntity saved = userService.put(userEditDTO, tokenHeader);
         logger.info("Usuario editado com sucesso: {}", saved.getId());
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(UserResponseDTO.fromEntity(saved));
     }
 
     @DeleteMapping("/delete")

@@ -1,41 +1,61 @@
 package br.com.senai.service;
 
-import br.com.senai.exception.Auth.AuthException;
+import br.com.senai.model.DTO.NotificationEventDTO;
 import br.com.senai.model.entity.NotificationEntity;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.NotificationRepository;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 @Service
-@RequiredArgsConstructor
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserService userService;
+    private final NotificationEventPublisher notificationEventPublisher;
 
-    public NotificationEntity create (String message, UserEntity user, ServiceEntity service) {
+    public NotificationService(
+            NotificationRepository notificationRepository,
+            UserService userService,
+            NotificationEventPublisher notificationEventPublisher
+    ) {
+        this.notificationRepository = notificationRepository;
+        this.userService = userService;
+        this.notificationEventPublisher = notificationEventPublisher;
+    }
+
+    public NotificationEntity create(String message, UserEntity user, ServiceEntity service) {
         NotificationEntity notification = new NotificationEntity();
         notification.setMessage(message);
         notification.setUser(user);
         notification.setService(service);
         notification.setNotificationTime(LocalDateTime.now());
-        return notificationRepository.save(notification);
+
+        NotificationEntity saved = notificationRepository.save(notification);
+
+        NotificationEventDTO event = new NotificationEventDTO();
+        event.setMessage(saved.getMessage());
+        event.setUserId(user.getId());
+        event.setUserEmail(user.getEmail());
+        event.setServiceId(service.getId());
+        event.setCreatedAt(OffsetDateTime.now());
+        notificationEventPublisher.publish(event);
+
+        return saved;
     }
 
     @Transactional
     public List<NotificationEntity> getAll(String tokenHeader) {
-        try {
-            UserEntity user = userService.getLoggedUser(tokenHeader);
-            return notificationRepository.findAllByUser(user);
-        } catch (Exception e) {
-            e.printStackTrace(); // Isso vai mostrar o erro REAL no console
-            throw new AuthException("Erro interno: " + e.getMessage());
-        }
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        return notificationRepository.findAllByUser(user);
+    }
+
+    @Transactional
+    public void deleteByService(ServiceEntity service) {
+        notificationRepository.deleteAllByService(service);
     }
 }

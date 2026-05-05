@@ -3,14 +3,13 @@ package br.com.senai.util;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class JWTBlacklist {
 
-    private final Set<String> blacklist = new HashSet<>();
+    private final Set<String> blacklist = ConcurrentHashMap.newKeySet();
 
     public void addToken(String token) {
         blacklist.add(token);

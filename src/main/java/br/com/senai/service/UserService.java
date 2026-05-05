@@ -11,67 +11,77 @@ import br.com.senai.model.DTO.UserEditDTO;
 import br.com.senai.model.entity.DocumentEntity;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
+import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.NotificationRepository;
 import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final SupabaseAuthService supabaseAuthService;
-    private final AuthService authService;
     private final SupabaseStorageService storageService;
     private final PasswordEncoder passwordEncoder;
     private final ServiceRepository serviceRepository;
     private final NotificationRepository notificationRepository;
 
+    public UserService(
+            UserRepository userRepository,
+            SupabaseAuthService supabaseAuthService,
+            SupabaseStorageService storageService,
+            PasswordEncoder passwordEncoder,
+            ServiceRepository serviceRepository,
+            NotificationRepository notificationRepository
+    ) {
+        this.userRepository = userRepository;
+        this.supabaseAuthService = supabaseAuthService;
+        this.storageService = storageService;
+        this.passwordEncoder = passwordEncoder;
+        this.serviceRepository = serviceRepository;
+        this.notificationRepository = notificationRepository;
+    }
+
     public UserEntity buyChronos(String tokenHeader, Integer chronos) {
         UserEntity userEntity = getLoggedUser(tokenHeader);
+        validateChronosAmount(chronos);
+
         if (userEntity.getTimeChronos() + chronos > 300) {
             throw new QuantityChronosInvalidException("Excedido limite de chronos de 300 por usuario.");
         }
+
         userEntity.setTimeChronos(userEntity.getTimeChronos() + chronos);
         return userRepository.save(userEntity);
     }
 
     public UserEntity sellChronos(String tokenHeader, Integer chronos) {
         UserEntity userEntity = getLoggedUser(tokenHeader);
+        validateChronosAmount(chronos);
+
         if (userEntity.getTimeChronos() - chronos < 0) {
             throw new QuantityChronosInvalidException("O limite minimo de chronos e 0 por usuario.");
         }
+
         userEntity.setTimeChronos(userEntity.getTimeChronos() - chronos);
         return userRepository.save(userEntity);
     }
 
     public UserEntity getLoggedUser(String tokenHeader) {
-        try {
-            if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
-                String token = tokenHeader.substring(7);
-                SupabaseUserDTO supabaseUserDTO = supabaseAuthService.validateToken(token);
-                UserEntity userEntity = authService.findBySupabaseUserId(supabaseUserDTO.getId());
-                Optional<UserEntity> optionalUserEntity = userRepository.findById(userEntity.getId());
-                if (optionalUserEntity.isPresent()) {
-                    return optionalUserEntity.get();
-                }
-                throw new UserNotFoundException("Usuario nao encontrado.");
-            }
-            throw new UserNotFoundException("Usuario nao encontrado.");
-        } catch (AuthException | UserNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
+        if (tokenHeader == null || !tokenHeader.startsWith("Bearer ")) {
             throw new AuthException("Token invalido.");
         }
+
+        String token = tokenHeader.substring(7);
+        SupabaseUserDTO supabaseUserDTO = supabaseAuthService.validateToken(token);
+
+        return userRepository.findBySupabaseUserId(supabaseUserDTO.getId())
+                .orElseThrow(() -> new UserNotFoundException("Usuario nao encontrado."));
     }
 
     public UserEntity put(UserEditDTO userEditDTO, String tokenHeader) {
@@ -121,7 +131,6 @@ public class UserService {
         }
 
         syncUserWithSupabase(tokenHeader, updatedEmail, updatedPassword, updatedName, updatedPhoneNumber);
-
         return userRepository.save(userEntity);
     }
 
@@ -129,9 +138,11 @@ public class UserService {
     public void delete(String tokenHeader) {
         UserEntity user = getLoggedUser(tokenHeader);
         deleteUserDependencies(user);
+
         if (user.getSupabaseUserId() != null && !user.getSupabaseUserId().isBlank()) {
             supabaseAuthService.deleteUser(user.getSupabaseUserId());
         }
+
         userRepository.delete(user);
     }
 
@@ -185,6 +196,13 @@ public class UserService {
 
         for (ServiceEntity acceptedService : serviceRepository.findAllByUserAccepted(user)) {
             acceptedService.setUserAccepted(null);
+            if (acceptedService.getStatus() == ServiceStatus.ACEITO) {
+                acceptedService.setStatus(ServiceStatus.CRIADO);
+            } else if (acceptedService.getStatus() == ServiceStatus.EM_ANDAMENTO) {
+                acceptedService.setStatus(ServiceStatus.CANCELADO);
+            }
+            acceptedService.setVerificationCode(null);
+            acceptedService.setVerificationCodeExpiresAt(null);
             serviceRepository.save(acceptedService);
         }
 
@@ -192,6 +210,12 @@ public class UserService {
         if (!createdServices.isEmpty()) {
             notificationRepository.deleteAllByServiceIn(createdServices);
             serviceRepository.deleteAll(createdServices);
+        }
+    }
+
+    private void validateChronosAmount(Integer chronos) {
+        if (chronos == null || chronos <= 0) {
+            throw new QuantityChronosInvalidException("A quantidade de chronos deve ser maior que zero.");
         }
     }
 }

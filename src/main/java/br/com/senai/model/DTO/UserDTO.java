@@ -1,28 +1,34 @@
 package br.com.senai.model.DTO;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
 
-@Data
 public class UserDTO {
-    @NotBlank(message = "Nome do usuário é obrigatório")
+    @NotBlank(message = "Nome do usuario e obrigatorio")
+    @JsonAlias("Name")
     private String name;
 
-    @NotBlank(message = "Email do usuário é obrigatório")
+    @NotBlank(message = "Email do usuario e obrigatorio")
+    @Email(message = "Email do usuario e invalido")
+    @JsonAlias("Email")
     private String email;
 
-    @NotNull(message = "Número de telefone do usuário é obrigatório")
+    @NotNull(message = "Numero de telefone do usuario e obrigatorio")
+    @JsonAlias("PhoneNumber")
     private Long phoneNumber;
 
-    @NotBlank(message = "Senha do usuário é obrigatória")
+    @NotBlank(message = "Senha do usuario e obrigatoria")
+    @JsonAlias("Password")
     private String password;
 
-    @NotNull(message = "Documento do usuário é obrigatório")
+    @NotNull(message = "Documento do usuario e obrigatorio")
     @Valid
+    @JsonAlias("Document")
     private DocumentDTO document;
-    // Explicit getters/setters to avoid IDE issues when Lombok isn't processed
+
     public String getName() {
         return name;
     }
