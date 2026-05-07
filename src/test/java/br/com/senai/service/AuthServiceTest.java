@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.senai.exception.Auth.AuthException;
+import br.com.senai.model.DTO.SupabaseUserDTO;
 import br.com.senai.exception.Validation.EmailAlreadyExistsException;
 import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
 import br.com.senai.model.DTO.DocumentDTO;
@@ -180,6 +181,26 @@ class AuthServiceTest {
         ArgumentCaptor<UserEntity> userCaptor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(userCaptor.capture());
         assertEquals("novo-hash", userCaptor.getValue().getPassword());
+    }
+
+    @Test
+    void deveResolverUsuarioPorEmailESincronizarSupabaseUserIdQuandoIdNaoEstiverVinculado() {
+        UserEntity user = criarUsuario();
+        user.setSupabaseUserId(null);
+        SupabaseUserDTO supabaseUser = SupabaseUserDTO.builder()
+                .id("supabase-novo")
+                .email("ana@chronora.com")
+                .build();
+
+        when(userRepository.findBySupabaseUserId("supabase-novo")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("ana@chronora.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UserEntity resolved = authService.resolveUserForSupabaseUser(supabaseUser);
+
+        assertSame(user, resolved);
+        assertEquals("supabase-novo", resolved.getSupabaseUserId());
+        verify(userRepository).save(user);
     }
 
     private UserDTO criarUserDTO() {

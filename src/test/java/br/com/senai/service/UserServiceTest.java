@@ -46,6 +46,9 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private AuthService authService;
+
+    @Mock
     private SupabaseAuthService supabaseAuthService;
 
     @Mock
@@ -126,13 +129,14 @@ class UserServiceTest {
         assertThrows(AuthException.class, () -> userService.getLoggedUser("token-sem-prefixo"));
 
         verify(supabaseAuthService, never()).validateToken(any());
-        verify(userRepository, never()).findBySupabaseUserId(any());
+        verify(authService, never()).resolveUserForSupabaseUser(any());
     }
 
     @Test
     void deveRetornarErroQuandoUsuarioDoTokenNaoExistir() {
         when(supabaseAuthService.validateToken("token-valido")).thenReturn(criarSupabaseUserDTO("supabase-123"));
-        when(userRepository.findBySupabaseUserId("supabase-123")).thenReturn(Optional.empty());
+        when(authService.resolveUserForSupabaseUser(any(SupabaseUserDTO.class)))
+                .thenThrow(new UserNotFoundException("Usuario nao encontrado."));
 
         assertThrows(UserNotFoundException.class, () -> userService.getLoggedUser(TOKEN_HEADER));
     }
@@ -244,7 +248,7 @@ class UserServiceTest {
 
     private void prepararUsuarioLogado(UserEntity user) {
         when(supabaseAuthService.validateToken("token-valido")).thenReturn(criarSupabaseUserDTO(user.getSupabaseUserId()));
-        when(userRepository.findBySupabaseUserId(user.getSupabaseUserId())).thenReturn(Optional.of(user));
+        when(authService.resolveUserForSupabaseUser(any(SupabaseUserDTO.class))).thenReturn(user);
     }
 
     private SupabaseUserDTO criarSupabaseUserDTO(String id) {

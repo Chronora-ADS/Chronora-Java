@@ -43,6 +43,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginDTO dto) {
         SupabaseAuthResponseDTO session = supabaseAuthService.signIn(dto.getEmail(), dto.getPassword());
+        authService.resolveUserForSupabaseUser(session.getUser());
         return ResponseEntity.ok(toSessionResponse(session));
     }
 
@@ -100,7 +101,7 @@ public class AuthController {
     public ResponseEntity<UserResponseDTO> validateToken(@RequestHeader("Authorization") String tokenHeader) {
         String token = extractBearerToken(tokenHeader);
         SupabaseUserDTO supabaseUser = supabaseAuthService.validateToken(token);
-        UserEntity userEntity = authService.findBySupabaseUserId(supabaseUser.getId());
+        UserEntity userEntity = authService.resolveUserForSupabaseUser(supabaseUser);
         return ResponseEntity.ok(UserResponseDTO.fromEntity(userEntity));
     }
 

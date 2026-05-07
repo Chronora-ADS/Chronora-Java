@@ -5,6 +5,7 @@ import br.com.senai.exception.NotFound.UserNotFoundException;
 import br.com.senai.exception.Validation.EmailAlreadyExistsException;
 import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
 import br.com.senai.model.DTO.LoginDTO;
+import br.com.senai.model.DTO.SupabaseUserDTO;
 import br.com.senai.model.DTO.UserDTO;
 import br.com.senai.model.entity.DocumentEntity;
 import br.com.senai.model.entity.UserEntity;
@@ -19,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 public class AuthService implements UserDetailsService {
@@ -52,6 +54,34 @@ public class AuthService implements UserDetailsService {
                 .orElseThrow(() -> new UserNotFoundException(
                         "Usuario com ID Supabase " + supabaseUserId + " nao encontrado."
                 ));
+    }
+
+    public UserEntity resolveUserForSupabaseUser(SupabaseUserDTO supabaseUser) {
+        if (supabaseUser == null || !StringUtils.hasText(supabaseUser.getId())) {
+            throw new UserNotFoundException("Usuario do Supabase invalido.");
+        }
+
+        Optional<UserEntity> bySupabaseId = userRepository.findBySupabaseUserId(supabaseUser.getId());
+        if (bySupabaseId.isPresent()) {
+            UserEntity user = bySupabaseId.get();
+            syncEmailFromSupabase(user, supabaseUser.getEmail());
+            return user;
+        }
+
+        if (!StringUtils.hasText(supabaseUser.getEmail())) {
+            throw new UserNotFoundException(
+                    "Usuario com ID Supabase " + supabaseUser.getId() + " nao encontrado."
+            );
+        }
+
+        UserEntity user = userRepository.findByEmail(supabaseUser.getEmail())
+                .orElseThrow(() -> new UserNotFoundException(
+                        "Usuario com ID Supabase " + supabaseUser.getId() + " nao encontrado."
+                ));
+
+        user.setSupabaseUserId(supabaseUser.getId());
+        syncEmailFromSupabase(user, supabaseUser.getEmail());
+        return userRepository.save(user);
     }
 
     public void validateRegistrationAvailable(UserDTO userDTO) {
@@ -120,5 +150,12 @@ public class AuthService implements UserDetailsService {
             throw new AuthException("Credenciais invalidas");
         }
         return user;
+    }
+
+    private void syncEmailFromSupabase(UserEntity user, String email) {
+        if (StringUtils.hasText(email) && !email.equals(user.getEmail())) {
+            user.setEmail(email);
+            userRepository.save(user);
+        }
     }
 }

@@ -51,12 +51,19 @@ class AuthControllerTest {
         LoginDTO loginDTO = new LoginDTO();
         loginDTO.setEmail("ana@chronora.com");
         loginDTO.setPassword("senha123");
+        SupabaseUserDTO supabaseUser = SupabaseUserDTO.builder()
+                .id("supabase-123")
+                .email("ana@chronora.com")
+                .build();
         SupabaseAuthResponseDTO session = SupabaseAuthResponseDTO.builder()
+                .user(supabaseUser)
                 .accessToken("access-token")
                 .refreshToken("refresh-token")
                 .expiresIn(3600L)
                 .build();
+        UserEntity user = criarUsuario();
         when(supabaseAuthService.signIn("ana@chronora.com", "senha123")).thenReturn(session);
+        when(authService.resolveUserForSupabaseUser(supabaseUser)).thenReturn(user);
 
         ResponseEntity<Map<String, Object>> response = authController.login(loginDTO);
 
@@ -65,6 +72,7 @@ class AuthControllerTest {
         assertEquals("refresh-token", response.getBody().get("refresh_token"));
         assertEquals(3600L, response.getBody().get("expires_in"));
         verify(supabaseAuthService).signIn("ana@chronora.com", "senha123");
+        verify(authService).resolveUserForSupabaseUser(supabaseUser);
     }
 
     @Test
@@ -146,14 +154,14 @@ class AuthControllerTest {
                 .build();
         UserEntity user = criarUsuario();
         when(supabaseAuthService.validateToken("access-token")).thenReturn(supabaseUser);
-        when(authService.findBySupabaseUserId("supabase-123")).thenReturn(user);
+        when(authService.resolveUserForSupabaseUser(supabaseUser)).thenReturn(user);
 
         var response = authController.validateToken("Bearer access-token");
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals("Ana Silva", response.getBody().getName());
         verify(supabaseAuthService).validateToken("access-token");
-        verify(authService).findBySupabaseUserId("supabase-123");
+        verify(authService).resolveUserForSupabaseUser(supabaseUser);
     }
 
     @Test

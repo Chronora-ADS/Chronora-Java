@@ -1,7 +1,6 @@
 package br.com.senai.service;
 
 import br.com.senai.exception.Auth.AuthException;
-import br.com.senai.exception.NotFound.UserNotFoundException;
 import br.com.senai.exception.Validation.EmailAlreadyExistsException;
 import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
 import br.com.senai.exception.Validation.QuantityChronosInvalidException;
@@ -26,6 +25,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final AuthService authService;
     private final SupabaseAuthService supabaseAuthService;
     private final SupabaseStorageService storageService;
     private final PasswordEncoder passwordEncoder;
@@ -34,6 +34,7 @@ public class UserService {
 
     public UserService(
             UserRepository userRepository,
+            AuthService authService,
             SupabaseAuthService supabaseAuthService,
             SupabaseStorageService storageService,
             PasswordEncoder passwordEncoder,
@@ -41,6 +42,7 @@ public class UserService {
             NotificationRepository notificationRepository
     ) {
         this.userRepository = userRepository;
+        this.authService = authService;
         this.supabaseAuthService = supabaseAuthService;
         this.storageService = storageService;
         this.passwordEncoder = passwordEncoder;
@@ -79,9 +81,7 @@ public class UserService {
 
         String token = tokenHeader.substring(7);
         SupabaseUserDTO supabaseUserDTO = supabaseAuthService.validateToken(token);
-
-        return userRepository.findBySupabaseUserId(supabaseUserDTO.getId())
-                .orElseThrow(() -> new UserNotFoundException("Usuario nao encontrado."));
+        return authService.resolveUserForSupabaseUser(supabaseUserDTO);
     }
 
     public UserEntity put(UserEditDTO userEditDTO, String tokenHeader) {

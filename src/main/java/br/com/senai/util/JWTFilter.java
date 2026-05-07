@@ -2,7 +2,7 @@ package br.com.senai.util;
 
 import br.com.senai.model.DTO.SupabaseUserDTO;
 import br.com.senai.model.entity.UserEntity;
-import br.com.senai.repository.UserRepository;
+import br.com.senai.service.AuthService;
 import br.com.senai.service.SupabaseAuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,17 +18,17 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 public class JWTFilter extends OncePerRequestFilter {
+    private final AuthService authService;
     private final SupabaseAuthService supabaseAuthService;
-    private final UserRepository userRepository;
     private final JWTBlacklist jwtBlacklist;
 
     public JWTFilter(
+            AuthService authService,
             SupabaseAuthService supabaseAuthService,
-            UserRepository userRepository,
             JWTBlacklist jwtBlacklist
     ) {
+        this.authService = authService;
         this.supabaseAuthService = supabaseAuthService;
-        this.userRepository = userRepository;
         this.jwtBlacklist = jwtBlacklist;
     }
 
@@ -57,20 +56,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
         try {
             SupabaseUserDTO supabaseUserDTO = supabaseAuthService.validateToken(token);
-            Optional<UserEntity> userOptional = userRepository.findBySupabaseUserId(supabaseUserDTO.getId());
-
-            if (userOptional.isPresent()) {
-                UserEntity userEntity = userOptional.get();
-                List<SimpleGrantedAuthority> authorities = userEntity.getRoles().stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .toList();
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userEntity.getEmail(), null, authorities);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Usuario nao encontrado no sistema");
-                return;
-            }
+            UserEntity userEntity = authService.resolveUserForSupabaseUser(supabaseUserDTO);
+            List<SimpleGrantedAuthority> authorities = userEntity.getRoles().stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .toList();
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    userEntity.getEmail(), null, authorities);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (Exception e) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalido: " + e.getMessage());
             return;

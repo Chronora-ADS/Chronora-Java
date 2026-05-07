@@ -1,0 +1,197 @@
+Encerrando instancia antiga do backend na porta 8085 (PID 16124).
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< com.example:client-server >----------------------
+[INFO] Building Client Server 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.4.4:run (default-cli) > test-compile @ client-server >>>
+[INFO] 
+[INFO] --- git-commit-id:8.0.2:revision (default) @ client-server ---
+[INFO] dotGitDirectory 'C:\Dev\Chronora-Java\.git'
+[INFO] Collected git.build.user.name with value gabrielfanes
+[INFO] Collected git.build.user.email with value gabriel_fanes@estudante.sesisenai.org.br
+[INFO] Collected git.branch with value master
+[INFO] Collected git.commit.id.describe with value ed9d9c7-dirty
+[INFO] Collected git.commit.id.describe-short with value ed9d9c7-dirty
+[INFO] Collected git.commit.id with value ed9d9c7d83a5b2a92ec3d67fe22dc0295b1f31f2
+[INFO] Collected git.commit.id.abbrev with value ed9d9c7
+[INFO] Collected git.dirty with value true
+[INFO] Collected git.commit.user.name with value gabrielfanes
+[INFO] Collected git.commit.user.email with value gabriel_fanes@estudante.sesisenai.org.br
+[INFO] Collected git.commit.message.full with value Merge branch 'master' of https://github.com/Chronora-ADS/Chronora-Java
+[INFO] Collected git.commit.message.short with value Merge branch 'master' of https://github.com/Chronora-ADS/Chronora-Java
+[INFO] Collected git.commit.time with value 2026-05-05T19:15:32-03:00
+[INFO] Collected git.commit.author.time with value 2026-05-05T19:15:32-03:00
+[INFO] Collected git.commit.committer.time with value 2026-05-05T19:15:32-03:00
+[INFO] Collected git.remote.origin.url with value https://github.com/Chronora-ADS/Chronora-Java.git
+[INFO] Collected git.tags with value 
+[INFO] Collected git.tag with value 
+[INFO] Collected git.closest.tag.name with value 
+[INFO] Collected git.closest.tag.commit.count with value 
+[INFO] Collected git.total.commit.count with value 111
+[INFO] Collected git.local.branch.ahead with value 0
+[INFO] Collected git.local.branch.behind with value 0
+[INFO] Collected git.build.time with value 2026-05-06T20:40:23-03:00
+[INFO] Collected git.build.version with value 0.0.1-SNAPSHOT
+[INFO] Collected git.build.host with value Gabriel
+[INFO] including property 'git.tags' in results
+[INFO] including property 'git.build.version' in results
+[INFO] including property 'git.branch' in results
+[INFO] including property 'git.build.host' in results
+[INFO] including property 'git.commit.id' in results
+[INFO] including property 'git.commit.user.email' in results
+[INFO] including property 'git.local.branch.behind' in results
+[INFO] including property 'git.commit.author.time' in results
+[INFO] including property 'git.build.user.name' in results
+[INFO] including property 'git.dirty' in results
+[INFO] including property 'git.closest.tag.commit.count' in results
+[INFO] including property 'git.commit.user.name' in results
+[INFO] including property 'git.commit.id.abbrev' in results
+[INFO] including property 'git.commit.id.describe-short' in results
+[INFO] including property 'git.total.commit.count' in results
+[INFO] including property 'git.commit.id.describe' in results
+[INFO] including property 'git.build.user.email' in results
+[INFO] including property 'git.commit.message.short' in results
+[INFO] including property 'git.commit.committer.time' in results
+[INFO] including property 'git.tag' in results
+[INFO] including property 'git.closest.tag.name' in results
+[INFO] including property 'git.local.branch.ahead' in results
+[INFO] including property 'git.commit.time' in results
+[INFO] including property 'git.build.time' in results
+[INFO] including property 'git.commit.message.full' in results
+[INFO] including property 'git.remote.origin.url' in results
+[INFO] Reading existing properties file [C:\Dev\Chronora-Java\target\classes\git.properties] (for project Client Server)...
+[INFO] Properties file [C:\Dev\Chronora-Java\target\classes\git.properties] is up-to-date (for module Client Server)...
+[INFO] 
+[INFO] --- spring-boot:3.4.4:build-info (default) @ client-server ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ client-server ---
+[INFO] Copying 13 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ client-server ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ client-server ---
+[INFO] skip non existing resourceDirectory C:\Dev\Chronora-Java\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ client-server ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.4.4:run (default-cli) < test-compile @ client-server <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.4.4:run (default-cli) @ client-server ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.4)
+
+2026-05-06 20:40:25 - b.com.senai.ClientServerApplication - Starting ClientServerApplication using Java 17.0.10 with PID 26128 (C:\Dev\Chronora-Java\target\classes started by gabri in C:\Dev\Chronora-Java)
+2026-05-06 20:40:25 - b.com.senai.ClientServerApplication - Running with Spring Boot v3.4.4, Spring v6.2.5
+2026-05-06 20:40:25 - b.com.senai.ClientServerApplication - No active profile set, falling back to 1 default profile: "default"
+2026-05-06 20:40:25 - o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-06 20:40:25 - o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 76 ms. Found 4 JPA repository interfaces.
+2026-05-06 20:40:26 - o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8085 (http)
+2026-05-06 20:40:26 - o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-05-06 20:40:26 - o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.39]
+2026-05-06 20:40:26 - o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-05-06 20:40:26 - o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1561 ms
+2026-05-06 20:40:26 - com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-05-06 20:40:27 - com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@640d604
+2026-05-06 20:40:27 - com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-05-06 20:40:27 - liquibase.database - Set default schema name to public
+2026-05-06 20:40:28 - liquibase.changelog - Reading from public.databasechangelog
+2026-05-06 20:40:28 - liquibase.ui - Database is up to date, no changesets to execute
+2026-05-06 20:40:28 - liquibase.changelog - Reading from public.databasechangelog
+2026-05-06 20:40:28 - liquibase.util - UPDATE SUMMARY
+2026-05-06 20:40:28 - liquibase.util - Run:                          0
+2026-05-06 20:40:28 - liquibase.util - Previously run:              18
+2026-05-06 20:40:28 - liquibase.util - Filtered out:                 0
+2026-05-06 20:40:28 - liquibase.util - -------------------------------
+2026-05-06 20:40:28 - liquibase.util - Total change sets:           18
+2026-05-06 20:40:28 - liquibase.util - Update summary generated
+2026-05-06 20:40:28 - liquibase.command - Command execution complete
+2026-05-06 20:40:28 - o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-06 20:40:29 - org.hibernate.Version - HHH000412: Hibernate ORM core version 6.6.11.Final
+2026-05-06 20:40:29 - o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2026-05-06 20:40:29 - o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-06 20:40:29 - org.hibernate.orm.deprecation - HHH90000021: Encountered deprecated setting [hibernate.temp.use_jdbc_metadata_defaults], use [hibernate.boot.allow_jdbc_metadata_access] instead
+2026-05-06 20:40:29 - org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-06 20:40:29 - o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [undefined/unknown]
+	Database driver: undefined/unknown
+	Database version: 12.0
+	Autocommit mode: undefined/unknown
+	Isolation level: <unknown>
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-05-06 20:40:30 - o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-06 20:40:30 - o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-06 20:40:30 - o.s.web.filter.CorsFilter - Filter 'corsFilter' configured for use
+2026-05-06 20:40:30 - br.com.senai.util.JWTFilter - Filter 'JWTFilter' configured for use
+2026-05-06 20:40:31 - o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-06 20:40:31 - o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name authService
+2026-05-06 20:40:31 - o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page: class path resource [static/index.html]
+2026-05-06 20:40:31 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - 30 mappings in 'requestMappingHandlerMapping'
+2026-05-06 20:40:31 - o.s.w.s.h.SimpleUrlHandlerMapping - Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2026-05-06 20:40:31 - o.s.w.s.m.m.a.RequestMappingHandlerAdapter - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-05-06 20:40:32 - o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+2026-05-06 20:40:32 - o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8085 (http) with context path '/'
+2026-05-06 20:40:32 - b.com.senai.ClientServerApplication - Started ClientServerApplication in 7.53 seconds (process running for 7.84)
+2026-05-06 20:40:42 - o.s.web.client.RestTemplate - HTTP GET http://localhost:8085/health
+2026-05-06 20:40:42 - o.s.web.client.RestTemplate - Accept=[application/json, application/*+json]
+2026-05-06 20:40:42 - o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-06 20:40:42 - o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-05-06 20:40:42 - o.s.web.servlet.DispatcherServlet - Detected StandardServletMultipartResolver
+2026-05-06 20:40:42 - o.s.web.servlet.DispatcherServlet - Detected AcceptHeaderLocaleResolver
+2026-05-06 20:40:42 - o.s.web.servlet.DispatcherServlet - Detected FixedThemeResolver
+2026-05-06 20:40:42 - o.s.web.servlet.DispatcherServlet - Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@87dc829
+2026-05-06 20:40:42 - o.s.web.servlet.DispatcherServlet - Detected org.springframework.web.servlet.support.SessionFlashMapManager@6f61698
+2026-05-06 20:40:42 - o.s.web.servlet.DispatcherServlet - enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2026-05-06 20:40:42 - o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms
+2026-05-06 20:40:42 - o.s.web.servlet.DispatcherServlet - GET "/health", parameters={}
+2026-05-06 20:40:42 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.HealthController#health()
+2026-05-06 20:40:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, application/*+json] and supported [application/json, application/*+json]
+2026-05-06 20:40:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{commit=unknown, app=Chronora-Java, status=UP, timestamp=2026-05-06T23:40:42.337092100Z, version=unk (truncated)...]
+2026-05-06 20:40:42 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2026-05-06 20:40:42 - o.s.web.client.RestTemplate - Response 200 OK
+2026-05-06 20:40:42 - o.s.web.client.RestTemplate - Reading to [java.util.Map<?, ?>]
+Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,status,status_code) values (?,?,?,?,?)
+2026-05-06 20:40:42 - b.c.s.service.UptimeCheckScheduler - Uptime check OK: status=UP, code=200, ms=180
+2026-05-06 20:40:45 - o.s.web.servlet.DispatcherServlet - GET "/health", parameters={}
+2026-05-06 20:40:45 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.HealthController#health()
+2026-05-06 20:40:45 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-05-06 20:40:45 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{commit=unknown, app=Chronora-Java, status=UP, timestamp=2026-05-06T23:40:45.701408Z, version=unknow (truncated)...]
+2026-05-06 20:40:45 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2026-05-06 20:41:42 - o.s.web.client.RestTemplate - HTTP GET http://localhost:8085/health
+2026-05-06 20:41:42 - o.s.web.client.RestTemplate - Accept=[application/json, application/*+json]
+2026-05-06 20:41:42 - o.s.web.servlet.DispatcherServlet - GET "/health", parameters={}
+2026-05-06 20:41:42 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.HealthController#health()
+2026-05-06 20:41:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [application/json, application/*+json] and supported [application/json, application/*+json]
+2026-05-06 20:41:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [{commit=unknown, app=Chronora-Java, status=UP, timestamp=2026-05-06T23:41:42.509134800Z, version=unk (truncated)...]
+2026-05-06 20:41:42 - o.s.web.client.RestTemplate - Response 200 OK
+2026-05-06 20:41:42 - o.s.web.client.RestTemplate - Reading to [java.util.Map<?, ?>]
+2026-05-06 20:41:42 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
+Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,status,status_code) values (?,?,?,?,?)
+2026-05-06 20:41:42 - b.c.s.service.UptimeCheckScheduler - Uptime check OK: status=UP, code=200, ms=11
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  02:10 min
+[INFO] Finished at: 2026-05-06T20:42:31-03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.4.4:run (default-cli) on project client-server: Process terminated with exit code: -1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
