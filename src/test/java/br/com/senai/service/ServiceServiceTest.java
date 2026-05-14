@@ -6,8 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -69,7 +71,7 @@ class ServiceServiceTest {
     void deveCriarPedidoComSucessoEDebitarSaldoDoSolicitante() {
         ServiceDTO dto = criarServiceDTO(20);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(storageService.uploadBase64Image("base64-imagem", "services", "token-valido"))
+        when(storageService.uploadBase64Image(eq("base64-imagem"), eq("services"), isNull()))
                 .thenReturn("https://storage/servico.png");
         when(serviceRepository.save(any(ServiceEntity.class))).thenAnswer(invocation -> {
             ServiceEntity service = invocation.getArgument(0);
@@ -257,6 +259,7 @@ class ServiceServiceTest {
         assertEquals(ServiceStatus.ACEITO, aceito.getStatus());
         assertSame(prestador, aceito.getUserAccepted());
         assertNotNull(aceito.getVerificationCode());
+        assertTrue(aceito.getVerificationCode().matches("\\d{4}"));
         assertNotNull(aceito.getVerificationCodeExpiresAt());
         verify(notificationService).create("Pedido aceito", prestador, service);
         verify(notificationService).create("Pedido aceito por Bruno", criador, service);
@@ -283,6 +286,24 @@ class ServiceServiceTest {
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity iniciado = serviceService.startService(10L, TOKEN_HEADER, "\"1234\"");
+
+        assertEquals(ServiceStatus.EM_ANDAMENTO, iniciado.getStatus());
+        assertNull(iniciado.getVerificationCode());
+        assertNull(iniciado.getVerificationCodeExpiresAt());
+        verify(notificationService).create("Pedido iniciado", prestador, service);
+        verify(notificationService).create("Pedido iniciado", criador, service);
+    }
+
+    @Test
+    void deveIniciarPedidoComCodigoCorretoEmJson() {
+        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
+        service.setVerificationCode("1234");
+        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        ServiceEntity iniciado = serviceService.startService(10L, TOKEN_HEADER, "{\"code\":\"1234\"}");
 
         assertEquals(ServiceStatus.EM_ANDAMENTO, iniciado.getStatus());
         assertNull(iniciado.getVerificationCode());
@@ -434,7 +455,7 @@ class ServiceServiceTest {
     void devePersistirServicoMontadoNaCriacao() {
         ServiceDTO dto = criarServiceDTO(15);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(storageService.uploadBase64Image("base64-imagem", "services", "token-valido"))
+        when(storageService.uploadBase64Image(eq("base64-imagem"), eq("services"), isNull()))
                 .thenReturn("https://storage/servico.png");
         when(serviceRepository.save(any(ServiceEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 

@@ -3,6 +3,7 @@ package br.com.senai.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +13,7 @@ import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.NotificationRepository;
 import java.util.List;
+import org.springframework.amqp.AmqpException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -63,6 +65,31 @@ class NotificationServiceTest {
         assertEquals("ana@chronora.com", event.getUserEmail());
         assertEquals(10L, event.getServiceId());
         assertNotNull(event.getCreatedAt());
+    }
+
+    @Test
+    void deveManterNotificacaoSalvaQuandoRabbitMqFalhar() {
+        UserEntity user = criarUsuario();
+        ServiceEntity service = criarServico();
+        when(notificationRepository.save(org.mockito.ArgumentMatchers.any(NotificationEntity.class)))
+                .thenAnswer(invocation -> {
+                    NotificationEntity notification = invocation.getArgument(0);
+                    notification.setId(100L);
+                    return notification;
+                });
+        doThrow(new AmqpException("RabbitMQ indisponivel"))
+                .when(notificationEventPublisher)
+                .publish(org.mockito.ArgumentMatchers.any(NotificationEventDTO.class));
+
+        NotificationEntity criada = notificationService.create("Pedido criado", user, service);
+
+        assertEquals(100L, criada.getId());
+        assertEquals("Pedido criado", criada.getMessage());
+        assertSame(user, criada.getUser());
+        assertSame(service, criada.getService());
+        assertNotNull(criada.getNotificationTime());
+        verify(notificationEventPublisher)
+                .publish(org.mockito.ArgumentMatchers.any(NotificationEventDTO.class));
     }
 
     @Test

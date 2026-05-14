@@ -13,6 +13,9 @@ import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.ServiceModality;
 import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.ServiceRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,6 +31,7 @@ public class ServiceService {
 
     private static final long VERIFICATION_CODE_EXPIRATION_MINUTES = 2;
     private static final int MAX_CATEGORY_COUNT = 10;
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     private final ServiceRepository serviceRepository;
     private final UserService userService;
@@ -69,8 +73,7 @@ public class ServiceService {
         service.setUserCreator(userEntity);
 
         if (serviceDTO.getServiceImage() != null && !serviceDTO.getServiceImage().isBlank()) {
-            String jwtToken = extractBearerToken(tokenHeader);
-            String imageUrl = storageService.uploadBase64Image(serviceDTO.getServiceImage(), "services", jwtToken);
+            String imageUrl = storageService.uploadBase64Image(serviceDTO.getServiceImage(), "services", null);
             service.setServiceImageUrl(imageUrl);
         }
 
@@ -129,8 +132,7 @@ public class ServiceService {
         }
 
         if (serviceEditDTO.getServiceImage() != null && !serviceEditDTO.getServiceImage().isBlank()) {
-            String jwtToken = extractBearerToken(tokenHeader);
-            String imageUrl = storageService.uploadBase64Image(serviceEditDTO.getServiceImage(), "services", jwtToken);
+            String imageUrl = storageService.uploadBase64Image(serviceEditDTO.getServiceImage(), "services", null);
             service.setServiceImageUrl(imageUrl);
         }
 
@@ -383,7 +385,31 @@ public class ServiceService {
         if (verificationCode == null) {
             return null;
         }
-        return verificationCode.replace("\"", "").trim();
+
+        String trimmedVerificationCode = verificationCode.trim();
+        if (trimmedVerificationCode.isEmpty()) {
+            return trimmedVerificationCode;
+        }
+
+        try {
+            JsonNode codePayload = JSON_MAPPER.readTree(trimmedVerificationCode);
+            if (codePayload.isTextual() || codePayload.isNumber()) {
+                return codePayload.asText().trim();
+            }
+
+            if (codePayload.isObject()) {
+                for (String key : List.of("code", "verificationCode", "authenticationCode")) {
+                    JsonNode codeNode = codePayload.get(key);
+                    if (codeNode != null && (codeNode.isTextual() || codeNode.isNumber())) {
+                        return codeNode.asText().trim();
+                    }
+                }
+            }
+        } catch (JsonProcessingException ignored) {
+            // Mantem compatibilidade com chamadas antigas que enviavam texto puro.
+        }
+
+        return trimmedVerificationCode.replace("\"", "").trim();
     }
 
     private boolean isAcceptedByAnotherUser(ServiceEntity service, UserEntity user) {
@@ -434,10 +460,4 @@ public class ServiceService {
         }
     }
 
-    private String extractBearerToken(String tokenHeader) {
-        if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
-            return tokenHeader.substring(7);
-        }
-        return tokenHeader;
-    }
 }
