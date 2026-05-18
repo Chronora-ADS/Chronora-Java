@@ -8,8 +8,7 @@ import java.util.Locale;
 
 public enum ServiceModality {
     PRESENCIAL("Presencial"),
-    REMOTO("Remoto"),
-    HIBRIDO("Hibrido");
+    REMOTO("Remoto");
 
     private final String value;
 
@@ -37,7 +36,7 @@ public enum ServiceModality {
                 .filter(modality -> modality.name().equals(normalized))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Modalidade invalida. Use Remoto, Presencial ou Hibrido."
+                        "Modalidade invalida. Use Remoto ou Presencial."
                 ));
     }
 }
