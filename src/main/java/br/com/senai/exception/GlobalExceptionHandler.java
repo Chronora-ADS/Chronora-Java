@@ -11,14 +11,19 @@ import br.com.senai.exception.Validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<?> handleNotFound(NotFoundException ex) {
@@ -61,14 +66,23 @@ public class GlobalExceptionHandler {
                 .body(errorBody(message, HttpStatus.BAD_REQUEST));
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<?> handleUnreadableBody(HttpMessageNotReadableException ex) {
+        logger.warn("Corpo de requisicao invalido: {}", ex.getMostSpecificCause().getMessage());
+        return ResponseEntity.badRequest()
+                .body(errorBody("JSON invalido", HttpStatus.BAD_REQUEST));
+    }
+
     @ExceptionHandler(SupabaseIntegrationException.class)
     public ResponseEntity<?> handleSupabase(SupabaseIntegrationException ex) {
+        logger.error("Falha de integracao com Supabase", ex);
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                 .body(errorBody("Servico externo indisponivel", HttpStatus.BAD_GATEWAY));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleUnexpected(Exception ex) {
+        logger.error("Erro inesperado na requisicao", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(errorBody("Erro interno", HttpStatus.INTERNAL_SERVER_ERROR));
     }

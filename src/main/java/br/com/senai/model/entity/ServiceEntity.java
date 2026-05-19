@@ -67,6 +67,31 @@ public class ServiceEntity {
     @Column(name = "category_name")
     private List<CategoryEntity> categoryEntities;
 
+    public List<String> getCategories() {
+        if (categoryEntities == null) {
+            return List.of();
+        }
+
+        return categoryEntities.stream()
+                .map(CategoryEntity::getName)
+                .toList();
+    }
+
+    public void setCategories(List<String> categories) {
+        if (categories == null) {
+            this.categoryEntities = null;
+            return;
+        }
+
+        this.categoryEntities = categories.stream()
+                .map(category -> {
+                    CategoryEntity categoryEntity = new CategoryEntity();
+                    categoryEntity.setName(category);
+                    return categoryEntity;
+                })
+                .toList();
+    }
+
     @Column(length = 500)
     private String serviceImageUrl;
 

@@ -5,15 +5,37 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Set;
 
 public enum ServiceModality {
-    PRESENCIAL("Presencial"),
-    REMOTO("Remoto");
+    PRESENCIAL("Presencial", Set.of(
+            "PRESENCIAL",
+            "PRESENTIAL",
+            "IN_PERSON",
+            "INPERSON",
+            "ONSITE",
+            "ON_SITE"
+    )),
+    HIBRIDO("Hibrido", Set.of(
+            "HIBRIDO",
+            "HYBRID",
+            "HYBRIDO"
+    )),
+    REMOTO("Remoto", Set.of(
+            "REMOTO",
+            "REMOTE",
+            "ONLINE",
+            "VIRTUAL",
+            "A_DISTANCIA",
+            "DISTANCIA"
+    ));
 
     private final String value;
+    private final Set<String> acceptedValues;
 
-    ServiceModality(String value) {
+    ServiceModality(String value, Set<String> acceptedValues) {
         this.value = value;
+        this.acceptedValues = acceptedValues;
     }
 
     @JsonValue
@@ -27,16 +49,22 @@ public enum ServiceModality {
             return null;
         }
 
-        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}+", "")
-                .trim()
-                .toUpperCase(Locale.ROOT);
+        String normalized = normalize(value);
 
         return Arrays.stream(values())
-                .filter(modality -> modality.name().equals(normalized))
+                .filter(modality -> modality.acceptedValues.contains(normalized))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Modalidade invalida. Use Remoto ou Presencial."
+                        "Modalidade invalida: " + value + ". Use Remoto, Presencial ou Hibrido."
                 ));
+    }
+
+    private static String normalize(String value) {
+        return Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .trim()
+                .toUpperCase(Locale.ROOT)
+                .replaceAll("[^A-Z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
     }
 }
