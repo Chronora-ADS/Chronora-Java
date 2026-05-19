@@ -329,18 +329,6 @@ public class ServiceService {
     }
 
     @Transactional
-    public List<ServiceEntity> getAll(String tokenHeader) {
-        userService.getLoggedUser(tokenHeader);
-        return serviceRepository.findAll();
-    }
-
-    @Transactional
-    public List<ServiceEntity> getAllByStatus(ServiceStatus status, String tokenHeader) {
-        userService.getLoggedUser(tokenHeader);
-        return serviceRepository.findAllByStatus(status);
-    }
-
-    @Transactional
     public Page<ServiceEntity> getAllByStatus(ServiceStatus status, String tokenHeader, int page, int size) {
         userService.getLoggedUser(tokenHeader);
         return serviceRepository.findAllByStatus(status, PageRequest.of(page, size));

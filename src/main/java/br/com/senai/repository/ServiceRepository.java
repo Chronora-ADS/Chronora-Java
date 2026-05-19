@@ -16,7 +16,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ServiceRepository extends JpaRepository<ServiceEntity, Long> {
-    List<ServiceEntity> findAllByStatus(ServiceStatus status);
     Page<ServiceEntity> findAllByStatus(ServiceStatus status, Pageable pageable);
     List<ServiceEntity> findAllByUserCreator(UserEntity userCreator);
     List<ServiceEntity> findAllByUserAccepted(UserEntity userAccepted);
