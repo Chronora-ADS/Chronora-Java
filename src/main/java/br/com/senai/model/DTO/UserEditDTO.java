@@ -12,6 +12,7 @@ public class UserEditDTO {
     private Long phoneNumber;
     private String password;
     private DocumentDTO document;
+    private DocumentDTO profileImage;
 
     public Long getId() {
         return id;
@@ -59,5 +60,13 @@ public class UserEditDTO {
 
     public void setDocument(DocumentDTO document) {
         this.document = document;
+    }
+
+    public DocumentDTO getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(DocumentDTO profileImage) {
+        this.profileImage = profileImage;
     }
 }

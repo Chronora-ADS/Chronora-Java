@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-05-14-add-user-profile-image
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - tableExists:
+            tableName: app_user
+        - not:
+            columnExists:
+              tableName: app_user
+              columnName: profile_image
+      changes:
+        - addColumn:
+            tableName: app_user
+            columns:
+              - column:
+                  name: profile_image
+                  type: VARCHAR(500)

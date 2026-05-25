@@ -124,6 +124,10 @@ public class UserService {
             userEntity.setDocumentEntity(buildDocumentEntity(userEditDTO.getDocument(), tokenHeader));
         }
 
+        if (userEditDTO.getProfileImage() != null) {
+            userEntity.setProfileImage(uploadUserImage(userEditDTO.getProfileImage(), tokenHeader));
+        }
+
         String updatedPassword = null;
         if (userEditDTO.getPassword() != null && !userEditDTO.getPassword().trim().isEmpty()) {
             updatedPassword = userEditDTO.getPassword().trim();
@@ -132,6 +136,15 @@ public class UserService {
 
         syncUserWithSupabase(tokenHeader, updatedEmail, updatedPassword, updatedName, updatedPhoneNumber);
         return userRepository.save(userEntity);
+    }
+
+    private String uploadUserImage(DocumentDTO imageDTO, String tokenHeader) {
+        return storageService.uploadBase64Image(
+                imageDTO.getData(),
+                "users",
+                extractBearerToken(tokenHeader),
+                imageDTO.getType()
+        );
     }
 
     @Transactional

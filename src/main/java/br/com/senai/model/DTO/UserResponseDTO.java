@@ -21,7 +21,7 @@ public class UserResponseDTO {
         response.setPhoneNumber(userEntity.getPhoneNumber());
         response.setTimeChronos(userEntity.getTimeChronos());
         response.setRating(0.0);
-        response.setProfileImage(null);
+        response.setProfileImage(userEntity.getProfileImage());
         response.setDocument(DocumentResponseDTO.fromEntity(userEntity.getDocumentEntity()));
         return response;
     }

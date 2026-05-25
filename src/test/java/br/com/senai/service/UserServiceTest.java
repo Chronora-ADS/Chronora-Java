@@ -151,12 +151,15 @@ class UserServiceTest {
         editDTO.setPhoneNumber(11888888888L);
         editDTO.setPassword("novaSenha123");
         editDTO.setDocument(criarDocumentoDTO());
+        editDTO.setProfileImage(criarImagemPerfilDTO());
 
         when(userRepository.findByEmail("ana.atualizada@chronora.com")).thenReturn(Optional.empty());
         when(userRepository.findByPhoneNumber(11888888888L)).thenReturn(Optional.empty());
         when(passwordEncoder.encode("novaSenha123")).thenReturn("hash-novo");
         when(storageService.uploadBase64Image(eq("base64-documento"), eq("users"), eq("token-valido"), eq("png")))
                 .thenReturn("https://storage/novo-documento.png");
+        when(storageService.uploadBase64Image(eq("base64-avatar"), eq("users"), eq("token-valido"), eq("jpg")))
+                .thenReturn("https://storage/avatar.jpg");
         when(userRepository.save(usuarioLogado)).thenReturn(usuarioLogado);
 
         UserEntity atualizado = userService.put(editDTO, TOKEN_HEADER);
@@ -167,6 +170,7 @@ class UserServiceTest {
         assertEquals(11888888888L, atualizado.getPhoneNumber());
         assertEquals("hash-novo", atualizado.getPassword());
         assertEquals("https://storage/novo-documento.png", atualizado.getDocumentEntity().getUrl());
+        assertEquals("https://storage/avatar.jpg", atualizado.getProfileImage());
         verify(supabaseAuthService).updateUser(
                 eq("token-valido"),
                 eq("ana.atualizada@chronora.com"),
@@ -278,6 +282,14 @@ class UserServiceTest {
         documentDTO.setType("png");
         documentDTO.setData("base64-documento");
         return documentDTO;
+    }
+
+    private DocumentDTO criarImagemPerfilDTO() {
+        DocumentDTO imageDTO = new DocumentDTO();
+        imageDTO.setName("avatar.jpg");
+        imageDTO.setType("jpg");
+        imageDTO.setData("base64-avatar");
+        return imageDTO;
     }
 
     private ServiceEntity criarServico(Long id, ServiceStatus status, UserEntity criador) {

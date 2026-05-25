@@ -36,6 +36,9 @@ public class UserEntity {
     @Column(nullable = false)
     private Integer timeChronos;
 
+    @Column(name = "profile_image", length = 500)
+    private String profileImage;
+
     @Embedded
     private DocumentEntity documentEntity;
 
@@ -93,6 +96,14 @@ public class UserEntity {
 
     public void setTimeChronos(Integer timeChronos) {
         this.timeChronos = timeChronos;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 
     public DocumentEntity getDocumentEntity() {
