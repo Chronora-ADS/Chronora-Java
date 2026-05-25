@@ -1,5 +1,6 @@
 package br.com.senai.service;
 
+import br.com.senai.exception.SupabaseIntegrationException;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientException;
 
 @Service
 public class SupabaseStorageService {
@@ -45,31 +47,38 @@ public class SupabaseStorageService {
 
         String[] parts = base64Image.split(",");
         String base64Data = (parts.length > 1) ? parts[1] : parts[0];
-        byte[] imageBytes = Base64.getDecoder().decode(base64Data);
 
-        String extension = guessExtension(base64Image, fileTypeHint);
-        String fileName = folder + "/" + UUID.randomUUID() + extension;
-        String uploadUrl = supabaseUrl + "/storage/v1/object/" + bucketName + "/" + fileName;
+        try {
+            byte[] imageBytes = Base64.getDecoder().decode(base64Data);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(resolveMediaType(extension));
-        headers.set("apikey", anonKey);
-        headers.set("Authorization", "Bearer " + resolveToken(userJwtToken));
+            String extension = guessExtension(base64Image, fileTypeHint);
+            String fileName = folder + "/" + UUID.randomUUID() + extension;
+            String uploadUrl = supabaseUrl + "/storage/v1/object/" + bucketName + "/" + fileName;
 
-        HttpEntity<byte[]> requestEntity = new HttpEntity<>(imageBytes, headers);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(resolveMediaType(extension));
+            headers.set("apikey", anonKey);
+            headers.set("Authorization", "Bearer " + resolveToken(userJwtToken));
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                uploadUrl,
-                HttpMethod.POST,
-                requestEntity,
-                String.class
-        );
+            HttpEntity<byte[]> requestEntity = new HttpEntity<>(imageBytes, headers);
 
-        if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED) {
-            return supabaseUrl + "/storage/v1/object/public/" + bucketName + "/" + fileName;
+            ResponseEntity<String> response = restTemplate.exchange(
+                    uploadUrl,
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED) {
+                return supabaseUrl + "/storage/v1/object/public/" + bucketName + "/" + fileName;
+            }
+
+            throw new SupabaseIntegrationException("Falha no upload da imagem: " + response.getStatusCode(), null);
+        } catch (IllegalArgumentException e) {
+            throw new SupabaseIntegrationException("Imagem em base64 invalida", e);
+        } catch (RestClientException e) {
+            throw new SupabaseIntegrationException("Falha ao enviar imagem para o Supabase Storage", e);
         }
-
-        throw new RuntimeException("Falha no upload da imagem: " + response.getStatusCode());
     }
 
     private String resolveToken(String userJwtToken) {

@@ -16,6 +16,7 @@ import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -219,7 +220,7 @@ public class UserService {
             serviceRepository.save(acceptedService);
         }
 
-        java.util.List<ServiceEntity> createdServices = serviceRepository.findAllByUserCreator(user);
+        List<ServiceEntity> createdServices = serviceRepository.findAllByUserCreator(user);
         if (!createdServices.isEmpty()) {
             notificationRepository.deleteAllByServiceIn(createdServices);
             serviceRepository.deleteAll(createdServices);

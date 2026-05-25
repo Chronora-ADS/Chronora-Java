@@ -6,8 +6,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
+
 import java.time.Instant;
 
+@Data
 @Entity
 @Table(name = "uptime_check")
 public class UptimeCheckEntity {
@@ -30,48 +33,4 @@ public class UptimeCheckEntity {
 
     @Column(name = "error_message", length = 1000)
     private String errorMessage;
-
-    public Long getId() {
-        return id;
-    }
-
-    public Instant getCheckedAt() {
-        return checkedAt;
-    }
-
-    public void setCheckedAt(Instant checkedAt) {
-        this.checkedAt = checkedAt;
-    }
-
-    public Integer getStatusCode() {
-        return statusCode;
-    }
-
-    public void setStatusCode(Integer statusCode) {
-        this.statusCode = statusCode;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Long getResponseTimeMs() {
-        return responseTimeMs;
-    }
-
-    public void setResponseTimeMs(Long responseTimeMs) {
-        this.responseTimeMs = responseTimeMs;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
 }

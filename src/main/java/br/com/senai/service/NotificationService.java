@@ -9,10 +9,15 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
 import org.springframework.stereotype.Service;
 
 @Service
 public class NotificationService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationService.class);
 
     private final NotificationRepository notificationRepository;
     private final UserService userService;
@@ -43,7 +48,14 @@ public class NotificationService {
         event.setUserEmail(user.getEmail());
         event.setServiceId(service.getId());
         event.setCreatedAt(OffsetDateTime.now());
-        notificationEventPublisher.publish(event);
+        try {
+            notificationEventPublisher.publish(event);
+        } catch (AmqpException exception) {
+            LOGGER.warn(
+                    "Nao foi possivel publicar evento de notificacao no RabbitMQ. A notificacao foi salva. Motivo: {}",
+                    exception.getMessage()
+            );
+        }
 
         return saved;
     }

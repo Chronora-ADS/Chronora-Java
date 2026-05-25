@@ -11,8 +11,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 @Entity
 @Table(name = "app_user")
 public class UserEntity {
@@ -49,84 +52,4 @@ public class UserEntity {
 
     @Column(name = "supabase_user_id", unique = true)
     private String supabaseUserId;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Long getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(Long phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Integer getTimeChronos() {
-        return timeChronos;
-    }
-
-    public void setTimeChronos(Integer timeChronos) {
-        this.timeChronos = timeChronos;
-    }
-
-    public String getProfileImage() {
-        return profileImage;
-    }
-
-    public void setProfileImage(String profileImage) {
-        this.profileImage = profileImage;
-    }
-
-    public DocumentEntity getDocumentEntity() {
-        return documentEntity;
-    }
-
-    public void setDocumentEntity(DocumentEntity documentEntity) {
-        this.documentEntity = documentEntity;
-    }
-
-    public List<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<String> roles) {
-        this.roles = roles;
-    }
-
-    public String getSupabaseUserId() {
-        return supabaseUserId;
-    }
-
-    public void setSupabaseUserId(String supabaseUserId) {
-        this.supabaseUserId = supabaseUserId;
-    }
 }
