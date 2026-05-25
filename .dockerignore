@@ -4,8 +4,6 @@
 **/.git
 **/*.iml
 **/.mvn
-**/mvnw
-**/mvnw.cmd
 **/README.md
 **/Leia-Me.md
 **/ProjetoAplicado.iml
