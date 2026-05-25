@@ -7,6 +7,7 @@ COPY pom.xml .
 COPY .mvn .mvn
 COPY mvnw mvnw
 COPY mvnw.cmd mvnw.cmd
+RUN chmod +x mvnw
 RUN ./mvnw -q -DskipTests dependency:go-offline
 
 # Build
