@@ -435,7 +435,7 @@ class ServiceServiceTest {
         assertThrows(AuthException.class, () -> serviceService.deleteService(10L, TOKEN_HEADER));
 
         verify(userService, never()).buyChronos(any(), any());
-        verify(serviceRepository, never()).delete(any());
+        verify(serviceRepository, never()).delete(any(ServiceEntity.class));
     }
 
     @Test

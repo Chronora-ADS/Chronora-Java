@@ -152,10 +152,10 @@ class ServiceControllerTest {
     @Test
     void deveListarPedidosPorStatusViaController() {
         ServiceEntity service = criarServico(10L, ServiceStatus.ACEITO);
-        when(serviceService.getAllByStatus(ServiceStatus.ACEITO, TOKEN_HEADER, 0, 10))
+        when(serviceService.searchByStatus(ServiceStatus.ACEITO, TOKEN_HEADER, 0, 10, null, null, null, null, null, null, "0"))
                 .thenReturn(new PageImpl<>(List.of(service)));
 
-        var response = serviceController.getAllByStatus(ServiceStatus.ACEITO, TOKEN_HEADER, 0, 10);
+        var response = serviceController.getAllByStatus(ServiceStatus.ACEITO, TOKEN_HEADER, 0, 10, null, null, null, null, null, null, "0");
         ApiResponse<List<ServiceEntity>> body = response.getBody();
 
         assertEquals(200, response.getStatusCode().value());
@@ -163,7 +163,7 @@ class ServiceControllerTest {
         assertEquals(0, body.getPage());
         assertEquals(10, body.getSize());
         assertEquals(1L, body.getTotalElements());
-        verify(serviceService).getAllByStatus(ServiceStatus.ACEITO, TOKEN_HEADER, 0, 10);
+        verify(serviceService).searchByStatus(ServiceStatus.ACEITO, TOKEN_HEADER, 0, 10, null, null, null, null, null, null, "0");
     }
 
     @Test
