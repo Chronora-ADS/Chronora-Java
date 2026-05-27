@@ -17,13 +17,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -332,6 +339,143 @@ public class ServiceService {
     public Page<ServiceEntity> getAllByStatus(ServiceStatus status, String tokenHeader, int page, int size) {
         userService.getLoggedUser(tokenHeader);
         return serviceRepository.findAllByStatus(status, PageRequest.of(page, size));
+    }
+
+    @Transactional
+    public Page<ServiceEntity> searchByStatus(
+            ServiceStatus status,
+            String tokenHeader,
+            int page,
+            int size,
+            String query,
+            List<String> categories,
+            String modality,
+            LocalDate deadline,
+            Integer minTimeChronos,
+            Integer maxTimeChronos,
+            String sort
+    ) {
+        userService.getLoggedUser(tokenHeader);
+
+        Specification<ServiceEntity> specification = buildStatusSearchSpecification(
+                status,
+                query,
+                categories,
+                modality,
+                deadline,
+                minTimeChronos,
+                maxTimeChronos
+        );
+
+        return serviceRepository.findAll(specification, PageRequest.of(page, size, buildServiceSort(sort)));
+    }
+
+    private Specification<ServiceEntity> buildStatusSearchSpecification(
+            ServiceStatus status,
+            String query,
+            List<String> categories,
+            String modality,
+            LocalDate deadline,
+            Integer minTimeChronos,
+            Integer maxTimeChronos
+    ) {
+        return (root, criteriaQuery, criteriaBuilder) -> {
+            criteriaQuery.distinct(true);
+
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.equal(root.get("status"), status));
+
+            String normalizedQuery = normalizeFilterText(query);
+            if (normalizedQuery != null) {
+                String searchPattern = "%" + normalizedQuery + "%";
+                Join<ServiceEntity, CategoryEntity> categoryJoin = root.join("categoryEntities", JoinType.LEFT);
+                Join<ServiceEntity, UserEntity> creatorJoin = root.join("userCreator", JoinType.LEFT);
+
+                predicates.add(criteriaBuilder.or(
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), searchPattern),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), searchPattern),
+                        criteriaBuilder.like(criteriaBuilder.lower(creatorJoin.get("name")), searchPattern),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("modality").as(String.class)), searchPattern),
+                        criteriaBuilder.like(criteriaBuilder.lower(categoryJoin.get("name")), searchPattern)
+                ));
+            }
+
+            List<String> normalizedCategories = normalizeFilterList(categories);
+            if (!normalizedCategories.isEmpty()) {
+                Join<ServiceEntity, CategoryEntity> categoryJoin = root.join("categoryEntities", JoinType.LEFT);
+                List<Predicate> categoryPredicates = normalizedCategories.stream()
+                        .map(category -> criteriaBuilder.like(
+                                criteriaBuilder.lower(categoryJoin.get("name")),
+                                "%" + category + "%"
+                        ))
+                        .toList();
+
+                predicates.add(criteriaBuilder.or(categoryPredicates.toArray(Predicate[]::new)));
+            }
+
+            ServiceModality selectedModality = parseFilterModality(modality);
+            if (selectedModality != null) {
+                predicates.add(criteriaBuilder.equal(root.get("modality"), selectedModality));
+            }
+
+            if (deadline != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("deadline"), deadline));
+            }
+
+            if (minTimeChronos != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("timeChronos"), minTimeChronos));
+            }
+
+            if (maxTimeChronos != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("timeChronos"), maxTimeChronos));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    private Sort buildServiceSort(String sort) {
+        if ("1".equals(sort)) {
+            return Sort.by(Sort.Direction.ASC, "id");
+        }
+
+        if ("3".equals(sort)) {
+            return Sort.by(Sort.Direction.DESC, "timeChronos").and(Sort.by(Sort.Direction.DESC, "id"));
+        }
+
+        if ("4".equals(sort)) {
+            return Sort.by(Sort.Direction.ASC, "timeChronos").and(Sort.by(Sort.Direction.DESC, "id"));
+        }
+
+        return Sort.by(Sort.Direction.DESC, "id");
+    }
+
+    private String normalizeFilterText(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        return value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private List<String> normalizeFilterList(List<String> values) {
+        if (values == null) {
+            return List.of();
+        }
+
+        return values.stream()
+                .map(this::normalizeFilterText)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+    }
+
+    private ServiceModality parseFilterModality(String modality) {
+        if (modality == null || modality.isBlank()) {
+            return null;
+        }
+
+        return ServiceModality.fromValue(modality);
     }
 
     private List<CategoryEntity> buildCategories(List<String> categories) {

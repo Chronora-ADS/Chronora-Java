@@ -8,10 +8,12 @@ import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.service.ServiceService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import java.time.LocalDate;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -138,9 +140,28 @@ public class ServiceController {
             @PathVariable ServiceStatus status,
             @RequestHeader("Authorization") String tokenHeader,
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) int size
+            @RequestParam(defaultValue = "10") @Min(1) int size,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) List<String> categories,
+            @RequestParam(required = false) String modality,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate deadline,
+            @RequestParam(required = false) @Min(0) Integer minTimeChronos,
+            @RequestParam(required = false) @Min(0) Integer maxTimeChronos,
+            @RequestParam(defaultValue = "0") String sort
     ) {
-        Page<ServiceEntity> services = serviceService.getAllByStatus(status, tokenHeader, page, size);
+        Page<ServiceEntity> services = serviceService.searchByStatus(
+                status,
+                tokenHeader,
+                page,
+                size,
+                query,
+                categories,
+                modality,
+                deadline,
+                minTimeChronos,
+                maxTimeChronos,
+                sort
+        );
         return ResponseEntity.ok(ApiResponse.ofPage(
                 services.getContent(),
                 page,
