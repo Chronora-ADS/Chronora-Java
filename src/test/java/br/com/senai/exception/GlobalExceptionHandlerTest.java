@@ -23,6 +23,6 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(400, ((Map<?, ?>) response.getBody()).get("status"));
-        assertEquals("JSON invalido", ((Map<?, ?>) response.getBody()).get("message"));
+        assertEquals("JSON inválido", ((Map<?, ?>) response.getBody()).get("message"));
     }
 }
