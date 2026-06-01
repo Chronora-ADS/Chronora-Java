@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(error -> error.getDefaultMessage())
-                .orElse("Dados invalidos");
+                .orElse("Dados inválidos");
 
         return ResponseEntity.badRequest()
                 .body(errorBody(message, HttpStatus.BAD_REQUEST));
@@ -68,21 +68,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<?> handleUnreadableBody(HttpMessageNotReadableException ex) {
-        logger.warn("Corpo de requisicao invalido: {}", ex.getMostSpecificCause().getMessage());
+        logger.warn("Corpo de requisição inválido: {}", ex.getMostSpecificCause().getMessage());
         return ResponseEntity.badRequest()
-                .body(errorBody("JSON invalido", HttpStatus.BAD_REQUEST));
+                .body(errorBody("JSON inválido", HttpStatus.BAD_REQUEST));
     }
 
     @ExceptionHandler(SupabaseIntegrationException.class)
     public ResponseEntity<?> handleSupabase(SupabaseIntegrationException ex) {
-        logger.error("Falha de integracao com Supabase", ex);
+        logger.error("Falha de integração com Supabase", ex);
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                .body(errorBody("Servico externo indisponivel", HttpStatus.BAD_GATEWAY));
+                .body(errorBody("Servico externo indisponível", HttpStatus.BAD_GATEWAY));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleUnexpected(Exception ex) {
-        logger.error("Erro inesperado na requisicao", ex);
+        logger.error("Erro inesperado na requisição", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(errorBody("Erro interno", HttpStatus.INTERNAL_SERVER_ERROR));
     }

@@ -26,13 +26,6 @@ class ServiceModalityTest {
     }
 
     @Test
-    void deveAceitarVariantesDeHibrido() {
-        assertEquals(ServiceModality.HIBRIDO, ServiceModality.fromValue("Hibrido"));
-        assertEquals(ServiceModality.HIBRIDO, ServiceModality.fromValue("H\u00EDbrido"));
-        assertEquals(ServiceModality.HIBRIDO, ServiceModality.fromValue("hybrid"));
-    }
-
-    @Test
     void deveRetornarNullQuandoValorForNuloOuVazio() {
         assertNull(ServiceModality.fromValue(null));
         assertNull(ServiceModality.fromValue(" "));

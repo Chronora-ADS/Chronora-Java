@@ -16,11 +16,6 @@ public enum ServiceModality {
             "ONSITE",
             "ON_SITE"
     )),
-    HIBRIDO("Hibrido", Set.of(
-            "HIBRIDO",
-            "HYBRID",
-            "HYBRIDO"
-    )),
     REMOTO("Remoto", Set.of(
             "REMOTO",
             "REMOTE",
@@ -55,7 +50,7 @@ public enum ServiceModality {
                 .filter(modality -> modality.acceptedValues.contains(normalized))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Modalidade invalida: " + value + ". Use Remoto, Presencial ou Hibrido."
+                        "Modalidade inválida: " + value + ". Use Remoto ou Presencial."
                 ));
     }
 
