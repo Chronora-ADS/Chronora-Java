@@ -120,6 +120,19 @@ class NotificationServiceTest {
         verify(notificationRepository).deleteAllByService(service);
     }
 
+    @Test
+    void deveVerificarSeNotificacaoJaExisteParaUsuarioServicoEMensagem() {
+        UserEntity user = criarUsuario();
+        ServiceEntity service = criarServico();
+        when(notificationRepository.existsByUserAndServiceAndMessage(user, service, "Prazo do pedido chegou"))
+                .thenReturn(true);
+
+        boolean exists = notificationService.exists("Prazo do pedido chegou", user, service);
+
+        assertEquals(true, exists);
+        verify(notificationRepository).existsByUserAndServiceAndMessage(user, service, "Prazo do pedido chegou");
+    }
+
     private UserEntity criarUsuario() {
         UserEntity user = new UserEntity();
         user.setId(1L);
