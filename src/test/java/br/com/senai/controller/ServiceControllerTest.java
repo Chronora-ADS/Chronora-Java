@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.senai.model.DTO.ApiResponse;
 import br.com.senai.model.DTO.ServiceDTO;
+import br.com.senai.model.DTO.ServiceDeadlineRenewalDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.enums.ServiceModality;
@@ -119,6 +120,22 @@ class ServiceControllerTest {
         assertEquals(200, response.getStatusCode().value());
         assertEquals(ServiceStatus.CANCELADO, response.getBody().getStatus());
         verify(serviceService).cancelService(10L, TOKEN_HEADER);
+    }
+
+    @Test
+    void deveRenovarPrazoViaController() {
+        ServiceDeadlineRenewalDTO dto = new ServiceDeadlineRenewalDTO();
+        dto.setDeadline(LocalDate.now().plusDays(5));
+        ServiceEntity service = criarServico(10L, ServiceStatus.CRIADO);
+        service.setDeadline(dto.getDeadline());
+
+        when(serviceService.renewDeadline(10L, TOKEN_HEADER, dto.getDeadline())).thenReturn(service);
+
+        var response = serviceController.renewDeadline(TOKEN_HEADER, 10L, dto);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(dto.getDeadline(), response.getBody().getDeadline());
+        verify(serviceService).renewDeadline(10L, TOKEN_HEADER, dto.getDeadline());
     }
 
     @Test

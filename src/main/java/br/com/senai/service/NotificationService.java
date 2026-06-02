@@ -66,6 +66,10 @@ public class NotificationService {
         return notificationRepository.findAllByUser(user);
     }
 
+    public boolean exists(String message, UserEntity user, ServiceEntity service) {
+        return notificationRepository.existsByUserAndServiceAndMessage(user, service, message);
+    }
+
     @Transactional
     public void deleteByService(ServiceEntity service) {
         notificationRepository.deleteAllByService(service);

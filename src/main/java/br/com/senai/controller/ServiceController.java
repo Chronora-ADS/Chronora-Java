@@ -2,6 +2,7 @@ package br.com.senai.controller;
 
 import br.com.senai.model.DTO.ApiResponse;
 import br.com.senai.model.DTO.ServiceDTO;
+import br.com.senai.model.DTO.ServiceDeadlineRenewalDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.enums.ServiceStatus;
@@ -99,6 +100,15 @@ public class ServiceController {
             @PathVariable Long id
     ) {
         return ResponseEntity.ok(serviceService.cancelService(id, tokenHeader));
+    }
+
+    @PutMapping("/renewDeadline/{id}")
+    public ResponseEntity<ServiceEntity> renewDeadline(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long id,
+            @RequestBody @Valid ServiceDeadlineRenewalDTO renewalDTO
+    ) {
+        return ResponseEntity.ok(serviceService.renewDeadline(id, tokenHeader, renewalDTO.getDeadline()));
     }
 
     @DeleteMapping("/delete/{id}")

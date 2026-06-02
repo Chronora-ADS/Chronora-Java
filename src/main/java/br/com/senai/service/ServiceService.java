@@ -17,7 +17,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -32,6 +34,12 @@ public class ServiceService {
     private static final long VERIFICATION_CODE_EXPIRATION_MINUTES = 2;
     private static final int MAX_CATEGORY_COUNT = 10;
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    public static final String DEADLINE_ACTION_MESSAGE =
+            "Prazo do pedido chegou. Renove o prazo ou cancele o pedido.";
+    public static final String DEADLINE_AUTO_CANCEL_MESSAGE =
+            "Pedido cancelado automaticamente por prazo expirado.";
+    public static final String DEADLINE_RENEWED_MESSAGE = "Prazo do pedido renovado.";
+    private static final ZoneId DEADLINE_ZONE = ZoneId.of("America/Sao_Paulo");
 
     private final ServiceRepository serviceRepository;
     private final UserService userService;
@@ -295,6 +303,44 @@ public class ServiceService {
     }
 
     @Transactional
+    public ServiceEntity renewDeadline(Long id, String tokenHeader, LocalDate newDeadline) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (!Objects.equals(user.getId(), service.getUserCreator().getId())) {
+            throw new AuthException("Credenciais invalidas.");
+        }
+
+        if (service.getStatus() != ServiceStatus.CRIADO) {
+            throw new AuthException("Somente pedidos criados podem ter prazo renovado.");
+        }
+
+        if (newDeadline == null || !newDeadline.isAfter(LocalDate.now(DEADLINE_ZONE))) {
+            throw new IllegalArgumentException("Novo prazo deve ser uma data futura.");
+        }
+
+        service.setDeadline(newDeadline);
+        service = serviceRepository.save(service);
+        notificationService.create(DEADLINE_RENEWED_MESSAGE, user, service);
+        return service;
+    }
+
+    @Transactional
+    public void processDeadlineRules() {
+        processDeadlineRules(LocalDate.now(DEADLINE_ZONE));
+    }
+
+    @Transactional
+    public void processDeadlineRules(LocalDate today) {
+        if (today == null) {
+            throw new IllegalArgumentException("Data de processamento e obrigatoria.");
+        }
+
+        notifyServicesDueToday(today);
+        cancelExpiredServices(today);
+    }
+
+    @Transactional
     public void deleteService(Long id, String tokenHeader) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
         ServiceEntity service = getById(id);
@@ -358,6 +404,31 @@ public class ServiceService {
         service.setUserAccepted(null);
         service.setStatus(ServiceStatus.CRIADO);
         return serviceRepository.save(service);
+    }
+
+    private void notifyServicesDueToday(LocalDate today) {
+        List<ServiceEntity> servicesDueToday =
+                serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, today);
+
+        for (ServiceEntity service : servicesDueToday) {
+            UserEntity owner = service.getUserCreator();
+            boolean alreadyNotified = notificationService.exists(DEADLINE_ACTION_MESSAGE, owner, service);
+            if (!alreadyNotified) {
+                notificationService.create(DEADLINE_ACTION_MESSAGE, owner, service);
+            }
+        }
+    }
+
+    private void cancelExpiredServices(LocalDate today) {
+        List<ServiceEntity> expiredServices =
+                serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, today);
+
+        for (ServiceEntity service : expiredServices) {
+            clearVerificationCode(service);
+            service.setStatus(ServiceStatus.CANCELADO);
+            ServiceEntity savedService = serviceRepository.save(service);
+            notificationService.create(DEADLINE_AUTO_CANCEL_MESSAGE, savedService.getUserCreator(), savedService);
+        }
     }
 
     private void clearVerificationCode(ServiceEntity service) {

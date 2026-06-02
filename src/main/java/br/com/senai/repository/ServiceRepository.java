@@ -4,6 +4,7 @@ import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.ServiceStatus;
 import jakarta.persistence.LockModeType;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,8 @@ public interface ServiceRepository extends JpaRepository<ServiceEntity, Long> {
     Page<ServiceEntity> findAllByStatus(ServiceStatus status, Pageable pageable);
     List<ServiceEntity> findAllByUserCreator(UserEntity userCreator);
     List<ServiceEntity> findAllByUserAccepted(UserEntity userAccepted);
+    List<ServiceEntity> findAllByStatusAndDeadline(ServiceStatus status, LocalDate deadline);
+    List<ServiceEntity> findAllByStatusAndDeadlineBefore(ServiceStatus status, LocalDate deadline);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM ServiceEntity s WHERE s.id = :id")

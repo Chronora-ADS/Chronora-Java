@@ -414,6 +414,112 @@ class ServiceServiceTest {
     }
 
     @Test
+    void deveRenovarPrazoQuandoProprietarioResponderNotificacao() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        LocalDate novoPrazo = LocalDate.now().plusDays(5);
+
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        ServiceEntity renovado = serviceService.renewDeadline(10L, TOKEN_HEADER, novoPrazo);
+
+        assertSame(service, renovado);
+        assertEquals(novoPrazo, renovado.getDeadline());
+        verify(serviceRepository).save(service);
+        verify(notificationService).create(ServiceService.DEADLINE_RENEWED_MESSAGE, criador, service);
+    }
+
+    @Test
+    void deveRejeitarRenovacaoQuandoUsuarioNaoForProprietario() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+
+        assertThrows(AuthException.class,
+                () -> serviceService.renewDeadline(10L, TOKEN_HEADER, LocalDate.now().plusDays(5)));
+
+        verify(serviceRepository, never()).save(any());
+        verify(notificationService, never()).create(any(), any(), any());
+    }
+
+    @Test
+    void deveRejeitarRenovacaoQuandoPedidoNaoEstiverCriado() {
+        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
+
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+
+        assertThrows(AuthException.class,
+                () -> serviceService.renewDeadline(10L, TOKEN_HEADER, LocalDate.now().plusDays(5)));
+
+        verify(serviceRepository, never()).save(any());
+        verify(notificationService, never()).create(any(), any(), any());
+    }
+
+    @Test
+    void deveNotificarPedidoCriadoNoDiaDoPrazoSemCancelar() {
+        LocalDate hoje = LocalDate.of(2026, 6, 1);
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setDeadline(hoje);
+
+        when(serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of(service));
+        when(notificationService.exists(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service))
+                .thenReturn(false);
+        when(serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of());
+
+        serviceService.processDeadlineRules(hoje);
+
+        verify(notificationService).create(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service);
+        verify(serviceRepository, never()).save(any());
+    }
+
+    @Test
+    void deveEvitarNotificacaoDuplicadaNoDiaDoPrazo() {
+        LocalDate hoje = LocalDate.of(2026, 6, 1);
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setDeadline(hoje);
+
+        when(serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of(service));
+        when(notificationService.exists(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service))
+                .thenReturn(true);
+        when(serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of());
+
+        serviceService.processDeadlineRules(hoje);
+
+        verify(notificationService, never()).create(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service);
+        verify(serviceRepository, never()).save(any());
+    }
+
+    @Test
+    void deveCancelarAutomaticamentePedidoCriadoComPrazoVencido() {
+        LocalDate hoje = LocalDate.of(2026, 6, 1);
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setDeadline(hoje.minusDays(1));
+        service.setVerificationCode("1234");
+        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+
+        when(serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of());
+        when(serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        serviceService.processDeadlineRules(hoje);
+
+        assertEquals(ServiceStatus.CANCELADO, service.getStatus());
+        assertNull(service.getVerificationCode());
+        assertNull(service.getVerificationCodeExpiresAt());
+        verify(serviceRepository).save(service);
+        verify(notificationService).create(ServiceService.DEADLINE_AUTO_CANCEL_MESSAGE, criador, service);
+    }
+
+    @Test
     void deveExcluirPedidoCriadoEDevolverChronosAoProprietario() {
         ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
