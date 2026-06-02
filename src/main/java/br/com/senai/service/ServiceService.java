@@ -5,6 +5,7 @@ import br.com.senai.exception.NotFound.ServiceNotFoundException;
 import br.com.senai.exception.Validation.ExpiredValidationCodeException;
 import br.com.senai.exception.Validation.IncorrectValidationCodeException;
 import br.com.senai.exception.Validation.QuantityChronosInvalidException;
+import br.com.senai.model.DTO.ServiceCancellationDTO;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.CategoryEntity;
@@ -37,7 +38,10 @@ import org.springframework.stereotype.Service;
 public class ServiceService {
 
     private static final long VERIFICATION_CODE_EXPIRATION_MINUTES = 2;
+    private static final int FIRST_VERIFICATION_CODE_CALL = 1;
+    private static final int SECOND_VERIFICATION_CODE_CALL = 2;
     private static final int MAX_CATEGORY_COUNT = 10;
+    private static final int MAX_CANCELLATION_JUSTIFICATION_LENGTH = 1000;
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     private final ServiceRepository serviceRepository;
@@ -175,8 +179,7 @@ public class ServiceService {
 
         service.setStatus(ServiceStatus.ACEITO);
         service.setUserAccepted(userAccepted);
-        service.setVerificationCode(generateVerificationCode());
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES));
+        startVerificationCodeCall(service, FIRST_VERIFICATION_CODE_CALL);
         service = serviceRepository.save(service);
 
         notificationService.create("Pedido aceito", userAccepted, service);
@@ -200,9 +203,11 @@ public class ServiceService {
 
         if (LocalDateTime.now().isAfter(service.getVerificationCodeExpiresAt())) {
             UserEntity acceptedUser = service.getUserAccepted();
-            reopenAcceptedService(service);
-            notificationService.create("Tempo para iniciar o pedido expirou", service.getUserCreator(), service);
-            notificationService.create("Tempo para iniciar o pedido expirou", acceptedUser, service);
+            if (isFinalVerificationCodeCall(service)) {
+                reopenAcceptedService(service);
+                notificationService.create("Segunda chamada expirada", service.getUserCreator(), service);
+                notificationService.create("Segunda chamada expirada", acceptedUser, service);
+            }
             throw new ExpiredValidationCodeException("Codigo de verificacao expirado");
         }
 
@@ -239,10 +244,45 @@ public class ServiceService {
             return service;
         }
 
+        if (!isFinalVerificationCodeCall(service)) {
+            return service;
+        }
+
         UserEntity acceptedUser = service.getUserAccepted();
         reopenAcceptedService(service);
-        notificationService.create("Tempo para iniciar o pedido expirou", service.getUserCreator(), service);
-        notificationService.create("Tempo para iniciar o pedido expirou", acceptedUser, service);
+        notificationService.create("Segunda chamada expirada", service.getUserCreator(), service);
+        notificationService.create("Segunda chamada expirada", acceptedUser, service);
+        return service;
+    }
+
+    @Transactional
+    public ServiceEntity secondCall(Long id, String tokenHeader) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (!Objects.equals(service.getUserCreator().getId(), user.getId())) {
+            throw new AuthException("Somente o solicitante pode iniciar a segunda chamada.");
+        }
+
+        if (service.getStatus() != ServiceStatus.ACEITO
+                || service.getUserAccepted() == null
+                || service.getVerificationCodeExpiresAt() == null) {
+            throw new AuthException("Este pedido nao esta aguardando segunda chamada.");
+        }
+
+        if (LocalDateTime.now().isBefore(service.getVerificationCodeExpiresAt())) {
+            throw new AuthException("A segunda chamada so pode ser iniciada apos o codigo expirar.");
+        }
+
+        if (isFinalVerificationCodeCall(service)) {
+            throw new AuthException("A segunda chamada ja foi utilizada.");
+        }
+
+        startVerificationCodeCall(service, SECOND_VERIFICATION_CODE_CALL);
+        service = serviceRepository.save(service);
+
+        notificationService.create("Segunda chamada iniciada", service.getUserCreator(), service);
+        notificationService.create("Segunda chamada iniciada", service.getUserAccepted(), service);
         return service;
     }
 
@@ -298,6 +338,35 @@ public class ServiceService {
 
         notificationService.create("Pedido cancelado", user, service);
         notificationService.create("Pedido cancelado por " + user.getName(), service.getUserCreator(), service);
+        return service;
+    }
+
+    @Transactional
+    public ServiceEntity cancelAcceptedService(Long id, String tokenHeader, ServiceCancellationDTO cancellationDTO) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (!canManageAcceptedService(service, user)) {
+            throw new AuthException("Credenciais invalidas.");
+        }
+
+        if (service.getStatus() != ServiceStatus.ACEITO || service.getUserAccepted() == null) {
+            throw new AuthException("Este servico nao pode ser cancelado para reabertura.");
+        }
+
+        String justification = normalizeCancellationJustification(
+                cancellationDTO != null ? cancellationDTO.getJustification() : null
+        );
+
+        UserEntity otherUser = Objects.equals(user.getId(), service.getUserCreator().getId())
+                ? service.getUserAccepted()
+                : service.getUserCreator();
+
+        service.setServiceCancellationJustification(justification);
+        reopenAcceptedService(service);
+
+        notificationService.create("Servico cancelado", user, service);
+        notificationService.create("Servico cancelado por " + user.getName() + ". Justificativa registrada.", otherUser, service);
         return service;
     }
 
@@ -507,6 +576,25 @@ public class ServiceService {
     private void clearVerificationCode(ServiceEntity service) {
         service.setVerificationCode(null);
         service.setVerificationCodeExpiresAt(null);
+        service.setVerificationCodeCallCount(0);
+    }
+
+    private void startVerificationCodeCall(ServiceEntity service, int callCount) {
+        service.setVerificationCode(generateVerificationCode());
+        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES));
+        service.setVerificationCodeCallCount(callCount);
+    }
+
+    private boolean isFinalVerificationCodeCall(ServiceEntity service) {
+        return getVerificationCodeCallCount(service) >= SECOND_VERIFICATION_CODE_CALL;
+    }
+
+    private int getVerificationCodeCallCount(ServiceEntity service) {
+        Integer callCount = service.getVerificationCodeCallCount();
+        if (callCount != null && callCount > 0) {
+            return callCount;
+        }
+        return service.getVerificationCode() == null ? 0 : FIRST_VERIFICATION_CODE_CALL;
     }
 
     private String generateVerificationCode() {
@@ -557,6 +645,18 @@ public class ServiceService {
 
     private boolean canHardDelete(ServiceEntity service) {
         return service.getStatus() == ServiceStatus.CRIADO || service.getStatus() == ServiceStatus.ACEITO;
+    }
+
+    private String normalizeCancellationJustification(String justification) {
+        if (justification == null || justification.isBlank()) {
+            throw new IllegalArgumentException("Justificativa do cancelamento e obrigatoria");
+        }
+
+        String normalizedJustification = justification.trim();
+        if (normalizedJustification.length() > MAX_CANCELLATION_JUSTIFICATION_LENGTH) {
+            throw new IllegalArgumentException("Justificativa do cancelamento deve ter no maximo 1000 caracteres");
+        }
+        return normalizedJustification;
     }
 
     private void validateServiceChronos(Integer timeChronos) {

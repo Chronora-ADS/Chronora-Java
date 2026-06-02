@@ -59,6 +59,12 @@ public class ServiceEntity {
 
     private LocalDateTime verificationCodeExpiresAt;
 
+    @Column(name = "verification_code_call_count")
+    private Integer verificationCodeCallCount = 0;
+
+    @Column(name = "service_cancellation_justification", length = 1000)
+    private String serviceCancellationJustification;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "service_entity_category_entities",

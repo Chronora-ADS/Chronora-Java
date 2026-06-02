@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.senai.model.DTO.ApiResponse;
+import br.com.senai.model.DTO.ServiceCancellationDTO;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
@@ -107,6 +108,32 @@ class ServiceControllerTest {
         assertEquals(200, response.getStatusCode().value());
         assertEquals(ServiceStatus.CRIADO, response.getBody().getStatus());
         verify(serviceService).expireAcceptedService(10L, TOKEN_HEADER);
+    }
+
+    @Test
+    void deveIniciarSegundaChamadaViaController() {
+        ServiceEntity service = criarServico(10L, ServiceStatus.ACEITO);
+        when(serviceService.secondCall(10L, TOKEN_HEADER)).thenReturn(service);
+
+        var response = serviceController.secondCall(TOKEN_HEADER, 10L);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(ServiceStatus.ACEITO, response.getBody().getStatus());
+        verify(serviceService).secondCall(10L, TOKEN_HEADER);
+    }
+
+    @Test
+    void deveCancelarServicoAceitoViaController() {
+        ServiceCancellationDTO dto = new ServiceCancellationDTO();
+        dto.setJustification("Nao houve retorno no prazo combinado.");
+        ServiceEntity service = criarServico(10L, ServiceStatus.CRIADO);
+        when(serviceService.cancelAcceptedService(10L, TOKEN_HEADER, dto)).thenReturn(service);
+
+        var response = serviceController.cancelAcceptedService(TOKEN_HEADER, 10L, dto);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(ServiceStatus.CRIADO, response.getBody().getStatus());
+        verify(serviceService).cancelAcceptedService(10L, TOKEN_HEADER, dto);
     }
 
     @Test

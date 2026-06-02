@@ -1,6 +1,7 @@
 package br.com.senai.controller;
 
 import br.com.senai.model.DTO.ApiResponse;
+import br.com.senai.model.DTO.ServiceCancellationDTO;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
@@ -87,12 +88,29 @@ public class ServiceController {
         return ResponseEntity.ok(serviceService.expireAcceptedService(id, tokenHeader));
     }
 
+    @PutMapping("/secondCall/{id}")
+    public ResponseEntity<ServiceEntity> secondCall(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(serviceService.secondCall(id, tokenHeader));
+    }
+
     @PutMapping("/finishService/{id}")
     public ResponseEntity<ServiceEntity> finishService(
             @RequestHeader("Authorization") String tokenHeader,
             @PathVariable Long id
     ) {
         return ResponseEntity.ok(serviceService.finishService(id, tokenHeader));
+    }
+
+    @PutMapping("/cancelAcceptedService/{id}")
+    public ResponseEntity<ServiceEntity> cancelAcceptedService(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long id,
+            @RequestBody @Valid ServiceCancellationDTO cancellationDTO
+    ) {
+        return ResponseEntity.ok(serviceService.cancelAcceptedService(id, tokenHeader, cancellationDTO));
     }
 
     @PutMapping("/cancelService/{id}")

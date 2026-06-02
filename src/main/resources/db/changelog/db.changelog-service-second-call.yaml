@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0017-add-verification-code-call-count-to-service
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            columnExists:
+              tableName: service
+              columnName: verification_code_call_count
+      changes:
+        - addColumn:
+            tableName: service
+            columns:
+              - column:
+                  name: verification_code_call_count
+                  type: INTEGER
+                  defaultValueNumeric: 0
+  - changeSet:
+      id: 0018-add-service-cancellation-justification-to-service
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            columnExists:
+              tableName: service
+              columnName: service_cancellation_justification
+      changes:
+        - addColumn:
+            tableName: service
+            columns:
+              - column:
+                  name: service_cancellation_justification
+                  type: VARCHAR(1000)
