@@ -151,7 +151,7 @@ public class ServiceService {
     @Transactional
     public ServiceEntity acceptService(Long id, String tokenHeader) {
         UserEntity userAccepted = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getByIdForUpdate(id);
+        ServiceEntity service = getById(id);
 
         if (isAcceptedByAnotherUser(service, userAccepted)) {
             throw new AuthException("Pedido ja foi aceito por outro usuario.");
@@ -187,7 +187,7 @@ public class ServiceService {
     @Transactional
     public ServiceEntity startService(Long id, String tokenHeader, String verificationCode) {
         UserEntity userAccepted = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getByIdForUpdate(id);
+        ServiceEntity service = getById(id);
 
         if (service.getUserAccepted() == null
                 || !Objects.equals(service.getUserAccepted().getId(), userAccepted.getId())) {
@@ -223,7 +223,7 @@ public class ServiceService {
     @Transactional
     public ServiceEntity expireAcceptedService(Long id, String tokenHeader) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getByIdForUpdate(id);
+        ServiceEntity service = getById(id);
 
         if (service.getStatus() != ServiceStatus.ACEITO
                 || service.getUserAccepted() == null
@@ -249,7 +249,7 @@ public class ServiceService {
     @Transactional
     public ServiceEntity finishService(Long id, String tokenHeader) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getByIdForUpdate(id);
+        ServiceEntity service = getById(id);
 
         if (!canManageAcceptedService(service, user)) {
             throw new AuthException("Credenciais invalidas.");
@@ -269,7 +269,7 @@ public class ServiceService {
     @Transactional
     public ServiceEntity cancelService(Long id, String tokenHeader) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getByIdForUpdate(id);
+        ServiceEntity service = getById(id);
 
         if (Objects.equals(user.getId(), service.getUserCreator().getId())) {
             service.setStatus(ServiceStatus.CANCELADO);
@@ -307,7 +307,7 @@ public class ServiceService {
         ServiceEntity service = getById(id);
 
         if (!Objects.equals(user.getId(), service.getUserCreator().getId())) {
-            throw new AuthException("Credenciais invalidas.");
+            throw new AuthException("Credenciais inválidas.");
         }
 
         if (!canHardDelete(service)) {
@@ -321,11 +321,6 @@ public class ServiceService {
 
     public ServiceEntity getById(Long id) {
         return serviceRepository.findById(id)
-                .orElseThrow(() -> new ServiceNotFoundException("Servico com ID " + id + " nao encontrado."));
-    }
-
-    public ServiceEntity getByIdForUpdate(Long id) {
-        return serviceRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ServiceNotFoundException("Servico com ID " + id + " nao encontrado."));
     }
 

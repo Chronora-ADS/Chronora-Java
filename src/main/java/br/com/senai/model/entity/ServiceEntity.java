@@ -1,12 +1,10 @@
 package br.com.senai.model.entity;
 
-import br.com.senai.model.converter.ServiceModalityConverter;
 import br.com.senai.model.enums.ServiceModality;
 import br.com.senai.model.enums.ServiceStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -44,7 +42,7 @@ public class ServiceEntity {
     @Column(nullable = false)
     private LocalDate deadline;
 
-    @Convert(converter = ServiceModalityConverter.class)
+    @Enumerated(EnumType.ORDINAL)
     @Column(nullable = false)
     private ServiceModality modality;
 
