@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Optional;
 
 @Service
 public class PaymentService {
@@ -28,15 +29,18 @@ public class PaymentService {
     private final MercadoPagoService mercadoPagoService;
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public PaymentService(UserService userService,
                           MercadoPagoService mercadoPagoService,
                           PaymentTransactionRepository paymentTransactionRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          NotificationService notificationService) {
         this.userService = userService;
         this.mercadoPagoService = mercadoPagoService;
         this.paymentTransactionRepository = paymentTransactionRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -63,6 +67,7 @@ public class PaymentService {
         transaction.setChronosAmount(chronosAmount);
         transaction.setTotalAmount(total);
         transaction.setMpPaymentId(result.getMpPaymentId());
+        transaction.setQrCode(result.getQrCode());
         transaction.setType(PaymentType.BUY);
         transaction.setStatus(PaymentStatus.PENDING);
         transaction.setCreatedAt(LocalDateTime.now());
@@ -70,6 +75,11 @@ public class PaymentService {
                 ? result.getExpiresAt().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime()
                 : LocalDateTime.now(ZoneOffset.UTC).plusMinutes(5));
         paymentTransactionRepository.save(transaction);
+
+        notificationService.create(
+                "Voce tem um pagamento PIX pendente de " + chronosAmount + " Chronos. Conclua o pagamento para receber seus Chronos.",
+                user
+        );
 
         String expiresAtIso = transaction.getExpiresAt()
                 .atOffset(ZoneOffset.UTC).toString();
@@ -92,6 +102,26 @@ public class PaymentService {
         return transaction.getStatus().name();
     }
 
+    public Optional<BuyChronosResponseDTO> getPendingBuyPayment(String tokenHeader) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+
+        return paymentTransactionRepository.findFirstActiveTransaction(
+                user.getId(),
+                PaymentType.BUY,
+                PaymentStatus.PENDING,
+                LocalDateTime.now(ZoneOffset.UTC)
+        ).map(transaction -> {
+            String expiresAtIso = transaction.getExpiresAt()
+                    .atOffset(ZoneOffset.UTC).toString();
+            return new BuyChronosResponseDTO(
+                    transaction.getId(),
+                    transaction.getQrCode(),
+                    null,
+                    expiresAtIso
+            );
+        });
+    }
+
     @Transactional
     public void handleWebhook(Long mpPaymentId) {
         paymentTransactionRepository.findByMpPaymentId(mpPaymentId).ifPresent(transaction -> {
@@ -102,6 +132,12 @@ public class PaymentService {
             if ("approved".equals(mpStatus)) {
                 creditChronos(transaction);
                 transaction.setStatus(PaymentStatus.PAID);
+                userRepository.findById(transaction.getUserId()).ifPresent(user ->
+                        notificationService.create(
+                                "Pagamento confirmado! " + transaction.getChronosAmount() + " Chronos foram adicionados ao seu saldo.",
+                                user
+                        )
+                );
             } else if ("rejected".equals(mpStatus) || "cancelled".equals(mpStatus)) {
                 transaction.setStatus(PaymentStatus.FAILED);
             }
@@ -122,7 +158,6 @@ public class PaymentService {
         BigDecimal tax = subtotal.multiply(TAX_RATE).setScale(2, RoundingMode.HALF_UP);
         BigDecimal amountToReceive = subtotal.subtract(tax);
 
-        // Debita os Chronos antes de tentar o pagamento
         user.setTimeChronos(user.getTimeChronos() - chronosAmount);
         userRepository.save(user);
 
@@ -145,7 +180,6 @@ public class PaymentService {
             paymentTransactionRepository.save(transaction);
 
         } catch (Exception e) {
-            // Reverte o débito se o MP falhar
             user.setTimeChronos(user.getTimeChronos() + chronosAmount);
             userRepository.save(user);
             throw new RuntimeException("Falha ao processar pagamento PIX: " + e.getMessage(), e);

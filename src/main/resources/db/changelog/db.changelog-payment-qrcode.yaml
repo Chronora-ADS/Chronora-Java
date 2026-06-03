@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0011-add-qr-code-to-payment-transaction
+      author: fellipe
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            columnExists:
+              tableName: payment_transaction
+              columnName: qr_code
+      changes:
+        - addColumn:
+            tableName: payment_transaction
+            columns:
+              - column:
+                  name: qr_code
+                  type: VARCHAR(1000)
+
+  - changeSet:
+      id: 0012-make-notification-service-nullable
+      author: fellipe
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+      changes:
+        - dropNotNullConstraint:
+            tableName: notification
+            columnName: service_id
+            columnDataType: BIGINT

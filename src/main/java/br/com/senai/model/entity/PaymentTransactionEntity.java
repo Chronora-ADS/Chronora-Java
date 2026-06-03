@@ -36,6 +36,9 @@ public class PaymentTransactionEntity {
     @Column(nullable = false, unique = true)
     private Long mpPaymentId;
 
+    @Column(length = 1000)
+    private String qrCode;
+
     @Column
     private String pixKey;
 

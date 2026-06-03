@@ -34,6 +34,6 @@ public class NotificationEntity {
     private UserEntity user;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "service_id", nullable = false)
+    @JoinColumn(name = "service_id", nullable = true)
     private ServiceEntity service;
 }

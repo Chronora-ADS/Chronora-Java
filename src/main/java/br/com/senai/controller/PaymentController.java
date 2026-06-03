@@ -42,6 +42,15 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/buy/pending")
+    public ResponseEntity<BuyChronosResponseDTO> getPendingBuyPayment(
+            @RequestHeader("Authorization") String tokenHeader
+    ) {
+        return paymentService.getPendingBuyPayment(tokenHeader)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
     @GetMapping("/buy/status/{transactionId}")
     public ResponseEntity<PaymentStatusResponseDTO> getBuyStatus(
             @RequestHeader("Authorization") String tokenHeader,
