@@ -33,7 +33,7 @@ public class MercadoPagoService {
                     .transactionAmount(amount)
                     .description(description)
                     .paymentMethodId("pix")
-                    .dateOfExpiration(OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(30))
+                    .dateOfExpiration(OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(5))
                     .payer(PaymentPayerRequest.builder()
                             .email(payerEmail)
                             .build())
