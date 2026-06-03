@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface NotificationRepository extends JpaRepository<NotificationEntity, Long> {
     List<NotificationEntity> findAllByUser(UserEntity user);
+    boolean existsByUserAndServiceAndMessage(UserEntity user, ServiceEntity service, String message);
     void deleteAllByUser(UserEntity user);
     void deleteAllByService(ServiceEntity service);
     void deleteAllByServiceIn(List<ServiceEntity> services);

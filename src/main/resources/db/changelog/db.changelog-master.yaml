@@ -10,6 +10,8 @@ databaseChangeLog:
       file: db/changelog/db.changelog-service-second-call.yaml
   - include:
       file: db/changelog/db.changelog-user-profile-image.yaml
+  - include:
+      file: db/changelog/db.changelog-payment-transaction.yaml
   - changeSet:
       id: baseline-2026-03-17
       author: codex
