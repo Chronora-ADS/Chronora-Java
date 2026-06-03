@@ -456,19 +456,16 @@ class ServiceServiceTest {
     }
 
     @Test
-    void deveCancelarServicoAceitoComJustificativaEReabrirPedido() {
+    void deveCancelarServicoAceitoEReabrirPedidoAntesDaJustificativa() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
         service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
         service.setVerificationCodeCallCount(1);
-        br.com.senai.model.DTO.ServiceCancellationDTO cancellationDTO =
-                new br.com.senai.model.DTO.ServiceCancellationDTO();
-        cancellationDTO.setJustification("Fornecedor nao respondeu no prazo combinado.");
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
         when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
-        ServiceEntity cancelado = serviceService.cancelAcceptedService(10L, TOKEN_HEADER, cancellationDTO);
+        ServiceEntity cancelado = serviceService.cancelAcceptedService(10L, TOKEN_HEADER, null);
 
         assertSame(service, cancelado);
         assertEquals(ServiceStatus.CRIADO, cancelado.getStatus());
@@ -476,18 +473,38 @@ class ServiceServiceTest {
         assertNull(cancelado.getVerificationCode());
         assertNull(cancelado.getVerificationCodeExpiresAt());
         assertEquals(0, cancelado.getVerificationCodeCallCount());
-        assertEquals("Fornecedor nao respondeu no prazo combinado.", cancelado.getServiceCancellationJustification());
+        assertNull(cancelado.getServiceCancellationJustification());
+        assertEquals(criador.getId(), cancelado.getServiceCancellationRequestedByUserId());
         verify(notificationService).create("Servico cancelado", criador, service);
         verify(notificationService).create(
-                "Servico cancelado por Ana. Justificativa registrada.",
+                "Servico cancelado por Ana",
                 prestador,
                 service
         );
     }
 
     @Test
-    void deveRetornarErroQuandoCancelarServicoSemJustificativa() {
-        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
+    void deveRegistrarJustificativaDoCancelamentoDepoisDeReabrirPedido() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setServiceCancellationRequestedByUserId(criador.getId());
+        br.com.senai.model.DTO.ServiceCancellationDTO cancellationDTO =
+                new br.com.senai.model.DTO.ServiceCancellationDTO();
+        cancellationDTO.setJustification("Fornecedor nao respondeu no prazo combinado.");
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        ServiceEntity atualizado = serviceService.registerServiceCancellationJustification(10L, TOKEN_HEADER, cancellationDTO);
+
+        assertSame(service, atualizado);
+        assertEquals("Fornecedor nao respondeu no prazo combinado.", atualizado.getServiceCancellationJustification());
+        verify(notificationService).create("Justificativa de cancelamento registrada", criador, service);
+    }
+
+    @Test
+    void deveRetornarErroQuandoRegistrarJustificativaEmBranco() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setServiceCancellationRequestedByUserId(criador.getId());
         br.com.senai.model.DTO.ServiceCancellationDTO cancellationDTO =
                 new br.com.senai.model.DTO.ServiceCancellationDTO();
         cancellationDTO.setJustification(" ");
@@ -495,7 +512,24 @@ class ServiceServiceTest {
         when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
 
         assertThrows(IllegalArgumentException.class,
-                () -> serviceService.cancelAcceptedService(10L, TOKEN_HEADER, cancellationDTO));
+                () -> serviceService.registerServiceCancellationJustification(10L, TOKEN_HEADER, cancellationDTO));
+
+        verify(serviceRepository, never()).save(any());
+        verify(notificationService, never()).create(any(), any(), any());
+    }
+
+    @Test
+    void deveRetornarErroQuandoOutroUsuarioRegistrarJustificativa() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setServiceCancellationRequestedByUserId(criador.getId());
+        br.com.senai.model.DTO.ServiceCancellationDTO cancellationDTO =
+                new br.com.senai.model.DTO.ServiceCancellationDTO();
+        cancellationDTO.setJustification("Fornecedor nao respondeu no prazo combinado.");
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+
+        assertThrows(AuthException.class,
+                () -> serviceService.registerServiceCancellationJustification(10L, TOKEN_HEADER, cancellationDTO));
 
         verify(serviceRepository, never()).save(any());
         verify(notificationService, never()).create(any(), any(), any());
