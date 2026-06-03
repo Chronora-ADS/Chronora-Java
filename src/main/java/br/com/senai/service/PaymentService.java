@@ -68,7 +68,7 @@ public class PaymentService {
         transaction.setCreatedAt(LocalDateTime.now());
         transaction.setExpiresAt(result.getExpiresAt() != null
                 ? result.getExpiresAt().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime()
-                : LocalDateTime.now(ZoneOffset.UTC).plusMinutes(30));
+                : LocalDateTime.now(ZoneOffset.UTC).plusMinutes(5));
         paymentTransactionRepository.save(transaction);
 
         String expiresAtIso = transaction.getExpiresAt()
