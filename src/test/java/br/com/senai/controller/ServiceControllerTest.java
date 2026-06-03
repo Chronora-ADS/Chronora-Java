@@ -125,16 +125,28 @@ class ServiceControllerTest {
 
     @Test
     void deveCancelarServicoAceitoViaController() {
-        ServiceCancellationDTO dto = new ServiceCancellationDTO();
-        dto.setJustification("Nao houve retorno no prazo combinado.");
         ServiceEntity service = criarServico(10L, ServiceStatus.CRIADO);
-        when(serviceService.cancelAcceptedService(10L, TOKEN_HEADER, dto)).thenReturn(service);
+        when(serviceService.cancelAcceptedService(10L, TOKEN_HEADER, null)).thenReturn(service);
 
-        var response = serviceController.cancelAcceptedService(TOKEN_HEADER, 10L, dto);
+        var response = serviceController.cancelAcceptedService(TOKEN_HEADER, 10L, null);
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals(ServiceStatus.CRIADO, response.getBody().getStatus());
-        verify(serviceService).cancelAcceptedService(10L, TOKEN_HEADER, dto);
+        verify(serviceService).cancelAcceptedService(10L, TOKEN_HEADER, null);
+    }
+
+    @Test
+    void deveRegistrarJustificativaDeCancelamentoViaController() {
+        ServiceCancellationDTO dto = new ServiceCancellationDTO();
+        dto.setJustification("Nao houve retorno no prazo combinado.");
+        ServiceEntity service = criarServico(10L, ServiceStatus.CRIADO);
+        when(serviceService.registerServiceCancellationJustification(10L, TOKEN_HEADER, dto)).thenReturn(service);
+
+        var response = serviceController.registerServiceCancellationJustification(TOKEN_HEADER, 10L, dto);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(ServiceStatus.CRIADO, response.getBody().getStatus());
+        verify(serviceService).registerServiceCancellationJustification(10L, TOKEN_HEADER, dto);
     }
 
     @Test

@@ -109,9 +109,18 @@ public class ServiceController {
     public ResponseEntity<ServiceEntity> cancelAcceptedService(
             @RequestHeader("Authorization") String tokenHeader,
             @PathVariable Long id,
-            @RequestBody @Valid ServiceCancellationDTO cancellationDTO
+            @RequestBody(required = false) ServiceCancellationDTO cancellationDTO
     ) {
         return ResponseEntity.ok(serviceService.cancelAcceptedService(id, tokenHeader, cancellationDTO));
+    }
+
+    @PutMapping("/cancelAcceptedService/{id}/justification")
+    public ResponseEntity<ServiceEntity> registerServiceCancellationJustification(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long id,
+            @RequestBody @Valid ServiceCancellationDTO cancellationDTO
+    ) {
+        return ResponseEntity.ok(serviceService.registerServiceCancellationJustification(id, tokenHeader, cancellationDTO));
     }
 
     @PutMapping("/cancelService/{id}")

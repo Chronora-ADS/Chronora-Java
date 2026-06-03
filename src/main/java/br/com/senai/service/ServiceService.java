@@ -251,10 +251,6 @@ public class ServiceService {
             return service;
         }
 
-        if (!isFinalVerificationCodeCall(service)) {
-            return service;
-        }
-
         UserEntity acceptedUser = service.getUserAccepted();
         reopenAcceptedService(service);
         notificationService.create("Segunda chamada expirada", service.getUserCreator(), service);
@@ -361,19 +357,40 @@ public class ServiceService {
             throw new AuthException("Este servico nao pode ser cancelado para reabertura.");
         }
 
-        String justification = normalizeCancellationJustification(
-                cancellationDTO != null ? cancellationDTO.getJustification() : null
-        );
-
         UserEntity otherUser = Objects.equals(user.getId(), service.getUserCreator().getId())
                 ? service.getUserAccepted()
                 : service.getUserCreator();
 
-        service.setServiceCancellationJustification(justification);
+        service.setServiceCancellationRequestedByUserId(user.getId());
+        if (hasCancellationJustification(cancellationDTO)) {
+            service.setServiceCancellationJustification(
+                    normalizeCancellationJustification(cancellationDTO.getJustification())
+            );
+        } else {
+            service.setServiceCancellationJustification(null);
+        }
         reopenAcceptedService(service);
 
         notificationService.create("Servico cancelado", user, service);
-        notificationService.create("Servico cancelado por " + user.getName() + ". Justificativa registrada.", otherUser, service);
+        notificationService.create("Servico cancelado por " + user.getName(), otherUser, service);
+        return service;
+    }
+
+    @Transactional
+    public ServiceEntity registerServiceCancellationJustification(Long id, String tokenHeader, ServiceCancellationDTO cancellationDTO) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (!Objects.equals(service.getServiceCancellationRequestedByUserId(), user.getId())) {
+            throw new AuthException("Somente o usuario que cancelou o servico pode registrar a justificativa.");
+        }
+
+        service.setServiceCancellationJustification(
+                normalizeCancellationJustification(cancellationDTO != null ? cancellationDTO.getJustification() : null)
+        );
+        service = serviceRepository.save(service);
+
+        notificationService.create("Justificativa de cancelamento registrada", user, service);
         return service;
     }
 
@@ -727,6 +744,12 @@ public class ServiceService {
             throw new IllegalArgumentException("Justificativa do cancelamento deve ter no maximo 1000 caracteres");
         }
         return normalizedJustification;
+    }
+
+    private boolean hasCancellationJustification(ServiceCancellationDTO cancellationDTO) {
+        return cancellationDTO != null
+                && cancellationDTO.getJustification() != null
+                && !cancellationDTO.getJustification().isBlank();
     }
 
     private void validateServiceChronos(Integer timeChronos) {
