@@ -80,11 +80,18 @@ public class GlobalExceptionHandler {
                 .body(errorBody("Servico externo indisponivel", HttpStatus.BAD_GATEWAY));
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleRuntime(RuntimeException ex) {
+        logger.error("Erro de processamento na requisição: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(errorBody(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleUnexpected(Exception ex) {
         logger.error("Erro inesperado na requisicao", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(errorBody("Erro interno", HttpStatus.INTERNAL_SERVER_ERROR));
+                .body(errorBody("Erro interno do servidor: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     private Map<String, Object> errorBody(String message, HttpStatus status) {
