@@ -26,11 +26,7 @@ public class CorsConfig {
         config.addAllowedMethod("OPTIONS");
         config.setAllowCredentials(true);
 
-        source.registerCorsConfiguration("/auth/**", config);
-        source.registerCorsConfiguration("/user/**", config);
-        source.registerCorsConfiguration("/service/**", config);
-        source.registerCorsConfiguration("/notification/**", config);
-        source.registerCorsConfiguration("/payment/**", config);
+        source.registerCorsConfiguration("/**", config);
 
         return new CorsFilter(source);
     }
