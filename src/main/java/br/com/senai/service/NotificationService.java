@@ -33,6 +33,10 @@ public class NotificationService {
         this.notificationEventPublisher = notificationEventPublisher;
     }
 
+    public NotificationEntity create(String message, UserEntity user) {
+        return create(message, user, null);
+    }
+
     public NotificationEntity create(String message, UserEntity user, ServiceEntity service) {
         NotificationEntity notification = new NotificationEntity();
         notification.setMessage(message);
@@ -46,7 +50,7 @@ public class NotificationService {
         event.setMessage(saved.getMessage());
         event.setUserId(user.getId());
         event.setUserEmail(user.getEmail());
-        event.setServiceId(service.getId());
+        event.setServiceId(service != null ? service.getId() : null);
         event.setCreatedAt(OffsetDateTime.now());
         try {
             notificationEventPublisher.publish(event);
@@ -64,6 +68,10 @@ public class NotificationService {
     public List<NotificationEntity> getAll(String tokenHeader) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
         return notificationRepository.findAllByUser(user);
+    }
+
+    public boolean exists(String message, UserEntity user, ServiceEntity service) {
+        return notificationRepository.existsByUserAndServiceAndMessage(user, service, message);
     }
 
     @Transactional

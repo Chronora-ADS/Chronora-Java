@@ -1,7 +1,9 @@
 package br.com.senai.controller;
 
 import br.com.senai.model.DTO.ApiResponse;
+import br.com.senai.model.DTO.ServiceCancellationDTO;
 import br.com.senai.model.DTO.ServiceDTO;
+import br.com.senai.model.DTO.ServiceDeadlineRenewalDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.enums.ServiceStatus;
@@ -87,6 +89,14 @@ public class ServiceController {
         return ResponseEntity.ok(serviceService.expireAcceptedService(id, tokenHeader));
     }
 
+    @PutMapping("/secondCall/{id}")
+    public ResponseEntity<ServiceEntity> secondCall(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(serviceService.secondCall(id, tokenHeader));
+    }
+
     @PutMapping("/finishService/{id}")
     public ResponseEntity<ServiceEntity> finishService(
             @RequestHeader("Authorization") String tokenHeader,
@@ -95,12 +105,39 @@ public class ServiceController {
         return ResponseEntity.ok(serviceService.finishService(id, tokenHeader));
     }
 
+    @PutMapping("/cancelAcceptedService/{id}")
+    public ResponseEntity<ServiceEntity> cancelAcceptedService(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long id,
+            @RequestBody(required = false) ServiceCancellationDTO cancellationDTO
+    ) {
+        return ResponseEntity.ok(serviceService.cancelAcceptedService(id, tokenHeader, cancellationDTO));
+    }
+
+    @PutMapping("/cancelAcceptedService/{id}/justification")
+    public ResponseEntity<ServiceEntity> registerServiceCancellationJustification(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long id,
+            @RequestBody @Valid ServiceCancellationDTO cancellationDTO
+    ) {
+        return ResponseEntity.ok(serviceService.registerServiceCancellationJustification(id, tokenHeader, cancellationDTO));
+    }
+
     @PutMapping("/cancelService/{id}")
     public ResponseEntity<ServiceEntity> cancelService(
             @RequestHeader("Authorization") String tokenHeader,
             @PathVariable Long id
     ) {
         return ResponseEntity.ok(serviceService.cancelService(id, tokenHeader));
+    }
+
+    @PutMapping("/renewDeadline/{id}")
+    public ResponseEntity<ServiceEntity> renewDeadline(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long id,
+            @RequestBody @Valid ServiceDeadlineRenewalDTO renewalDTO
+    ) {
+        return ResponseEntity.ok(serviceService.renewDeadline(id, tokenHeader, renewalDTO.getDeadline()));
     }
 
     @DeleteMapping("/delete/{id}")

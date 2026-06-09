@@ -5,6 +5,7 @@ import br.com.senai.exception.NotFound.ServiceNotFoundException;
 import br.com.senai.exception.Validation.ExpiredValidationCodeException;
 import br.com.senai.exception.Validation.IncorrectValidationCodeException;
 import br.com.senai.exception.Validation.QuantityChronosInvalidException;
+import br.com.senai.model.DTO.ServiceCancellationDTO;
 import br.com.senai.model.DTO.ServiceDTO;
 import br.com.senai.model.DTO.ServiceEditDTO;
 import br.com.senai.model.entity.CategoryEntity;
@@ -22,6 +23,7 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -37,8 +39,17 @@ import org.springframework.stereotype.Service;
 public class ServiceService {
 
     private static final long VERIFICATION_CODE_EXPIRATION_MINUTES = 2;
+    private static final int FIRST_VERIFICATION_CODE_CALL = 1;
+    private static final int SECOND_VERIFICATION_CODE_CALL = 2;
     private static final int MAX_CATEGORY_COUNT = 10;
+    private static final int MAX_CANCELLATION_JUSTIFICATION_LENGTH = 1000;
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    public static final String DEADLINE_ACTION_MESSAGE =
+            "Prazo do pedido chegou. Renove o prazo ou cancele o pedido.";
+    public static final String DEADLINE_AUTO_CANCEL_MESSAGE =
+            "Pedido cancelado automaticamente por prazo expirado.";
+    public static final String DEADLINE_RENEWED_MESSAGE = "Prazo do pedido renovado.";
+    private static final ZoneId DEADLINE_ZONE = ZoneId.of("America/Sao_Paulo");
 
     private final ServiceRepository serviceRepository;
     private final UserService userService;
@@ -175,8 +186,7 @@ public class ServiceService {
 
         service.setStatus(ServiceStatus.ACEITO);
         service.setUserAccepted(userAccepted);
-        service.setVerificationCode(generateVerificationCode());
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES));
+        startVerificationCodeCall(service, FIRST_VERIFICATION_CODE_CALL);
         service = serviceRepository.save(service);
 
         notificationService.create("Pedido aceito", userAccepted, service);
@@ -200,9 +210,11 @@ public class ServiceService {
 
         if (LocalDateTime.now().isAfter(service.getVerificationCodeExpiresAt())) {
             UserEntity acceptedUser = service.getUserAccepted();
-            reopenAcceptedService(service);
-            notificationService.create("Tempo para iniciar o pedido expirou", service.getUserCreator(), service);
-            notificationService.create("Tempo para iniciar o pedido expirou", acceptedUser, service);
+            if (isFinalVerificationCodeCall(service)) {
+                reopenAcceptedService(service);
+                notificationService.create("Segunda chamada expirada", service.getUserCreator(), service);
+                notificationService.create("Segunda chamada expirada", acceptedUser, service);
+            }
             throw new ExpiredValidationCodeException("Codigo de verificacao expirado");
         }
 
@@ -241,8 +253,39 @@ public class ServiceService {
 
         UserEntity acceptedUser = service.getUserAccepted();
         reopenAcceptedService(service);
-        notificationService.create("Tempo para iniciar o pedido expirou", service.getUserCreator(), service);
-        notificationService.create("Tempo para iniciar o pedido expirou", acceptedUser, service);
+        notificationService.create("Segunda chamada expirada", service.getUserCreator(), service);
+        notificationService.create("Segunda chamada expirada", acceptedUser, service);
+        return service;
+    }
+
+    @Transactional
+    public ServiceEntity secondCall(Long id, String tokenHeader) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (!Objects.equals(service.getUserCreator().getId(), user.getId())) {
+            throw new AuthException("Somente o solicitante pode iniciar a segunda chamada.");
+        }
+
+        if (service.getStatus() != ServiceStatus.ACEITO
+                || service.getUserAccepted() == null
+                || service.getVerificationCodeExpiresAt() == null) {
+            throw new AuthException("Este pedido nao esta aguardando segunda chamada.");
+        }
+
+        if (LocalDateTime.now().isBefore(service.getVerificationCodeExpiresAt())) {
+            throw new AuthException("A segunda chamada so pode ser iniciada apos o codigo expirar.");
+        }
+
+        if (isFinalVerificationCodeCall(service)) {
+            throw new AuthException("A segunda chamada ja foi utilizada.");
+        }
+
+        startVerificationCodeCall(service, SECOND_VERIFICATION_CODE_CALL);
+        service = serviceRepository.save(service);
+
+        notificationService.create("Segunda chamada iniciada", service.getUserCreator(), service);
+        notificationService.create("Segunda chamada iniciada", service.getUserAccepted(), service);
         return service;
     }
 
@@ -299,6 +342,94 @@ public class ServiceService {
         notificationService.create("Pedido cancelado", user, service);
         notificationService.create("Pedido cancelado por " + user.getName(), service.getUserCreator(), service);
         return service;
+    }
+
+    @Transactional
+    public ServiceEntity cancelAcceptedService(Long id, String tokenHeader, ServiceCancellationDTO cancellationDTO) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (!canManageAcceptedService(service, user)) {
+            throw new AuthException("Credenciais invalidas.");
+        }
+
+        if (service.getStatus() != ServiceStatus.ACEITO || service.getUserAccepted() == null) {
+            throw new AuthException("Este servico nao pode ser cancelado para reabertura.");
+        }
+
+        UserEntity otherUser = Objects.equals(user.getId(), service.getUserCreator().getId())
+                ? service.getUserAccepted()
+                : service.getUserCreator();
+
+        service.setServiceCancellationRequestedByUserId(user.getId());
+        if (hasCancellationJustification(cancellationDTO)) {
+            service.setServiceCancellationJustification(
+                    normalizeCancellationJustification(cancellationDTO.getJustification())
+            );
+        } else {
+            service.setServiceCancellationJustification(null);
+        }
+        reopenAcceptedService(service);
+
+        notificationService.create("Servico cancelado", user, service);
+        notificationService.create("Servico cancelado por " + user.getName(), otherUser, service);
+        return service;
+    }
+
+    @Transactional
+    public ServiceEntity registerServiceCancellationJustification(Long id, String tokenHeader, ServiceCancellationDTO cancellationDTO) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (!Objects.equals(service.getServiceCancellationRequestedByUserId(), user.getId())) {
+            throw new AuthException("Somente o usuario que cancelou o servico pode registrar a justificativa.");
+        }
+
+        service.setServiceCancellationJustification(
+                normalizeCancellationJustification(cancellationDTO != null ? cancellationDTO.getJustification() : null)
+        );
+        service = serviceRepository.save(service);
+
+        notificationService.create("Justificativa de cancelamento registrada", user, service);
+        return service;
+    }
+
+    @Transactional
+    public ServiceEntity renewDeadline(Long id, String tokenHeader, LocalDate newDeadline) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        ServiceEntity service = getByIdForUpdate(id);
+
+        if (!Objects.equals(user.getId(), service.getUserCreator().getId())) {
+            throw new AuthException("Credenciais invalidas.");
+        }
+
+        if (service.getStatus() != ServiceStatus.CRIADO) {
+            throw new AuthException("Somente pedidos criados podem ter prazo renovado.");
+        }
+
+        if (newDeadline == null || !newDeadline.isAfter(LocalDate.now(DEADLINE_ZONE))) {
+            throw new IllegalArgumentException("Novo prazo deve ser uma data futura.");
+        }
+
+        service.setDeadline(newDeadline);
+        service = serviceRepository.save(service);
+        notificationService.create(DEADLINE_RENEWED_MESSAGE, user, service);
+        return service;
+    }
+
+    @Transactional
+    public void processDeadlineRules() {
+        processDeadlineRules(LocalDate.now(DEADLINE_ZONE));
+    }
+
+    @Transactional
+    public void processDeadlineRules(LocalDate today) {
+        if (today == null) {
+            throw new IllegalArgumentException("Data de processamento e obrigatoria.");
+        }
+
+        notifyServicesDueToday(today);
+        cancelExpiredServices(today);
     }
 
     @Transactional
@@ -499,9 +630,53 @@ public class ServiceService {
         return serviceRepository.save(service);
     }
 
+    private void notifyServicesDueToday(LocalDate today) {
+        List<ServiceEntity> servicesDueToday =
+                serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, today);
+
+        for (ServiceEntity service : servicesDueToday) {
+            UserEntity owner = service.getUserCreator();
+            boolean alreadyNotified = notificationService.exists(DEADLINE_ACTION_MESSAGE, owner, service);
+            if (!alreadyNotified) {
+                notificationService.create(DEADLINE_ACTION_MESSAGE, owner, service);
+            }
+        }
+    }
+
+    private void cancelExpiredServices(LocalDate today) {
+        List<ServiceEntity> expiredServices =
+                serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, today);
+
+        for (ServiceEntity service : expiredServices) {
+            clearVerificationCode(service);
+            service.setStatus(ServiceStatus.CANCELADO);
+            ServiceEntity savedService = serviceRepository.save(service);
+            notificationService.create(DEADLINE_AUTO_CANCEL_MESSAGE, savedService.getUserCreator(), savedService);
+        }
+    }
+
     private void clearVerificationCode(ServiceEntity service) {
         service.setVerificationCode(null);
         service.setVerificationCodeExpiresAt(null);
+        service.setVerificationCodeCallCount(0);
+    }
+
+    private void startVerificationCodeCall(ServiceEntity service, int callCount) {
+        service.setVerificationCode(generateVerificationCode());
+        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES));
+        service.setVerificationCodeCallCount(callCount);
+    }
+
+    private boolean isFinalVerificationCodeCall(ServiceEntity service) {
+        return getVerificationCodeCallCount(service) >= SECOND_VERIFICATION_CODE_CALL;
+    }
+
+    private int getVerificationCodeCallCount(ServiceEntity service) {
+        Integer callCount = service.getVerificationCodeCallCount();
+        if (callCount != null && callCount > 0) {
+            return callCount;
+        }
+        return service.getVerificationCode() == null ? 0 : FIRST_VERIFICATION_CODE_CALL;
     }
 
     private String generateVerificationCode() {
@@ -552,6 +727,24 @@ public class ServiceService {
 
     private boolean canHardDelete(ServiceEntity service) {
         return service.getStatus() == ServiceStatus.CRIADO || service.getStatus() == ServiceStatus.ACEITO;
+    }
+
+    private String normalizeCancellationJustification(String justification) {
+        if (justification == null || justification.isBlank()) {
+            throw new IllegalArgumentException("Justificativa do cancelamento e obrigatoria");
+        }
+
+        String normalizedJustification = justification.trim();
+        if (normalizedJustification.length() > MAX_CANCELLATION_JUSTIFICATION_LENGTH) {
+            throw new IllegalArgumentException("Justificativa do cancelamento deve ter no maximo 1000 caracteres");
+        }
+        return normalizedJustification;
+    }
+
+    private boolean hasCancellationJustification(ServiceCancellationDTO cancellationDTO) {
+        return cancellationDTO != null
+                && cancellationDTO.getJustification() != null
+                && !cancellationDTO.getJustification().isBlank();
     }
 
     private void validateServiceChronos(Integer timeChronos) {

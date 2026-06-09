@@ -261,6 +261,7 @@ class ServiceServiceTest {
         assertNotNull(aceito.getVerificationCode());
         assertTrue(aceito.getVerificationCode().matches("\\d{4}"));
         assertNotNull(aceito.getVerificationCodeExpiresAt());
+        assertEquals(1, aceito.getVerificationCodeCallCount());
         verify(notificationService).create("Pedido aceito", prestador, service);
         verify(notificationService).create("Pedido aceito por Bruno", criador, service);
     }
@@ -327,29 +328,82 @@ class ServiceServiceTest {
     }
 
     @Test
-    void deveReabrirPedidoQuandoCodigoDeVerificacaoExpirar() {
+    void deveManterPedidoAceitoQuandoPrimeiraChamadaExpirar() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
         service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
+        service.setVerificationCodeCallCount(1);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
         when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
-        when(serviceRepository.save(service)).thenReturn(service);
 
         assertThrows(ExpiredValidationCodeException.class,
                 () -> serviceService.startService(10L, TOKEN_HEADER, "1234"));
 
-        assertEquals(ServiceStatus.CRIADO, service.getStatus());
-        assertNull(service.getUserAccepted());
-        assertNull(service.getVerificationCode());
-        verify(notificationService).create("Tempo para iniciar o pedido expirou", criador, service);
-        verify(notificationService).create("Tempo para iniciar o pedido expirou", prestador, service);
+        assertEquals(ServiceStatus.ACEITO, service.getStatus());
+        assertSame(prestador, service.getUserAccepted());
+        assertEquals("1234", service.getVerificationCode());
+        verify(serviceRepository, never()).save(any());
+        verify(notificationService, never()).create(any(), any(), any());
     }
 
     @Test
-    void deveExpirarAceiteDePedidoQuandoPrazoVencido() {
+    void deveIniciarSegundaChamadaQuandoPrimeiraChamadaExpirar() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
         service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        ServiceEntity segundaChamada = serviceService.secondCall(10L, TOKEN_HEADER);
+
+        assertSame(service, segundaChamada);
+        assertEquals(ServiceStatus.ACEITO, segundaChamada.getStatus());
+        assertSame(prestador, segundaChamada.getUserAccepted());
+        assertNotNull(segundaChamada.getVerificationCode());
+        assertTrue(segundaChamada.getVerificationCode().matches("\\d{4}"));
+        assertEquals(2, segundaChamada.getVerificationCodeCallCount());
+        assertTrue(segundaChamada.getVerificationCodeExpiresAt().isAfter(LocalDateTime.now()));
+        verify(notificationService).create("Segunda chamada iniciada", criador, service);
+        verify(notificationService).create("Segunda chamada iniciada", prestador, service);
+    }
+
+    @Test
+    void deveRejeitarSegundaChamadaAntesDaPrimeiraExpirar() {
+        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
+        service.setVerificationCode("1234");
+        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeCallCount(1);
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+
+        assertThrows(AuthException.class, () -> serviceService.secondCall(10L, TOKEN_HEADER));
+
+        verify(serviceRepository, never()).save(any());
+        verify(notificationService, never()).create(any(), any(), any());
+    }
+
+    @Test
+    void deveRejeitarSegundaChamadaQuandoUsuarioNaoForSolicitante() {
+        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
+        service.setVerificationCode("1234");
+        service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
+        service.setVerificationCodeCallCount(1);
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+
+        assertThrows(AuthException.class, () -> serviceService.secondCall(10L, TOKEN_HEADER));
+
+        verify(serviceRepository, never()).save(any());
+        verify(notificationService, never()).create(any(), any(), any());
+    }
+
+    @Test
+    void deveExpirarAceiteDePedidoQuandoSegundaChamadaVencer() {
+        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
+        service.setVerificationCode("1234");
+        service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
+        service.setVerificationCodeCallCount(2);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
         when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
@@ -360,8 +414,9 @@ class ServiceServiceTest {
         assertEquals(ServiceStatus.CRIADO, expirado.getStatus());
         assertNull(expirado.getUserAccepted());
         assertNull(expirado.getVerificationCode());
-        verify(notificationService).create("Tempo para iniciar o pedido expirou", criador, service);
-        verify(notificationService).create("Tempo para iniciar o pedido expirou", prestador, service);
+        assertEquals(0, expirado.getVerificationCodeCallCount());
+        verify(notificationService).create("Segunda chamada expirada", criador, service);
+        verify(notificationService).create("Segunda chamada expirada", prestador, service);
     }
 
     @Test
@@ -401,6 +456,86 @@ class ServiceServiceTest {
     }
 
     @Test
+    void deveCancelarServicoAceitoEReabrirPedidoAntesDaJustificativa() {
+        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
+        service.setVerificationCode("1234");
+        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeCallCount(1);
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        ServiceEntity cancelado = serviceService.cancelAcceptedService(10L, TOKEN_HEADER, null);
+
+        assertSame(service, cancelado);
+        assertEquals(ServiceStatus.CRIADO, cancelado.getStatus());
+        assertNull(cancelado.getUserAccepted());
+        assertNull(cancelado.getVerificationCode());
+        assertNull(cancelado.getVerificationCodeExpiresAt());
+        assertEquals(0, cancelado.getVerificationCodeCallCount());
+        assertNull(cancelado.getServiceCancellationJustification());
+        assertEquals(criador.getId(), cancelado.getServiceCancellationRequestedByUserId());
+        verify(notificationService).create("Servico cancelado", criador, service);
+        verify(notificationService).create(
+                "Servico cancelado por Ana",
+                prestador,
+                service
+        );
+    }
+
+    @Test
+    void deveRegistrarJustificativaDoCancelamentoDepoisDeReabrirPedido() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setServiceCancellationRequestedByUserId(criador.getId());
+        br.com.senai.model.DTO.ServiceCancellationDTO cancellationDTO =
+                new br.com.senai.model.DTO.ServiceCancellationDTO();
+        cancellationDTO.setJustification("Fornecedor nao respondeu no prazo combinado.");
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        ServiceEntity atualizado = serviceService.registerServiceCancellationJustification(10L, TOKEN_HEADER, cancellationDTO);
+
+        assertSame(service, atualizado);
+        assertEquals("Fornecedor nao respondeu no prazo combinado.", atualizado.getServiceCancellationJustification());
+        verify(notificationService).create("Justificativa de cancelamento registrada", criador, service);
+    }
+
+    @Test
+    void deveRetornarErroQuandoRegistrarJustificativaEmBranco() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setServiceCancellationRequestedByUserId(criador.getId());
+        br.com.senai.model.DTO.ServiceCancellationDTO cancellationDTO =
+                new br.com.senai.model.DTO.ServiceCancellationDTO();
+        cancellationDTO.setJustification(" ");
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceService.registerServiceCancellationJustification(10L, TOKEN_HEADER, cancellationDTO));
+
+        verify(serviceRepository, never()).save(any());
+        verify(notificationService, never()).create(any(), any(), any());
+    }
+
+    @Test
+    void deveRetornarErroQuandoOutroUsuarioRegistrarJustificativa() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setServiceCancellationRequestedByUserId(criador.getId());
+        br.com.senai.model.DTO.ServiceCancellationDTO cancellationDTO =
+                new br.com.senai.model.DTO.ServiceCancellationDTO();
+        cancellationDTO.setJustification("Fornecedor nao respondeu no prazo combinado.");
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+
+        assertThrows(AuthException.class,
+                () -> serviceService.registerServiceCancellationJustification(10L, TOKEN_HEADER, cancellationDTO));
+
+        verify(serviceRepository, never()).save(any());
+        verify(notificationService, never()).create(any(), any(), any());
+    }
+
+    @Test
     void deveRetornarErroQuandoUsuarioSemVinculoTentarCancelarPedido() {
         UserEntity terceiro = criarUsuario(3L, "Carlos", 50);
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.EM_ANDAMENTO, 20);
@@ -411,6 +546,112 @@ class ServiceServiceTest {
 
         verify(serviceRepository, never()).save(any());
         verify(notificationService, never()).create(any(), any(), any());
+    }
+
+    @Test
+    void deveRenovarPrazoQuandoProprietarioResponderNotificacao() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        LocalDate novoPrazo = LocalDate.now().plusDays(5);
+
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        ServiceEntity renovado = serviceService.renewDeadline(10L, TOKEN_HEADER, novoPrazo);
+
+        assertSame(service, renovado);
+        assertEquals(novoPrazo, renovado.getDeadline());
+        verify(serviceRepository).save(service);
+        verify(notificationService).create(ServiceService.DEADLINE_RENEWED_MESSAGE, criador, service);
+    }
+
+    @Test
+    void deveRejeitarRenovacaoQuandoUsuarioNaoForProprietario() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+
+        assertThrows(AuthException.class,
+                () -> serviceService.renewDeadline(10L, TOKEN_HEADER, LocalDate.now().plusDays(5)));
+
+        verify(serviceRepository, never()).save(any());
+        verify(notificationService, never()).create(any(), any(), any());
+    }
+
+    @Test
+    void deveRejeitarRenovacaoQuandoPedidoNaoEstiverCriado() {
+        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
+
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+
+        assertThrows(AuthException.class,
+                () -> serviceService.renewDeadline(10L, TOKEN_HEADER, LocalDate.now().plusDays(5)));
+
+        verify(serviceRepository, never()).save(any());
+        verify(notificationService, never()).create(any(), any(), any());
+    }
+
+    @Test
+    void deveNotificarPedidoCriadoNoDiaDoPrazoSemCancelar() {
+        LocalDate hoje = LocalDate.of(2026, 6, 1);
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setDeadline(hoje);
+
+        when(serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of(service));
+        when(notificationService.exists(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service))
+                .thenReturn(false);
+        when(serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of());
+
+        serviceService.processDeadlineRules(hoje);
+
+        verify(notificationService).create(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service);
+        verify(serviceRepository, never()).save(any());
+    }
+
+    @Test
+    void deveEvitarNotificacaoDuplicadaNoDiaDoPrazo() {
+        LocalDate hoje = LocalDate.of(2026, 6, 1);
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setDeadline(hoje);
+
+        when(serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of(service));
+        when(notificationService.exists(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service))
+                .thenReturn(true);
+        when(serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of());
+
+        serviceService.processDeadlineRules(hoje);
+
+        verify(notificationService, never()).create(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service);
+        verify(serviceRepository, never()).save(any());
+    }
+
+    @Test
+    void deveCancelarAutomaticamentePedidoCriadoComPrazoVencido() {
+        LocalDate hoje = LocalDate.of(2026, 6, 1);
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        service.setDeadline(hoje.minusDays(1));
+        service.setVerificationCode("1234");
+        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+
+        when(serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of());
+        when(serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, hoje))
+                .thenReturn(List.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        serviceService.processDeadlineRules(hoje);
+
+        assertEquals(ServiceStatus.CANCELADO, service.getStatus());
+        assertNull(service.getVerificationCode());
+        assertNull(service.getVerificationCodeExpiresAt());
+        verify(serviceRepository).save(service);
+        verify(notificationService).create(ServiceService.DEADLINE_AUTO_CANCEL_MESSAGE, criador, service);
     }
 
     @Test
