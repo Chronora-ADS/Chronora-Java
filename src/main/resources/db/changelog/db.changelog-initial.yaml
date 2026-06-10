@@ -382,3 +382,11 @@ databaseChangeLog:
                   type: VARCHAR(255)
                   constraints:
                     nullable: true
+  - changeSet:
+      id: 0016-alter-modality-to-smallint
+      author: seu-nome
+      changes:
+        - modifyDataType:
+            tableName: service
+            columnName: modality
+            newDataType: SMALLINT

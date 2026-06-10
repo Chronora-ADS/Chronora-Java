@@ -261,7 +261,7 @@ public class ServiceService {
     @Transactional
     public ServiceEntity secondCall(Long id, String tokenHeader) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getByIdForUpdate(id);
+        ServiceEntity service = getById(id);
 
         if (!Objects.equals(service.getUserCreator().getId(), user.getId())) {
             throw new AuthException("Somente o solicitante pode iniciar a segunda chamada.");
@@ -347,7 +347,7 @@ public class ServiceService {
     @Transactional
     public ServiceEntity cancelAcceptedService(Long id, String tokenHeader, ServiceCancellationDTO cancellationDTO) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getByIdForUpdate(id);
+        ServiceEntity service = getById(id);
 
         if (!canManageAcceptedService(service, user)) {
             throw new AuthException("Credenciais invalidas.");
@@ -379,7 +379,7 @@ public class ServiceService {
     @Transactional
     public ServiceEntity registerServiceCancellationJustification(Long id, String tokenHeader, ServiceCancellationDTO cancellationDTO) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getByIdForUpdate(id);
+        ServiceEntity service = getById(id);
 
         if (!Objects.equals(service.getServiceCancellationRequestedByUserId(), user.getId())) {
             throw new AuthException("Somente o usuario que cancelou o servico pode registrar a justificativa.");
@@ -397,7 +397,7 @@ public class ServiceService {
     @Transactional
     public ServiceEntity renewDeadline(Long id, String tokenHeader, LocalDate newDeadline) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getByIdForUpdate(id);
+        ServiceEntity service = getById(id);
 
         if (!Objects.equals(user.getId(), service.getUserCreator().getId())) {
             throw new AuthException("Credenciais invalidas.");

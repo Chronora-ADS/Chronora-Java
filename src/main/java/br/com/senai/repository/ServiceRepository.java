@@ -3,6 +3,8 @@ package br.com.senai.repository;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.ServiceStatus;
+
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,4 +18,7 @@ public interface ServiceRepository extends JpaRepository<ServiceEntity, Long>, J
     List<ServiceEntity> findAllByUserCreator(UserEntity userCreator);
     List<ServiceEntity> findAllByUserAccepted(UserEntity userAccepted);
     List<ServiceEntity> findAllByStatusIs(ServiceStatus status);
+
+    List<ServiceEntity> findAllByStatusAndDeadline(ServiceStatus status, LocalDate deadline);
+    List<ServiceEntity> findAllByStatusAndDeadlineBefore(ServiceStatus status, LocalDate deadline);
 }

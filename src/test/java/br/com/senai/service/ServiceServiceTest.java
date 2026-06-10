@@ -251,7 +251,7 @@ class ServiceServiceTest {
     void deveAceitarPedidoComSucessoGerandoCodigoDeVerificacao() {
         ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity aceito = serviceService.acceptService(10L, TOKEN_HEADER);
@@ -270,7 +270,7 @@ class ServiceServiceTest {
     void deveRetornarErroQuandoUsuarioTentarAceitarProprioPedido() {
         ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
 
         assertThrows(AuthException.class, () -> serviceService.acceptService(10L, TOKEN_HEADER));
 
@@ -283,7 +283,7 @@ class ServiceServiceTest {
         service.setVerificationCode("1234");
         service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity iniciado = serviceService.startService(10L, TOKEN_HEADER, "\"1234\"");
@@ -301,7 +301,7 @@ class ServiceServiceTest {
         service.setVerificationCode("1234");
         service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity iniciado = serviceService.startService(10L, TOKEN_HEADER, "{\"code\":\"1234\"}");
@@ -319,7 +319,7 @@ class ServiceServiceTest {
         service.setVerificationCode("1234");
         service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
 
         assertThrows(IncorrectValidationCodeException.class,
                 () -> serviceService.startService(10L, TOKEN_HEADER, "9999"));
@@ -334,7 +334,8 @@ class ServiceServiceTest {
         service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
         service.setVerificationCodeCallCount(1);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
 
         assertThrows(ExpiredValidationCodeException.class,
                 () -> serviceService.startService(10L, TOKEN_HEADER, "1234"));
@@ -352,7 +353,7 @@ class ServiceServiceTest {
         service.setVerificationCode("1234");
         service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity segundaChamada = serviceService.secondCall(10L, TOKEN_HEADER);
@@ -375,7 +376,7 @@ class ServiceServiceTest {
         service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
         service.setVerificationCodeCallCount(1);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
 
         assertThrows(AuthException.class, () -> serviceService.secondCall(10L, TOKEN_HEADER));
 
@@ -390,7 +391,7 @@ class ServiceServiceTest {
         service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
         service.setVerificationCodeCallCount(1);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
 
         assertThrows(AuthException.class, () -> serviceService.secondCall(10L, TOKEN_HEADER));
 
@@ -405,7 +406,7 @@ class ServiceServiceTest {
         service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
         service.setVerificationCodeCallCount(2);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity expirado = serviceService.expireAcceptedService(10L, TOKEN_HEADER);
@@ -425,7 +426,7 @@ class ServiceServiceTest {
         service.setVerificationCode("1234");
         service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity finalizado = serviceService.finishService(10L, TOKEN_HEADER);
@@ -443,7 +444,7 @@ class ServiceServiceTest {
         service.setVerificationCode("1234");
         service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity cancelado = serviceService.cancelService(10L, TOKEN_HEADER);
@@ -462,7 +463,7 @@ class ServiceServiceTest {
         service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
         service.setVerificationCodeCallCount(1);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity cancelado = serviceService.cancelAcceptedService(10L, TOKEN_HEADER, null);
@@ -491,7 +492,7 @@ class ServiceServiceTest {
                 new br.com.senai.model.DTO.ServiceCancellationDTO();
         cancellationDTO.setJustification("Fornecedor nao respondeu no prazo combinado.");
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity atualizado = serviceService.registerServiceCancellationJustification(10L, TOKEN_HEADER, cancellationDTO);
@@ -509,7 +510,7 @@ class ServiceServiceTest {
                 new br.com.senai.model.DTO.ServiceCancellationDTO();
         cancellationDTO.setJustification(" ");
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
 
         assertThrows(IllegalArgumentException.class,
                 () -> serviceService.registerServiceCancellationJustification(10L, TOKEN_HEADER, cancellationDTO));
@@ -526,7 +527,7 @@ class ServiceServiceTest {
                 new br.com.senai.model.DTO.ServiceCancellationDTO();
         cancellationDTO.setJustification("Fornecedor nao respondeu no prazo combinado.");
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
 
         assertThrows(AuthException.class,
                 () -> serviceService.registerServiceCancellationJustification(10L, TOKEN_HEADER, cancellationDTO));
@@ -540,7 +541,7 @@ class ServiceServiceTest {
         UserEntity terceiro = criarUsuario(3L, "Carlos", 50);
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.EM_ANDAMENTO, 20);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(terceiro);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
 
         assertThrows(AuthException.class, () -> serviceService.cancelService(10L, TOKEN_HEADER));
 
@@ -554,7 +555,7 @@ class ServiceServiceTest {
         LocalDate novoPrazo = LocalDate.now().plusDays(5);
 
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity renovado = serviceService.renewDeadline(10L, TOKEN_HEADER, novoPrazo);
@@ -570,7 +571,7 @@ class ServiceServiceTest {
         ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
 
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
 
         assertThrows(AuthException.class,
                 () -> serviceService.renewDeadline(10L, TOKEN_HEADER, LocalDate.now().plusDays(5)));
@@ -584,7 +585,7 @@ class ServiceServiceTest {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
 
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
 
         assertThrows(AuthException.class,
                 () -> serviceService.renewDeadline(10L, TOKEN_HEADER, LocalDate.now().plusDays(5)));
