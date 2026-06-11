@@ -69,6 +69,15 @@ public class PaymentController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/test/approve/{transactionId}")
+    public ResponseEntity<Void> simulateApproval(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long transactionId
+    ) {
+        paymentService.simulatePaymentApproval(transactionId, tokenHeader);
+        return ResponseEntity.ok().build();
+    }
+
     // Endpoint chamado pelo Mercado Pago quando um pagamento é confirmado
     @PostMapping("/webhook")
     public ResponseEntity<Void> webhook(@RequestBody String rawBody) {

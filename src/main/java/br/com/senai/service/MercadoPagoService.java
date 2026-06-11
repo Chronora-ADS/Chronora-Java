@@ -9,6 +9,8 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +21,16 @@ import java.time.ZoneOffset;
 @Service
 public class MercadoPagoService {
 
+    private static final Logger logger = LoggerFactory.getLogger(MercadoPagoService.class);
+
     @Value("${mercadopago.access-token}")
     private String accessToken;
 
     @PostConstruct
     public void init() {
+        if (accessToken == null || accessToken.isBlank()) {
+            logger.warn("MERCADO_PAGO_ACCESS_TOKEN nao configurado — chamadas ao MP vao falhar");
+        }
         MercadoPagoConfig.setAccessToken(accessToken);
     }
 
@@ -53,8 +60,13 @@ public class MercadoPagoService {
                     qrCodeBase64,
                     payment.getDateOfExpiration()
             );
-        } catch (MPException | MPApiException e) {
-            throw new RuntimeException("Erro ao criar pagamento PIX no Mercado Pago: " + e.getMessage(), e);
+        } catch (MPApiException e) {
+            String detail = e.getApiResponse() != null ? e.getApiResponse().getContent() : e.getMessage();
+            logger.error("MP API error ao criar PIX: status={}, body={}", e.getStatusCode(), detail);
+            throw new RuntimeException("Erro ao criar pagamento PIX: " + detail, e);
+        } catch (MPException e) {
+            logger.error("MP error ao criar PIX: {}", e.getMessage());
+            throw new RuntimeException("Erro ao criar pagamento PIX: " + e.getMessage(), e);
         }
     }
 
@@ -78,8 +90,13 @@ public class MercadoPagoService {
                     null,
                     null
             );
-        } catch (MPException | MPApiException e) {
-            throw new RuntimeException("Erro ao enviar PIX no Mercado Pago: " + e.getMessage(), e);
+        } catch (MPApiException e) {
+            String detail = e.getApiResponse() != null ? e.getApiResponse().getContent() : e.getMessage();
+            logger.error("MP API error ao enviar PIX payout: status={}, body={}", e.getStatusCode(), detail);
+            throw new RuntimeException("Erro ao enviar PIX: " + detail, e);
+        } catch (MPException e) {
+            logger.error("MP error ao enviar PIX payout: {}", e.getMessage());
+            throw new RuntimeException("Erro ao enviar PIX: " + e.getMessage(), e);
         }
     }
 

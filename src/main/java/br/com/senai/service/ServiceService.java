@@ -304,13 +304,44 @@ public class ServiceService {
             throw new AuthException("Credenciais invalidas.");
         }
 
+        boolean isProvider = service.getUserAccepted() != null
+                && Objects.equals(service.getUserAccepted().getId(), user.getId());
+
+        if (isProvider) {
+            if (service.getStatus() != ServiceStatus.EM_ANDAMENTO) {
+                throw new AuthException("Este pedido nao esta em andamento.");
+            }
+            service.setStatus(ServiceStatus.AGUARDANDO_CONFIRMACAO);
+            service = serviceRepository.save(service);
+            notificationService.create(
+                    "O prestador concluiu o servico. Confirme para finalizar o pedido.",
+                    service.getUserCreator(),
+                    service
+            );
+            notificationService.create(
+                    "Pedido concluido com sucesso",
+                    service.getUserAccepted(),
+                    service
+            );
+            return service;
+        }
+
+        // Solicitante confirma a conclusao
+        if (service.getStatus() != ServiceStatus.AGUARDANDO_CONFIRMACAO) {
+            throw new AuthException("O prestador ainda nao concluiu o servico.");
+        }
+
+        if (service.getUserAccepted() != null) {
+            userService.creditChronosToUser(service.getUserAccepted(), service.getTimeChronos());
+        }
+
         service.setStatus(ServiceStatus.CONCLUIDO);
         clearVerificationCode(service);
         service = serviceRepository.save(service);
 
         notificationService.create("Pedido finalizado", service.getUserCreator(), service);
         if (service.getUserAccepted() != null) {
-            notificationService.create("Pedido finalizado", service.getUserAccepted(), service);
+            notificationService.create("Solicitante finalizou o pedido", service.getUserAccepted(), service);
         }
         return service;
     }

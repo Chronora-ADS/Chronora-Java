@@ -116,4 +116,10 @@ public class ServiceEntity {
     @JoinColumn(name = "user_accepted_id")
     @JsonIgnoreProperties({"password", "roles", "documentEntity", "supabaseUserId"})
     private UserEntity userAccepted;
+
+    @Column(name = "rated_by_creator", nullable = false)
+    private boolean ratedByCreator = false;
+
+    @Column(name = "rated_by_provider", nullable = false)
+    private boolean ratedByProvider = false;
 }

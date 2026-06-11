@@ -76,6 +76,17 @@ public class UserService {
         return userRepository.save(userEntity);
     }
 
+    public UserEntity creditChronosToUser(UserEntity user, Integer amount) {
+        validateChronosAmount(amount);
+        if (user.getTimeChronos() + amount > 300) {
+            throw new QuantityChronosInvalidException(
+                "Sua carteira atingiu o limite de 300 Chronos. Venda ou use alguns Chronos para poder receber os proximos."
+            );
+        }
+        user.setTimeChronos(user.getTimeChronos() + amount);
+        return userRepository.save(user);
+    }
+
     public UserEntity getLoggedUser(String tokenHeader) {
         if (tokenHeader == null || !tokenHeader.startsWith("Bearer ")) {
             throw new AuthException("Token invalido.");
