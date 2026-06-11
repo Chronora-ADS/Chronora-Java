@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -36,6 +38,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class ServiceService {
     private static final long VERIFICATION_CODE_EXPIRATION_MINUTES = 2;
     // TODO por que salvar em uma variável separada a primeira e segunda chamada, ainda por cima com os números 1 e 2?
@@ -45,10 +48,8 @@ public class ServiceService {
     private static final int MAX_CANCELLATION_JUSTIFICATION_LENGTH = 1000;
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     // TODO por que fazer tantas variáveis para texto de deadline?
-    public static final String DEADLINE_ACTION_MESSAGE =
-            "Prazo do pedido chegou. Renove o prazo ou cancele o pedido.";
-    public static final String DEADLINE_AUTO_CANCEL_MESSAGE =
-            "Pedido cancelado automaticamente por prazo expirado.";
+    public static final String DEADLINE_ACTION_MESSAGE = "Prazo do pedido chegou. Renove o prazo ou cancele o pedido.";
+    public static final String DEADLINE_AUTO_CANCEL_MESSAGE = "Pedido cancelado automaticamente por prazo expirado.";
     public static final String DEADLINE_RENEWED_MESSAGE = "Prazo do pedido renovado.";
     private static final ZoneId DEADLINE_ZONE = ZoneId.of("America/Sao_Paulo");
 
@@ -56,14 +57,6 @@ public class ServiceService {
     private final UserService userService;
     private final SupabaseStorageService storageService;
     private final NotificationService notificationService;
-
-    public ServiceService(ServiceRepository serviceRepository, UserService userService,
-                          SupabaseStorageService storageService, NotificationService notificationService) {
-        this.serviceRepository = serviceRepository;
-        this.userService = userService;
-        this.storageService = storageService;
-        this.notificationService = notificationService;
-    }
 
     @Transactional
     public ServiceEntity create(ServiceDTO serviceDTO, String tokenHeader) {

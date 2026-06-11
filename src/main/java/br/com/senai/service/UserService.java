@@ -19,12 +19,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class UserService {
-
     private final UserRepository userRepository;
     private final AuthService authService;
     private final SupabaseAuthService supabaseAuthService;
@@ -33,30 +35,12 @@ public class UserService {
     private final ServiceRepository serviceRepository;
     private final NotificationRepository notificationRepository;
 
-    public UserService(
-            UserRepository userRepository,
-            AuthService authService,
-            SupabaseAuthService supabaseAuthService,
-            SupabaseStorageService storageService,
-            PasswordEncoder passwordEncoder,
-            ServiceRepository serviceRepository,
-            NotificationRepository notificationRepository
-    ) {
-        this.userRepository = userRepository;
-        this.authService = authService;
-        this.supabaseAuthService = supabaseAuthService;
-        this.storageService = storageService;
-        this.passwordEncoder = passwordEncoder;
-        this.serviceRepository = serviceRepository;
-        this.notificationRepository = notificationRepository;
-    }
-
     public UserEntity buyChronos(String tokenHeader, Integer chronos) {
         UserEntity userEntity = getLoggedUser(tokenHeader);
         validateChronosAmount(chronos);
 
         if (userEntity.getTimeChronos() + chronos > 300) {
-            throw new QuantityChronosInvalidException("Excedido limite de chronos de 300 por usuario.");
+            throw new QuantityChronosInvalidException("Excedido limite de chronos de 300 por usuário.");
         }
 
         userEntity.setTimeChronos(userEntity.getTimeChronos() + chronos);
@@ -68,23 +52,25 @@ public class UserService {
         validateChronosAmount(chronos);
 
         if (userEntity.getTimeChronos() - chronos < 0) {
-            throw new QuantityChronosInvalidException("O limite minimo de chronos e 0 por usuario.");
+            throw new QuantityChronosInvalidException("O limite mínimo de chronos e 0 por usuário.");
         }
 
         userEntity.setTimeChronos(userEntity.getTimeChronos() - chronos);
         return userRepository.save(userEntity);
     }
 
-    public UserEntity creditChronosToUser(UserEntity user, Integer amount) {
+    public void creditChronosToUser(UserEntity user, Integer amount) {
         validateChronosAmount(amount);
+        // TODO parece que, se o valor ser maior que 300, o usuário vai só perder o dinheiro a mais que viria depois dos 300.
+        //  Colocar uma mensagem de erro pra esse limite seria bom
         int newBalance = Math.min(user.getTimeChronos() + amount, 300);
         user.setTimeChronos(newBalance);
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 
     public UserEntity getLoggedUser(String tokenHeader) {
         if (tokenHeader == null || !tokenHeader.startsWith("Bearer ")) {
-            throw new AuthException("Token invalido.");
+            throw new AuthException("Token inválido.");
         }
 
         String token = tokenHeader.substring(7);
@@ -96,7 +82,7 @@ public class UserService {
         UserEntity userEntity = getLoggedUser(tokenHeader);
 
         if (!Objects.equals(userEditDTO.getId(), userEntity.getId())) {
-            throw new AuthException("Credenciais invalidas.");
+            throw new AuthException("Credenciais inválidas.");
         }
 
         String updatedName = userEntity.getName();
@@ -105,6 +91,8 @@ public class UserService {
             userEntity.setName(updatedName);
         }
 
+        // TODO verificar se os métodos de search de e-mail e telefone, buscando por cada um dos registros de usuários
+        //  é o melhor no quesito velocidade
         String updatedEmail = userEntity.getEmail();
         if (userEditDTO.getEmail() != null && !userEditDTO.getEmail().trim().isEmpty()) {
             String email = userEditDTO.getEmail().trim();
@@ -129,11 +117,21 @@ public class UserService {
         }
 
         if (userEditDTO.getDocument() != null) {
-            userEntity.setDocumentEntity(buildDocumentEntity(userEditDTO.getDocument(), tokenHeader));
+            DocumentDTO documentDTO = userEditDTO.getDocument();
+            String documentUrl = storageService.uploadBase64Image(documentDTO.getData(),
+                    "users", extractBearerToken(tokenHeader), documentDTO.getType());
+
+            DocumentEntity documentEntity = new DocumentEntity();
+            documentEntity.setName(documentDTO.getName());
+            documentEntity.setType(documentDTO.getType());
+            documentEntity.setUrl(documentUrl);
+            userEntity.setDocumentEntity(documentEntity);
         }
 
         if (userEditDTO.getProfileImage() != null) {
-            userEntity.setProfileImage(uploadUserImage(userEditDTO.getProfileImage(), tokenHeader));
+            String urlImageUpload = storageService.uploadBase64Image(userEditDTO.getProfileImage().getData(),
+                    "users", extractBearerToken(tokenHeader), userEditDTO.getProfileImage().getType());
+            userEntity.setProfileImage(urlImageUpload);
         }
 
         String updatedPassword = null;
@@ -144,15 +142,6 @@ public class UserService {
 
         syncUserWithSupabase(tokenHeader, updatedEmail, updatedPassword, updatedName, updatedPhoneNumber);
         return userRepository.save(userEntity);
-    }
-
-    private String uploadUserImage(DocumentDTO imageDTO, String tokenHeader) {
-        return storageService.uploadBase64Image(
-                imageDTO.getData(),
-                "users",
-                extractBearerToken(tokenHeader),
-                imageDTO.getType()
-        );
     }
 
     @Transactional
@@ -167,21 +156,6 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    private DocumentEntity buildDocumentEntity(DocumentDTO documentDTO, String tokenHeader) {
-        String documentUrl = storageService.uploadBase64Image(
-                documentDTO.getData(),
-                "users",
-                extractBearerToken(tokenHeader),
-                documentDTO.getType()
-        );
-
-        DocumentEntity documentEntity = new DocumentEntity();
-        documentEntity.setName(documentDTO.getName());
-        documentEntity.setType(documentDTO.getType());
-        documentEntity.setUrl(documentUrl);
-        return documentEntity;
-    }
-
     private String extractBearerToken(String tokenHeader) {
         if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
             return tokenHeader.substring(7);
@@ -189,13 +163,7 @@ public class UserService {
         return tokenHeader;
     }
 
-    private void syncUserWithSupabase(
-            String tokenHeader,
-            String email,
-            String password,
-            String name,
-            Long phoneNumber
-    ) {
+    private void syncUserWithSupabase(String tokenHeader, String email, String password, String name, Long phoneNumber) {
         Map<String, Object> metadata = new HashMap<>();
         if (name != null && !name.isBlank()) {
             metadata.put("name", name);
@@ -203,13 +171,7 @@ public class UserService {
         if (phoneNumber != null) {
             metadata.put("phone", phoneNumber);
         }
-
-        supabaseAuthService.updateUser(
-                extractBearerToken(tokenHeader),
-                email,
-                password,
-                metadata
-        );
+        supabaseAuthService.updateUser(extractBearerToken(tokenHeader), email, password, metadata);
     }
 
     private void deleteUserDependencies(UserEntity user) {
@@ -217,9 +179,11 @@ public class UserService {
 
         for (ServiceEntity acceptedService : serviceRepository.findAllByUserAccepted(user)) {
             acceptedService.setUserAccepted(null);
+            // TODO adicionar notificações para o usuário que criou o pedido ficar sabendo que o outro usuário foi deletado
             if (acceptedService.getStatus() == ServiceStatus.ACEITO) {
                 acceptedService.setStatus(ServiceStatus.CRIADO);
             } else if (acceptedService.getStatus() == ServiceStatus.EM_ANDAMENTO) {
+                // TODO ver sobre o que fazer se o usuário deletar o perfil tendo um pedido em andamento
                 acceptedService.setStatus(ServiceStatus.CANCELADO);
             }
             acceptedService.setVerificationCode(null);
@@ -229,6 +193,8 @@ public class UserService {
 
         List<ServiceEntity> createdServices = serviceRepository.findAllByUserCreator(user);
         if (!createdServices.isEmpty()) {
+            // TODO ver o que fazer se os serviços criados pelo usuário que vai ser deletado vão ser tratados
+            //  os que aceitaram o pedido deveria ter uma notificação, os que estão em andamento não sei o que fazer
             notificationRepository.deleteAllByServiceIn(createdServices);
             serviceRepository.deleteAll(createdServices);
         }

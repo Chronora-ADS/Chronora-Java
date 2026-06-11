@@ -19,9 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/user")
 public class UserController {
-
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-
     private final UserService userService;
 
     public UserController(UserService userService) {
@@ -29,18 +27,12 @@ public class UserController {
     }
 
     @PutMapping("/put/buy-chronos")
-    public ResponseEntity<UserResponseDTO> buyChronos(
-            @RequestHeader("Authorization") String tokenHeader,
-            @RequestHeader("Chronos") Integer chronos
-    ) {
+    public ResponseEntity<UserResponseDTO> buyChronos(@RequestHeader("Authorization") String tokenHeader, @RequestHeader("Chronos") Integer chronos) {
         return ResponseEntity.ok(UserResponseDTO.fromEntity(userService.buyChronos(tokenHeader, chronos)));
     }
 
     @PutMapping("/put/sell-chronos")
-    public ResponseEntity<UserResponseDTO> sellChronos(
-            @RequestHeader("Authorization") String tokenHeader,
-            @RequestHeader("Chronos") Integer chronos
-    ) {
+    public ResponseEntity<UserResponseDTO> sellChronos(@RequestHeader("Authorization") String tokenHeader, @RequestHeader("Chronos") Integer chronos) {
         return ResponseEntity.ok(UserResponseDTO.fromEntity(userService.sellChronos(tokenHeader, chronos)));
     }
 
@@ -50,13 +42,10 @@ public class UserController {
     }
 
     @PutMapping("/put")
-    public ResponseEntity<UserResponseDTO> put(
-            @RequestHeader("Authorization") String tokenHeader,
-            @RequestBody @Valid UserEditDTO userEditDTO
-    ) {
-        logger.info("Editando usuario {}", userEditDTO.getId());
+    public ResponseEntity<UserResponseDTO> put(@RequestHeader("Authorization") String tokenHeader, @RequestBody @Valid UserEditDTO userEditDTO) {
+        logger.info("Editando usuário {}", userEditDTO.getId());
         UserEntity saved = userService.put(userEditDTO, tokenHeader);
-        logger.info("Usuario editado com sucesso: {}", saved.getId());
+        logger.info("Usuário editado com sucesso: {}", saved.getId());
         return ResponseEntity.ok(UserResponseDTO.fromEntity(saved));
     }
 
