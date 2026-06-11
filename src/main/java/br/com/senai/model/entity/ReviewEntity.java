@@ -40,7 +40,7 @@ public class ReviewEntity {
     private UserEntity reviewee;
 
     @Column(nullable = false)
-    private Integer rating;
+    private Double rating;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
