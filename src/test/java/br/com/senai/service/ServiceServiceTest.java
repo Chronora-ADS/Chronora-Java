@@ -341,7 +341,6 @@ class ServiceServiceTest {
         service.setVerificationCodeCallCount(1);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
-
         assertThrows(ExpiredValidationCodeException.class,
                 () -> serviceService.startService(10L, TOKEN_HEADER, "1234"));
 

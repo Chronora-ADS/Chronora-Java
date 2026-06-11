@@ -12,20 +12,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.senai.exception.Auth.AuthException;
-import br.com.senai.model.DTO.user.SupabaseUserDTO;
 import br.com.senai.exception.Validation.EmailAlreadyExistsException;
 import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
 import br.com.senai.model.DTO.user.DocumentDTO;
 import br.com.senai.model.DTO.user.LoginDTO;
+import br.com.senai.model.DTO.user.SupabaseUserDTO;
 import br.com.senai.model.DTO.user.UserDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.UserRepository;
+import br.com.senai.service.auth.AuthService;
+import br.com.senai.service.service.SupabaseStorageService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import br.com.senai.service.auth.AuthService;
-import br.com.senai.service.service.SupabaseStorageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -81,7 +80,9 @@ class AuthServiceTest {
     @Test
     void deveFalharCadastroQuandoEmailJaExiste() {
         UserDTO dto = criarUserDTO();
-        when(userRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(new UserEntity()));
+        UserEntity existingUser = new UserEntity();
+        existingUser.setEmail(dto.getEmail());
+        when(userRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(existingUser));
 
         assertThrows(EmailAlreadyExistsException.class, () -> authService.register(dto, "supabase-123"));
 
@@ -92,8 +93,10 @@ class AuthServiceTest {
     @Test
     void deveFalharCadastroQuandoTelefoneJaExiste() {
         UserDTO dto = criarUserDTO();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setPhoneNumber(dto.getPhoneNumber());
         when(userRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
-        when(userRepository.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.of(new UserEntity()));
+        when(userRepository.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.of(existingUser));
 
         assertThrows(PhoneNumberAlreadyExistsException.class, () -> authService.register(dto, "supabase-123"));
 
