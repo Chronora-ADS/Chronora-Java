@@ -24,17 +24,20 @@ public class ReviewService {
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     public ReviewService(
             ReviewRepository reviewRepository,
             ServiceRepository serviceRepository,
             UserRepository userRepository,
-            UserService userService
+            UserService userService,
+            NotificationService notificationService
     ) {
         this.reviewRepository = reviewRepository;
         this.serviceRepository = serviceRepository;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -85,6 +88,8 @@ public class ReviewService {
             reviewee.setRating(avgRating);
             userRepository.save(reviewee);
         }
+
+        notificationService.create("Voce foi avaliado", reviewee, service);
 
         return saved;
     }
