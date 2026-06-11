@@ -1,6 +1,5 @@
 package br.com.senai.controller;
 
-import br.com.senai.model.DTO.ApiResponse;
 import br.com.senai.model.DTO.service.ServiceCancellationDTO;
 import br.com.senai.model.DTO.service.ServiceDTO;
 import br.com.senai.model.DTO.service.ServiceDeadlineRenewalDTO;
@@ -123,21 +122,15 @@ public class ServiceController {
     }
 
     @GetMapping("/get/all")
-    public ResponseEntity<ApiResponse<List<ServiceEntity>>> getAll(@RequestHeader("Authorization") String tokenHeader,
-                                                                   @RequestParam(defaultValue = "0") @Min(0) int page,
-                                                                   @RequestParam(defaultValue = "10") @Min(1) int size) {
+    public ResponseEntity<Page<ServiceEntity>> getAll(@RequestHeader("Authorization") String tokenHeader,
+                                                      @RequestParam(defaultValue = "0") @Min(0) int page,
+                                                      @RequestParam(defaultValue = "10") @Min(1) int size) {
         Page<ServiceEntity> services = serviceService.getAll(tokenHeader, page, size);
-        return ResponseEntity.ok(ApiResponse.ofPage(
-                services.getContent(),
-                page,
-                size,
-                services.getTotalElements(),
-                services.getTotalPages()
-        ));
+        return ResponseEntity.ok(services);
     }
 
     @GetMapping("/get/all/{status}")
-    public ResponseEntity<ApiResponse<List<ServiceEntity>>> getAllByStatus(@PathVariable ServiceStatus status,
+    public ResponseEntity<Page<ServiceEntity>> getAllByStatus(@PathVariable ServiceStatus status,
                                                                            @RequestHeader("Authorization") String tokenHeader,
                                                                            @RequestParam(defaultValue = "0") @Min(0) int page,
                                                                            @RequestParam(defaultValue = "10") @Min(1) int size,
@@ -153,13 +146,6 @@ public class ServiceController {
                 status, tokenHeader, page, size, query, categories,
                 modality, deadline, minTimeChronos, maxTimeChronos, sort
         );
-
-        return ResponseEntity.ok(ApiResponse.ofPage(
-                services.getContent(),
-                page,
-                size,
-                services.getTotalElements(),
-                services.getTotalPages()
-        ));
+        return ResponseEntity.ok(services);
     }
 }

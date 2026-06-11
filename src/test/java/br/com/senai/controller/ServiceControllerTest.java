@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import br.com.senai.model.DTO.ApiResponse;
 import br.com.senai.model.DTO.service.ServiceCancellationDTO;
 import br.com.senai.model.DTO.service.ServiceDTO;
 import br.com.senai.model.DTO.service.ServiceDeadlineRenewalDTO;
@@ -22,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
 @ExtendWith(MockitoExtension.class)
@@ -195,13 +195,13 @@ class ServiceControllerTest {
         when(serviceService.getAll(TOKEN_HEADER, 0, 10)).thenReturn(new PageImpl<>(List.of(service)));
 
         var response = serviceController.getAll(TOKEN_HEADER, 0, 10);
-        ApiResponse<List<ServiceEntity>> body = response.getBody();
+        Page<ServiceEntity> page = response.getBody();
 
         assertEquals(200, response.getStatusCode().value());
-        assertEquals(List.of(service), body.getContent());
-        assertEquals(0, body.getPage());
-        assertEquals(10, body.getSize());
-        assertEquals(1L, body.getTotalElements());
+        assertEquals(List.of(service), page.getContent());
+        assertEquals(0, page.getNumber());
+        assertEquals(10, page.getSize());
+        assertEquals(1L, page.getTotalElements());
         verify(serviceService).getAll(TOKEN_HEADER, 0, 10);
     }
 
@@ -212,13 +212,13 @@ class ServiceControllerTest {
                 .thenReturn(new PageImpl<>(List.of(service)));
 
         var response = serviceController.getAllByStatus(ServiceStatus.ACEITO, TOKEN_HEADER, 0, 10, null, null, null, null, null, null, "0");
-        ApiResponse<List<ServiceEntity>> body = response.getBody();
+        Page<ServiceEntity> page = response.getBody();
 
         assertEquals(200, response.getStatusCode().value());
-        assertEquals(List.of(service), body.getContent());
-        assertEquals(0, body.getPage());
-        assertEquals(10, body.getSize());
-        assertEquals(1L, body.getTotalElements());
+        assertEquals(List.of(service), page.getContent());
+        assertEquals(0, page.getNumber());
+        assertEquals(10, page.getSize());
+        assertEquals(1L, page.getTotalElements());
         verify(serviceService).searchByStatus(ServiceStatus.ACEITO, TOKEN_HEADER, 0, 10, null, null, null, null, null, null, "0");
     }
 
