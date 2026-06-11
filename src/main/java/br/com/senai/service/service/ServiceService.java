@@ -48,7 +48,7 @@ public class ServiceService {
     private static final Logger logger = LoggerFactory.getLogger(ServiceService.class);
 
     private static final long VERIFICATION_CODE_EXPIRATION_MINUTES = 2;
-    // TODO por que salvar em uma variável separada a primeira e segunda chamada, ainda por cima com os números 1 e 2?
+    // TODO ISAIAS por que salvar em uma variável separada a primeira e segunda chamada, ainda por cima com os números 1 e 2?
     private static final int FIRST_VERIFICATION_CODE_CALL = 1;
     private static final int SECOND_VERIFICATION_CODE_CALL = 2;
     private static final int MAX_CATEGORY_COUNT = 10;
@@ -469,9 +469,8 @@ public class ServiceService {
         return serviceRepository.findAllByStatus(status, PageRequest.of(page, size));
     }
 
-    // TODO ver sobre trocar nome do searchByStatus, pois está pesquisando por mais do que só status
     @Transactional
-    public Page<ServiceEntity> searchByStatus(
+    public Page<ServiceEntity> filterServices(
             ServiceStatus status,
             String tokenHeader,
             int page,
@@ -571,7 +570,7 @@ public class ServiceService {
             return Sort.by(Sort.Direction.ASC, "id");
         }
 
-        // TODO ver porque não tem o sort igual à 2
+        // TODO ISAIAS ver porque não tem o sort igual à 2
 
         if ("3".equals(sort)) {
             return Sort.by(Sort.Direction.DESC, "timeChronos").and(Sort.by(Sort.Direction.DESC, "id"));
@@ -766,7 +765,7 @@ public class ServiceService {
             throw new IllegalArgumentException("Categoria do serviço e obrigatória.");
         }
         if (categories.size() > MAX_CATEGORY_COUNT) {
-            // TODO ver se existe esse máximo de categorias no front
+            // TODO ISAIAS ver se existe esse máximo de categorias no front
             throw new IllegalArgumentException("O serviço pode ter no máximo 10 categorias.");
         }
 

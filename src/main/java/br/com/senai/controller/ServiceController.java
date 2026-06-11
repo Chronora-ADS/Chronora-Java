@@ -142,7 +142,7 @@ public class ServiceController {
                                                                            @RequestParam(required = false) @Min(0) Integer maxTimeChronos,
                                                                            @RequestParam(defaultValue = "0") String sort) {
 
-        Page<ServiceEntity> services = serviceService.searchByStatus(
+        Page<ServiceEntity> services = serviceService.filterServices(
                 status, tokenHeader, page, size, query, categories,
                 modality, deadline, minTimeChronos, maxTimeChronos, sort
         );
