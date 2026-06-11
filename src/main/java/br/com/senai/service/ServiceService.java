@@ -256,8 +256,26 @@ public class ServiceService {
             throw new AuthException("Credenciais invalidas.");
         }
 
-        if (service.getStatus() != ServiceStatus.EM_ANDAMENTO) {
-            throw new AuthException("Este pedido nao esta em andamento.");
+        boolean isProvider = service.getUserAccepted() != null
+                && Objects.equals(service.getUserAccepted().getId(), user.getId());
+
+        if (isProvider) {
+            if (service.getStatus() != ServiceStatus.EM_ANDAMENTO) {
+                throw new AuthException("Este pedido nao esta em andamento.");
+            }
+            service.setStatus(ServiceStatus.AGUARDANDO_CONFIRMACAO);
+            service = serviceRepository.save(service);
+            notificationService.create(
+                    "O prestador concluiu o servico. Confirme para finalizar o pedido.",
+                    service.getUserCreator(),
+                    service
+            );
+            return service;
+        }
+
+        // Solicitante confirma a conclusao
+        if (service.getStatus() != ServiceStatus.AGUARDANDO_CONFIRMACAO) {
+            throw new AuthException("O prestador ainda nao concluiu o servico.");
         }
 
         if (service.getUserAccepted() != null) {
