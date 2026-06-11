@@ -2,10 +2,7 @@ package br.com.senai.model.DTO.user;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
@@ -24,7 +21,9 @@ public class UserDTO {
     private Long phoneNumber;
 
     @NotBlank(message = "Senha do usuário é obrigatória.")
-    @Size(min = 6, max = 72, message = "A senha deve ter entre 6 e 72 caracteres.")
+    @Size(min = 8, max = 72, message = "A senha deve ter entre 8 e 72 caracteres.")
+    @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d).+$",
+            message = "A senha deve conter pelo menos uma letra maiúscula e um número.")
     @JsonAlias("Password")
     private String password;
 

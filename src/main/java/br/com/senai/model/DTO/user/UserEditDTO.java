@@ -1,6 +1,7 @@
 package br.com.senai.model.DTO.user;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -14,7 +15,9 @@ public class UserEditDTO {
 
     private Long phoneNumber;
 
-    @Size(min = 6, max = 72, message = "A senha deve ter entre 6 e 72 caracteres.")
+    @Size(min = 8, max = 72, message = "A senha deve ter entre 8 e 72 caracteres.")
+    @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d).+$",
+            message = "A senha deve conter pelo menos uma letra maiúscula e um número.")
     private String password;
     private DocumentDTO document;
     private DocumentDTO profileImage;
