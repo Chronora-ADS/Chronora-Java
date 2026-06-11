@@ -11,6 +11,7 @@ import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.ReviewRepository;
 import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
+import br.com.senai.service.notification.NotificationService;
 import br.com.senai.service.user.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
