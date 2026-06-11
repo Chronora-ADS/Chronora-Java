@@ -5,5 +5,6 @@ public enum ServiceStatus {
     ACEITO,
     EM_ANDAMENTO,
     CONCLUIDO,
-    CANCELADO
+    CANCELADO,
+    AGUARDANDO_CONFIRMACAO  // adicionado ao final para preservar os ordinais existentes
 }
