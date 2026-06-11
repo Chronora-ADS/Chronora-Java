@@ -12,12 +12,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.senai.exception.Auth.AuthException;
-import br.com.senai.model.DTO.SupabaseUserDTO;
+import br.com.senai.model.DTO.user.SupabaseUserDTO;
 import br.com.senai.exception.Validation.EmailAlreadyExistsException;
 import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
-import br.com.senai.model.DTO.DocumentDTO;
-import br.com.senai.model.DTO.LoginDTO;
-import br.com.senai.model.DTO.UserDTO;
+import br.com.senai.model.DTO.user.DocumentDTO;
+import br.com.senai.model.DTO.user.LoginDTO;
+import br.com.senai.model.DTO.user.UserDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.UserRepository;
 import java.util.List;

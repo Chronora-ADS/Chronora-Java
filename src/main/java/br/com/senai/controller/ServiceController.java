@@ -1,10 +1,10 @@
 package br.com.senai.controller;
 
 import br.com.senai.model.DTO.ApiResponse;
-import br.com.senai.model.DTO.ServiceCancellationDTO;
-import br.com.senai.model.DTO.ServiceDTO;
-import br.com.senai.model.DTO.ServiceDeadlineRenewalDTO;
-import br.com.senai.model.DTO.ServiceEditDTO;
+import br.com.senai.model.DTO.service.ServiceCancellationDTO;
+import br.com.senai.model.DTO.service.ServiceDTO;
+import br.com.senai.model.DTO.service.ServiceDeadlineRenewalDTO;
+import br.com.senai.model.DTO.service.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.service.ServiceService;

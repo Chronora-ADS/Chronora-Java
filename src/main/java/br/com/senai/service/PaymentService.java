@@ -1,7 +1,7 @@
 package br.com.senai.service;
 
 import br.com.senai.exception.Validation.QuantityChronosInvalidException;
-import br.com.senai.model.DTO.BuyChronosResponseDTO;
+import br.com.senai.model.DTO.payment.BuyChronosResponseDTO;
 import br.com.senai.model.entity.PaymentTransactionEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.PaymentStatus;

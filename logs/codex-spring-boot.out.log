@@ -1506,7 +1506,7 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-25 15:50:34 - b.c.s.service.UptimeCheckScheduler - Uptime check OK: status=UP, code=200, ms=27
 2026-05-25 15:51:16 - o.s.web.servlet.DispatcherServlet - POST "/auth/login", parameters={}
 2026-05-25 15:51:16 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.AuthController#login(LoginDTO)
-2026-05-25 15:51:16 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.LoginDTO@25091671]
+2026-05-25 15:51:16 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.LoginDTO@25091671]
 2026-05-25 15:51:16 - o.s.web.client.RestTemplate - HTTP POST https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/token?grant_type=password
 2026-05-25 15:51:16 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
 2026-05-25 15:51:16 - o.s.web.client.RestTemplate - Writing [{password=123123, email=email@email.com.br}] as "application/json"
@@ -1518,7 +1518,7 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-25 15:51:20 - o.s.web.servlet.DispatcherServlet - Completed 502 BAD_GATEWAY
 2026-05-25 15:51:24 - o.s.web.servlet.DispatcherServlet - POST "/auth/login", parameters={}
 2026-05-25 15:51:24 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.AuthController#login(LoginDTO)
-2026-05-25 15:51:24 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.LoginDTO@28854e1]
+2026-05-25 15:51:24 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.LoginDTO@28854e1]
 2026-05-25 15:51:24 - o.s.web.client.RestTemplate - HTTP POST https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/token?grant_type=password
 2026-05-25 15:51:24 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
 2026-05-25 15:51:24 - o.s.web.client.RestTemplate - Writing [{password=123123, email=email@email.com}] as "application/json"
@@ -1546,7 +1546,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 15:51:28 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 15:51:28 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 15:51:28 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@22bc23a7]
+2026-05-25 15:51:28 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@22bc23a7]
 2026-05-25 15:51:28 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 15:51:28 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 15:51:28 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -1563,7 +1563,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 15:51:28 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 15:51:28 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 15:51:28 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@4df5a386]
+2026-05-25 15:51:28 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@4df5a386]
 2026-05-25 15:51:28 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 15:51:29 - o.s.web.client.RestTemplate - Response 200 OK
 2026-05-25 15:51:29 - o.s.web.client.RestTemplate - Reading to [java.lang.String] as "application/json"
@@ -1635,7 +1635,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 15:51:35 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 15:51:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 15:51:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@4aaf8ff6]
+2026-05-25 15:51:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@4aaf8ff6]
 2026-05-25 15:51:35 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 15:51:35 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 15:51:35 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -1652,7 +1652,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 15:51:36 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 15:51:36 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 15:51:36 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@258f4d6f]
+2026-05-25 15:51:36 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@258f4d6f]
 2026-05-25 15:51:36 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 15:51:47 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 15:51:47 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -1662,7 +1662,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 15:51:47 - o.s.web.servlet.DispatcherServlet - PUT "/user/put", parameters={}
 2026-05-25 15:51:47 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.UserController#put(String, UserEditDTO)
-2026-05-25 15:51:47 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.UserEditDTO@3ddcfabe]
+2026-05-25 15:51:47 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.UserEditDTO@3ddcfabe]
 2026-05-25 15:51:47 - b.c.senai.controller.UserController - Editando usuario 1
 2026-05-25 15:51:47 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 15:51:47 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -1692,7 +1692,7 @@ Hibernate: select r1_0.user_id,r1_0.role from user_roles r1_0 where r1_0.user_id
 Hibernate: update app_user set document_name=?,document_type=?,document_url=?,email=?,name=?,password=?,phone_number=?,profile_image=?,supabase_user_id=?,time_chronos=? where id=?
 2026-05-25 15:51:48 - b.c.senai.controller.UserController - Usuario editado com sucesso: 1
 2026-05-25 15:51:48 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 15:51:48 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@1bb78e95]
+2026-05-25 15:51:48 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@1bb78e95]
 2026-05-25 15:51:48 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 15:51:48 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 15:51:48 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -1709,7 +1709,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 15:51:48 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 15:51:48 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 15:51:48 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@3e275150]
+2026-05-25 15:51:48 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@3e275150]
 2026-05-25 15:51:48 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 15:51:51 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 15:51:51 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -1757,7 +1757,7 @@ Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entit
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 2026-05-25 15:51:51 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
 2026-05-25 15:51:51 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
-2026-05-25 15:51:51 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@6c68880f]
+2026-05-25 15:51:51 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@6c68880f]
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 2026-05-25 15:51:51 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 15:51:51 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
@@ -1788,7 +1788,7 @@ Hibernate: select count(se1_0.id) from service se1_0
 2026-05-25 15:51:52 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 15:51:52 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 15:51:52 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@51be111d]
+2026-05-25 15:51:52 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@51be111d]
 2026-05-25 15:51:52 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 15:52:34 - o.s.web.client.RestTemplate - HTTP GET http://localhost:8085/health
 2026-05-25 15:52:34 - o.s.web.client.RestTemplate - Accept=[application/json, application/*+json]
@@ -2572,7 +2572,7 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-25 16:56:41 - b.c.s.service.UptimeCheckScheduler - Uptime check OK: status=UP, code=200, ms=9
 2026-05-25 16:57:25 - o.s.web.servlet.DispatcherServlet - POST "/auth/login", parameters={}
 2026-05-25 16:57:25 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.AuthController#login(LoginDTO)
-2026-05-25 16:57:25 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.LoginDTO@2e698121]
+2026-05-25 16:57:25 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.LoginDTO@2e698121]
 2026-05-25 16:57:25 - o.s.web.client.RestTemplate - HTTP POST https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/token?grant_type=password
 2026-05-25 16:57:25 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
 2026-05-25 16:57:25 - o.s.web.client.RestTemplate - Writing [{password=123123, email=email@email.com}] as "application/json"
@@ -2622,7 +2622,7 @@ Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entit
 2026-05-25 16:57:27 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 2026-05-25 16:57:27 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 16:57:27 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@435216c8]
+2026-05-25 16:57:27 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@435216c8]
 2026-05-25 16:57:27 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 16:57:27 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 16:57:27 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -2655,7 +2655,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 16:57:27 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 2026-05-25 16:57:27 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 16:57:27 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@4edc5c28]
+2026-05-25 16:57:27 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@4edc5c28]
 2026-05-25 16:57:27 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 16:57:27 - org.hibernate.SQL - select count(se1_0.id) from service se1_0
 Hibernate: select count(se1_0.id) from service se1_0
@@ -2991,7 +2991,7 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-25 17:23:45 - org.hibernate.SQL - insert into uptime_check (checked_at,error_message,response_time_ms,status,status_code) values (?,?,?,?,?)
 Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,status,status_code) values (?,?,?,?,?)
 2026-05-25 17:23:45 - b.c.s.service.UptimeCheckScheduler - Uptime check OK: status=UP, code=200, ms=27
-2026-05-25 17:52:42 - com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=28m52s750ms659µs600ns).
+2026-05-25 17:52:42 - com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=28m52s750ms659ï¿½s600ns).
 2026-05-25 18:31:03 - o.s.web.client.RestTemplate - HTTP GET http://localhost:8085/health
 2026-05-25 18:31:03 - o.s.web.client.RestTemplate - Accept=[application/json, application/*+json]
 2026-05-25 18:31:03 - o.s.web.servlet.DispatcherServlet - GET "/health", parameters={}
@@ -3001,10 +3001,10 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-25 18:31:03 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:31:03 - o.s.web.client.RestTemplate - Response 200 OK
 2026-05-25 18:31:03 - o.s.web.client.RestTemplate - Reading to [java.util.Map<?, ?>]
-2026-05-25 18:31:07 - com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=38m24s908ms237µs300ns).
+2026-05-25 18:31:07 - com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=38m24s908ms237ï¿½s300ns).
 2026-05-25 18:31:33 - o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 0, SQLState: 08001
 2026-05-25 18:31:33 - o.h.e.jdbc.spi.SqlExceptionHelper - HikariPool-1 - Connection is not available, request timed out after 30011ms (total=0, active=0, idle=0, waiting=0)
-2026-05-25 18:31:33 - o.h.e.jdbc.spi.SqlExceptionHelper - A tentativa de conexão falhou.
+2026-05-25 18:31:33 - o.h.e.jdbc.spi.SqlExceptionHelper - A tentativa de conexï¿½o falhou.
 2026-05-25 18:31:59 - org.hibernate.SQL - insert into uptime_check (checked_at,error_message,response_time_ms,status,status_code) values (?,?,?,?,?)
 Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,status,status_code) values (?,?,?,?,?)
 2026-05-25 18:31:59 - b.c.s.service.UptimeCheckScheduler - Uptime check FAILED: ms=30079, error=Could not open JPA EntityManager for transaction
@@ -3157,7 +3157,7 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-25 18:44:01 - o.s.web.client.RestTemplate - Response 403 FORBIDDEN
 2026-05-25 18:44:09 - o.s.web.servlet.DispatcherServlet - POST "/auth/login", parameters={}
 2026-05-25 18:44:09 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.AuthController#login(LoginDTO)
-2026-05-25 18:44:09 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.LoginDTO@23881fac]
+2026-05-25 18:44:09 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.LoginDTO@23881fac]
 2026-05-25 18:44:09 - o.s.web.client.RestTemplate - HTTP POST https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/token?grant_type=password
 2026-05-25 18:44:09 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
 2026-05-25 18:44:09 - o.s.web.client.RestTemplate - Writing [{password=123123, email=email@email.com}] as "application/json"
@@ -3223,7 +3223,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:44:10 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 2026-05-25 18:44:10 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:44:10 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@1badffc6]
+2026-05-25 18:44:10 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@1badffc6]
 2026-05-25 18:44:10 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:44:10 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 18:44:10 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -3245,7 +3245,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:44:10 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 18:44:10 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:44:10 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@309509a9]
+2026-05-25 18:44:10 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@309509a9]
 2026-05-25 18:44:10 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:44:31 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 18:44:31 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -3262,7 +3262,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:44:31 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 18:44:31 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:44:31 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@7617e60c]
+2026-05-25 18:44:31 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@7617e60c]
 2026-05-25 18:44:31 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:44:31 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 18:44:31 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -3279,7 +3279,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:44:31 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 18:44:31 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:44:31 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@54db7aba]
+2026-05-25 18:44:31 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@54db7aba]
 2026-05-25 18:44:31 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:44:55 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 18:44:55 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
@@ -3318,7 +3318,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:44:55 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 2026-05-25 18:44:55 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:44:55 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@3c76d558]
+2026-05-25 18:44:55 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@3c76d558]
 2026-05-25 18:44:55 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:44:55 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
@@ -3376,7 +3376,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:44:58 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 where ue1_0.id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 where ue1_0.id=?
 2026-05-25 18:44:58 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:44:58 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@3cf873f6]
+2026-05-25 18:44:58 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@3cf873f6]
 2026-05-25 18:44:58 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:44:58 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 18:44:58 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -3417,7 +3417,7 @@ Hibernate: select count(se1_0.id) from service se1_0
 2026-05-25 18:44:58 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 18:44:58 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:44:58 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@2567a634]
+2026-05-25 18:44:58 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@2567a634]
 2026-05-25 18:44:58 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:44:58 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
 2026-05-25 18:44:58 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.ApiResponse@731bebfe]
@@ -3437,7 +3437,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:45:00 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 18:45:00 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:45:00 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@4202798e]
+2026-05-25 18:45:00 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@4202798e]
 2026-05-25 18:45:00 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:45:00 - o.s.web.client.RestTemplate - HTTP GET http://localhost:8085/health
 2026-05-25 18:45:00 - o.s.web.client.RestTemplate - Accept=[application/json, application/*+json]
@@ -3466,7 +3466,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:45:01 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 18:45:01 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:45:01 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@214cebc0]
+2026-05-25 18:45:01 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@214cebc0]
 2026-05-25 18:45:01 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:45:04 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 18:45:04 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -3483,7 +3483,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:45:04 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 18:45:04 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:45:04 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@2ddabae]
+2026-05-25 18:45:04 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@2ddabae]
 2026-05-25 18:45:04 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:45:04 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 18:45:04 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -3500,7 +3500,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:45:04 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 18:45:04 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:45:04 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@48edb4cf]
+2026-05-25 18:45:04 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@48edb4cf]
 2026-05-25 18:45:04 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:45:08 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 18:45:08 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
@@ -3528,7 +3528,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:45:08 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 18:45:08 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:45:08 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@780c6bd2]
+2026-05-25 18:45:08 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@780c6bd2]
 2026-05-25 18:45:08 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:45:08 - o.s.web.client.RestTemplate - Response 200 OK
 2026-05-25 18:45:08 - o.s.web.client.RestTemplate - Reading to [java.lang.String] as "application/json"
@@ -3671,7 +3671,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:45:14 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 where ue1_0.id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 where ue1_0.id=?
 2026-05-25 18:45:14 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:45:14 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@116a250e]
+2026-05-25 18:45:14 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@116a250e]
 2026-05-25 18:45:14 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:45:14 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
@@ -3713,7 +3713,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 18:45:14 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.ApiResponse@70abbee5]
 2026-05-25 18:45:14 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:45:14 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 18:45:14 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@60fa965]
+2026-05-25 18:45:14 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@60fa965]
 2026-05-25 18:45:14 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 18:46:00 - o.s.web.client.RestTemplate - HTTP GET http://localhost:8085/health
 2026-05-25 18:46:00 - o.s.web.client.RestTemplate - Accept=[application/json, application/*+json]
@@ -4354,7 +4354,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 19:38:03 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 19:38:03 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 19:38:03 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@64718697]
+2026-05-25 19:38:03 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@64718697]
 2026-05-25 19:38:03 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:38:04 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 19:38:04 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
@@ -4377,7 +4377,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 19:38:04 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 19:38:04 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 19:38:04 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@3328b0]
+2026-05-25 19:38:04 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@3328b0]
 2026-05-25 19:38:04 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:38:04 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 19:38:04 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -4416,7 +4416,7 @@ Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entit
 2026-05-25 19:38:06 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 2026-05-25 19:38:06 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 19:38:06 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@74fd6a5d]
+2026-05-25 19:38:06 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@74fd6a5d]
 2026-05-25 19:38:06 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:38:07 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
@@ -4442,7 +4442,7 @@ Hibernate: select count(se1_0.id) from service se1_0
 2026-05-25 19:38:13 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:38:23 - o.s.web.servlet.DispatcherServlet - POST "/auth/login", parameters={}
 2026-05-25 19:38:23 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.AuthController#login(LoginDTO)
-2026-05-25 19:38:23 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.LoginDTO@3cee7dee]
+2026-05-25 19:38:23 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.LoginDTO@3cee7dee]
 2026-05-25 19:38:26 - o.s.web.client.RestTemplate - HTTP POST https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/token?grant_type=password
 2026-05-25 19:38:26 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
 2026-05-25 19:38:26 - o.s.web.client.RestTemplate - Writing [{password=123123123123, email=email@email.com}] as "application/json"
@@ -4466,7 +4466,7 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-25 19:38:27 - b.c.s.service.UptimeCheckScheduler - Uptime check OK: status=UP, code=200, ms=28
 2026-05-25 19:38:32 - o.s.web.servlet.DispatcherServlet - POST "/auth/login", parameters={}
 2026-05-25 19:38:32 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.AuthController#login(LoginDTO)
-2026-05-25 19:38:32 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.LoginDTO@78e58f7]
+2026-05-25 19:38:32 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.LoginDTO@78e58f7]
 2026-05-25 19:38:32 - o.s.web.client.RestTemplate - HTTP POST https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/token?grant_type=password
 2026-05-25 19:38:32 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
 2026-05-25 19:38:32 - o.s.web.client.RestTemplate - Writing [{password=123123, email=email@email.com}] as "application/json"
@@ -4514,7 +4514,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 19:38:33 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 2026-05-25 19:38:33 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 19:38:33 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@56d362cf]
+2026-05-25 19:38:33 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@56d362cf]
 2026-05-25 19:38:33 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:38:33 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
@@ -4547,7 +4547,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 19:38:33 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 2026-05-25 19:38:33 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 19:38:33 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@92b5575]
+2026-05-25 19:38:33 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@92b5575]
 2026-05-25 19:38:33 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:38:33 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
@@ -4571,7 +4571,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 19:38:42 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 19:38:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 19:38:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@d1d37fb]
+2026-05-25 19:38:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@d1d37fb]
 2026-05-25 19:38:42 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:38:42 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 19:38:42 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -4590,7 +4590,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 19:38:42 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 19:38:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 19:38:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@5288cdad]
+2026-05-25 19:38:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@5288cdad]
 2026-05-25 19:38:42 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:38:42 - o.s.web.client.RestTemplate - Response 200 OK
 2026-05-25 19:38:42 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
@@ -4639,7 +4639,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 19:38:42 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 2026-05-25 19:38:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 19:38:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@542f1ccf]
+2026-05-25 19:38:42 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@542f1ccf]
 2026-05-25 19:38:42 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:38:42 - org.hibernate.SQL - select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
 Hibernate: select ce1_0.service_entity_id,ce1_0.category_name from service_entity_category_entities ce1_0 where ce1_0.service_entity_id=?
@@ -4700,7 +4700,7 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-25 19:42:27 - com.zaxxer.hikari.pool.PoolBase - HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@2214f49f (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
 2026-05-25 19:42:57 - o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 0, SQLState: 08001
 2026-05-25 19:42:57 - o.h.e.jdbc.spi.SqlExceptionHelper - HikariPool-1 - Connection is not available, request timed out after 30009ms (total=0, active=0, idle=0, waiting=0)
-2026-05-25 19:42:57 - o.h.e.jdbc.spi.SqlExceptionHelper - A tentativa de conexão falhou.
+2026-05-25 19:42:57 - o.h.e.jdbc.spi.SqlExceptionHelper - A tentativa de conexï¿½o falhou.
 2026-05-25 19:43:19 - org.hibernate.SQL - insert into uptime_check (checked_at,error_message,response_time_ms,status,status_code) values (?,?,?,?,?)
 Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,status,status_code) values (?,?,?,?,?)
 2026-05-25 19:43:19 - b.c.s.service.UptimeCheckScheduler - Uptime check FAILED: ms=30026, error=Could not open JPA EntityManager for transaction
@@ -4719,7 +4719,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 19:43:34 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 19:43:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 19:43:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@388d96ab]
+2026-05-25 19:43:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@388d96ab]
 2026-05-25 19:43:35 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:43:35 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 19:43:35 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -4738,7 +4738,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 19:43:35 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 19:43:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 19:43:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@60b66cae]
+2026-05-25 19:43:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@60b66cae]
 2026-05-25 19:43:35 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:43:35 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-25 19:43:35 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -4759,7 +4759,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-25 19:43:35 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,ue1_0.profile_image,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-25 19:43:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-25 19:43:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@79317406]
+2026-05-25 19:43:35 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@79317406]
 2026-05-25 19:43:35 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-25 19:43:35 - o.s.web.servlet.DispatcherServlet - GET "/service/get/all?page=0&size=10", parameters={masked}
 2026-05-25 19:43:35 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.ServiceController#getAll(String, int, int)
@@ -5016,7 +5016,7 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-25 20:01:37 - org.hibernate.SQL - insert into uptime_check (checked_at,error_message,response_time_ms,status,status_code) values (?,?,?,?,?)
 Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,status,status_code) values (?,?,?,?,?)
 2026-05-25 20:01:37 - b.c.s.service.UptimeCheckScheduler - Uptime check OK: status=UP, code=200, ms=23
-2026-05-25 20:21:17 - com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=19m37s116ms669µs499ns).
+2026-05-25 20:21:17 - com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=19m37s116ms669ï¿½s499ns).
 2026-05-25 20:21:49 - o.s.web.client.RestTemplate - HTTP GET http://localhost:8085/health
 2026-05-25 20:21:49 - o.s.web.client.RestTemplate - Accept=[application/json, application/*+json]
 2026-05-25 20:21:49 - o.s.web.servlet.DispatcherServlet - GET "/health", parameters={}

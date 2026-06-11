@@ -1,6 +1,6 @@
 package br.com.senai.util;
 
-import br.com.senai.model.DTO.SupabaseUserDTO;
+import br.com.senai.model.DTO.user.SupabaseUserDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.service.AuthService;
 import br.com.senai.service.SupabaseAuthService;

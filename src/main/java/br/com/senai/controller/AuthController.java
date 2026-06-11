@@ -1,13 +1,13 @@
 package br.com.senai.controller;
 
-import br.com.senai.model.DTO.ForgotPasswordDTO;
-import br.com.senai.model.DTO.LoginDTO;
-import br.com.senai.model.DTO.RefreshTokenDTO;
-import br.com.senai.model.DTO.ResetPasswordDTO;
-import br.com.senai.model.DTO.SupabaseAuthResponseDTO;
-import br.com.senai.model.DTO.SupabaseUserDTO;
-import br.com.senai.model.DTO.UserDTO;
-import br.com.senai.model.DTO.UserResponseDTO;
+import br.com.senai.model.DTO.user.ForgotPasswordDTO;
+import br.com.senai.model.DTO.user.LoginDTO;
+import br.com.senai.model.DTO.user.RefreshTokenDTO;
+import br.com.senai.model.DTO.user.ResetPasswordDTO;
+import br.com.senai.model.DTO.user.SupabaseAuthResponseDTO;
+import br.com.senai.model.DTO.user.SupabaseUserDTO;
+import br.com.senai.model.DTO.user.UserDTO;
+import br.com.senai.model.DTO.user.UserResponseDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.service.AuthService;
 import br.com.senai.service.SupabaseAuthService;

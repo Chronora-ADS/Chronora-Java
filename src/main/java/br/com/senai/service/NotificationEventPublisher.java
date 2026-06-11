@@ -1,6 +1,6 @@
 package br.com.senai.service;
 
-import br.com.senai.model.DTO.NotificationEventDTO;
+import br.com.senai.model.DTO.notification.NotificationEventDTO;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

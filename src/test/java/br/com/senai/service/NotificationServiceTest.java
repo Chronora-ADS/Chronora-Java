@@ -7,7 +7,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import br.com.senai.model.DTO.NotificationEventDTO;
+import br.com.senai.model.DTO.notification.NotificationEventDTO;
 import br.com.senai.model.entity.NotificationEntity;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
