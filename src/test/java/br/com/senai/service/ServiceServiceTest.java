@@ -376,6 +376,7 @@ class ServiceServiceTest {
         assertEquals(ServiceStatus.AGUARDANDO_CONFIRMACAO, resultado.getStatus());
         verify(notificationService).create(
                 "O prestador concluiu o servico. Confirme para finalizar o pedido.", criador, service);
+        verify(notificationService).create("Pedido concluido com sucesso", prestador, service);
     }
 
     @Test
@@ -395,7 +396,7 @@ class ServiceServiceTest {
         assertNull(finalizado.getVerificationCodeExpiresAt());
         verify(userService).creditChronosToUser(prestador, 20);
         verify(notificationService).create("Pedido finalizado", criador, service);
-        verify(notificationService).create("Pedido finalizado", prestador, service);
+        verify(notificationService).create("Solicitante finalizou o pedido", prestador, service);
     }
 
     @Test
