@@ -475,6 +475,7 @@ class ServiceServiceTest {
         assertEquals(0, cancelado.getVerificationCodeCallCount());
         assertNull(cancelado.getServiceCancellationJustification());
         assertEquals(criador.getId(), cancelado.getServiceCancellationRequestedByUserId());
+        assertEquals(prestador.getId(), cancelado.getServiceCancellationCounterpartyUserId());
         verify(notificationService).create("Servico cancelado", criador, service);
         verify(notificationService).create(
                 "Servico cancelado por Ana",
@@ -484,13 +485,57 @@ class ServiceServiceTest {
     }
 
     @Test
-    void deveRegistrarJustificativaDoCancelamentoDepoisDeReabrirPedido() {
+    void deveRegistrarJustificativaRecebidaNoCancelamentoENotificarOsDoisParticipantes() {
+        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
+        service.setVerificationCode("1234");
+        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeCallCount(1);
+        br.com.senai.model.DTO.ServiceCancellationDTO cancellationDTO =
+                new br.com.senai.model.DTO.ServiceCancellationDTO();
+        cancellationDTO.setJustification("Texto que deve ficar somente no aplicativo.");
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(userService.findById(prestador.getId())).thenReturn(Optional.of(prestador));
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        ServiceEntity cancelado = serviceService.cancelAcceptedService(10L, TOKEN_HEADER, cancellationDTO);
+
+        assertSame(service, cancelado);
+        assertEquals(ServiceStatus.CRIADO, cancelado.getStatus());
+        assertEquals("Texto que deve ficar somente no aplicativo.", cancelado.getServiceCancellationJustification());
+        assertEquals(prestador.getId(), cancelado.getServiceCancellationCounterpartyUserId());
+        verify(notificationService).create("Servico cancelado", criador, service);
+        verify(notificationService).create("Servico cancelado por Ana", prestador, service);
+        verify(notificationService).createWithDetails(
+                "Justificativa de cancelamento do servico",
+                criador,
+                service,
+                "SERVICE_CANCELLATION_JUSTIFICATION",
+                "Texto que deve ficar somente no aplicativo.",
+                "Ana",
+                "Requisitante"
+        );
+        verify(notificationService).createWithDetails(
+                "Justificativa de cancelamento do servico",
+                prestador,
+                service,
+                "SERVICE_CANCELLATION_JUSTIFICATION",
+                "Texto que deve ficar somente no aplicativo.",
+                "Ana",
+                "Requisitante"
+        );
+    }
+
+    @Test
+    void deveRegistrarJustificativaDoCancelamentoDepoisDeReabrirPedidoParaOsDoisParticipantes() {
         ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
         service.setServiceCancellationRequestedByUserId(criador.getId());
+        service.setServiceCancellationCounterpartyUserId(prestador.getId());
         br.com.senai.model.DTO.ServiceCancellationDTO cancellationDTO =
                 new br.com.senai.model.DTO.ServiceCancellationDTO();
         cancellationDTO.setJustification("Fornecedor nao respondeu no prazo combinado.");
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(userService.findById(prestador.getId())).thenReturn(Optional.of(prestador));
         when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
@@ -498,7 +543,24 @@ class ServiceServiceTest {
 
         assertSame(service, atualizado);
         assertEquals("Fornecedor nao respondeu no prazo combinado.", atualizado.getServiceCancellationJustification());
-        verify(notificationService).create("Justificativa de cancelamento registrada", criador, service);
+        verify(notificationService).createWithDetails(
+                "Justificativa de cancelamento do servico",
+                criador,
+                service,
+                "SERVICE_CANCELLATION_JUSTIFICATION",
+                "Fornecedor nao respondeu no prazo combinado.",
+                "Ana",
+                "Requisitante"
+        );
+        verify(notificationService).createWithDetails(
+                "Justificativa de cancelamento do servico",
+                prestador,
+                service,
+                "SERVICE_CANCELLATION_JUSTIFICATION",
+                "Fornecedor nao respondeu no prazo combinado.",
+                "Ana",
+                "Requisitante"
+        );
     }
 
     @Test

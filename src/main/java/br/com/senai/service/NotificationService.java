@@ -64,6 +64,45 @@ public class NotificationService {
         return saved;
     }
 
+    public NotificationEntity createWithDetails(
+            String message,
+            UserEntity user,
+            ServiceEntity service,
+            String notificationType,
+            String detail,
+            String actorName,
+            String actorRole
+    ) {
+        NotificationEntity notification = new NotificationEntity();
+        notification.setMessage(message);
+        notification.setUser(user);
+        notification.setService(service);
+        notification.setNotificationType(notificationType);
+        notification.setDetail(detail);
+        notification.setActorName(actorName);
+        notification.setActorRole(actorRole);
+        notification.setNotificationTime(LocalDateTime.now());
+
+        NotificationEntity saved = notificationRepository.save(notification);
+
+        NotificationEventDTO event = new NotificationEventDTO();
+        event.setMessage(saved.getMessage());
+        event.setUserId(user.getId());
+        event.setUserEmail(user.getEmail());
+        event.setServiceId(service != null ? service.getId() : null);
+        event.setCreatedAt(OffsetDateTime.now());
+        try {
+            notificationEventPublisher.publish(event);
+        } catch (AmqpException exception) {
+            LOGGER.warn(
+                    "Nao foi possivel publicar evento de notificacao no RabbitMQ. A notificacao foi salva. Motivo: {}",
+                    exception.getMessage()
+            );
+        }
+
+        return saved;
+    }
+
     @Transactional
     public List<NotificationEntity> getAll(String tokenHeader) {
         UserEntity user = userService.getLoggedUser(tokenHeader);

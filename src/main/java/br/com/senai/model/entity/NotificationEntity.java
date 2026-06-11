@@ -25,6 +25,18 @@ public class NotificationEntity {
     @Column(nullable = false)
     private String message;
 
+    @Column(name = "notification_type", length = 80)
+    private String notificationType;
+
+    @Column(length = 1000)
+    private String detail;
+
+    @Column(name = "actor_name")
+    private String actorName;
+
+    @Column(name = "actor_role", length = 50)
+    private String actorRole;
+
     @Column(nullable = false)
     private LocalDateTime notificationTime;
 

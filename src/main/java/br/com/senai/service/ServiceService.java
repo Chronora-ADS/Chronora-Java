@@ -43,6 +43,12 @@ public class ServiceService {
     private static final int SECOND_VERIFICATION_CODE_CALL = 2;
     private static final int MAX_CATEGORY_COUNT = 10;
     private static final int MAX_CANCELLATION_JUSTIFICATION_LENGTH = 1000;
+    private static final String SERVICE_CANCELLATION_JUSTIFICATION_MESSAGE =
+            "Justificativa de cancelamento do servico";
+    private static final String SERVICE_CANCELLATION_JUSTIFICATION_TYPE =
+            "SERVICE_CANCELLATION_JUSTIFICATION";
+    private static final String REQUESTER_ROLE_LABEL = "Requisitante";
+    private static final String PROVIDER_ROLE_LABEL = "Fornecedor";
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     public static final String DEADLINE_ACTION_MESSAGE =
             "Prazo do pedido chegou. Renove o prazo ou cancele o pedido.";
@@ -362,6 +368,7 @@ public class ServiceService {
                 : service.getUserCreator();
 
         service.setServiceCancellationRequestedByUserId(user.getId());
+        service.setServiceCancellationCounterpartyUserId(otherUser != null ? otherUser.getId() : null);
         if (hasCancellationJustification(cancellationDTO)) {
             service.setServiceCancellationJustification(
                     normalizeCancellationJustification(cancellationDTO.getJustification())
@@ -373,6 +380,13 @@ public class ServiceService {
 
         notificationService.create("Servico cancelado", user, service);
         notificationService.create("Servico cancelado por " + user.getName(), otherUser, service);
+        if (service.getServiceCancellationJustification() != null) {
+            createServiceCancellationJustificationNotifications(
+                    service,
+                    user,
+                    service.getServiceCancellationJustification()
+            );
+        }
         return service;
     }
 
@@ -385,12 +399,12 @@ public class ServiceService {
             throw new AuthException("Somente o usuario que cancelou o servico pode registrar a justificativa.");
         }
 
-        service.setServiceCancellationJustification(
-                normalizeCancellationJustification(cancellationDTO != null ? cancellationDTO.getJustification() : null)
-        );
+        String normalizedJustification =
+                normalizeCancellationJustification(cancellationDTO != null ? cancellationDTO.getJustification() : null);
+        service.setServiceCancellationJustification(normalizedJustification);
         service = serviceRepository.save(service);
 
-        notificationService.create("Justificativa de cancelamento registrada", user, service);
+        createServiceCancellationJustificationNotifications(service, user, normalizedJustification);
         return service;
     }
 
@@ -750,6 +764,54 @@ public class ServiceService {
         return cancellationDTO != null
                 && cancellationDTO.getJustification() != null
                 && !cancellationDTO.getJustification().isBlank();
+    }
+
+    private void createServiceCancellationJustificationNotifications(
+            ServiceEntity service,
+            UserEntity requester,
+            String justification
+    ) {
+        String requesterRole = getServiceCancellationRequesterRole(service, requester);
+
+        notificationService.createWithDetails(
+                SERVICE_CANCELLATION_JUSTIFICATION_MESSAGE,
+                requester,
+                service,
+                SERVICE_CANCELLATION_JUSTIFICATION_TYPE,
+                justification,
+                requester.getName(),
+                requesterRole
+        );
+
+        Long counterpartyId = service.getServiceCancellationCounterpartyUserId();
+        if (counterpartyId == null
+                && service.getUserCreator() != null
+                && !Objects.equals(service.getUserCreator().getId(), requester.getId())) {
+            counterpartyId = service.getUserCreator().getId();
+        }
+
+        if (counterpartyId == null || Objects.equals(counterpartyId, requester.getId())) {
+            return;
+        }
+
+        userService.findById(counterpartyId)
+                .ifPresent(counterparty -> notificationService.createWithDetails(
+                        SERVICE_CANCELLATION_JUSTIFICATION_MESSAGE,
+                        counterparty,
+                        service,
+                        SERVICE_CANCELLATION_JUSTIFICATION_TYPE,
+                        justification,
+                        requester.getName(),
+                        requesterRole
+                ));
+    }
+
+    private String getServiceCancellationRequesterRole(ServiceEntity service, UserEntity requester) {
+        if (service.getUserCreator() != null
+                && Objects.equals(service.getUserCreator().getId(), requester.getId())) {
+            return REQUESTER_ROLE_LABEL;
+        }
+        return PROVIDER_ROLE_LABEL;
     }
 
     private void validateServiceChronos(Integer timeChronos) {

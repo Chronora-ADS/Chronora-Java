@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -83,6 +84,13 @@ public class UserService {
         String token = tokenHeader.substring(7);
         SupabaseUserDTO supabaseUserDTO = supabaseAuthService.validateToken(token);
         return authService.resolveUserForSupabaseUser(supabaseUserDTO);
+    }
+
+    public Optional<UserEntity> findById(Long id) {
+        if (id == null) {
+            return Optional.empty();
+        }
+        return userRepository.findById(id);
     }
 
     public UserEntity put(UserEditDTO userEditDTO, String tokenHeader) {
