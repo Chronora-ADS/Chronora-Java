@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
@@ -23,6 +24,7 @@ public class UserDTO {
     private Long phoneNumber;
 
     @NotBlank(message = "Senha do usuário é obrigatória.")
+    @Size(min = 6, max = 72, message = "A senha deve ter entre 6 e 72 caracteres.")
     @JsonAlias("Password")
     private String password;
 

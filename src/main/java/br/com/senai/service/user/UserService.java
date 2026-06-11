@@ -64,7 +64,7 @@ public class UserService {
 
     public void creditChronosToUser(UserEntity user, Integer amount) {
         validateChronosAmount(amount);
-        // TODO parece que, se o valor ser maior que 300, o usuário vai só perder o dinheiro a mais que viria depois dos 300.
+        // TODO FELLIPE parece que, se o valor ser maior que 300, o usuário vai só perder o dinheiro a mais que viria depois dos 300.
         //  Colocar uma mensagem de erro pra esse limite seria bom
         int newBalance = Math.min(user.getTimeChronos() + amount, 300);
         user.setTimeChronos(newBalance);
@@ -176,11 +176,11 @@ public class UserService {
 
         for (ServiceEntity acceptedService : serviceRepository.findAllByUserAccepted(user)) {
             acceptedService.setUserAccepted(null);
-            // TODO adicionar notificações para o usuário que criou o pedido ficar sabendo que o outro usuário foi deletado
+            // TODO GABRIEL adicionar notificações para o usuário que criou o pedido ficar sabendo que o outro usuário foi deletado
             if (acceptedService.getStatus() == ServiceStatus.ACEITO) {
                 acceptedService.setStatus(ServiceStatus.CRIADO);
             } else if (acceptedService.getStatus() == ServiceStatus.EM_ANDAMENTO) {
-                // TODO ver sobre o que fazer se o usuário deletar o perfil tendo um pedido em andamento
+                // TODO GABRIEL ver sobre o que fazer se o usuário deletar o perfil tendo um pedido em andamento
                 acceptedService.setStatus(ServiceStatus.CANCELADO);
             }
             acceptedService.setVerificationCode(null);
@@ -190,7 +190,7 @@ public class UserService {
 
         List<ServiceEntity> createdServices = serviceRepository.findAllByUserCreator(user);
         if (!createdServices.isEmpty()) {
-            // TODO ver o que fazer se os serviços criados pelo usuário que vai ser deletado vão ser tratados
+            // TODO GABRIEL ver o que fazer se os serviços criados pelo usuário que vai ser deletado vão ser tratados
             //  os que aceitaram o pedido deveria ter uma notificação, os que estão em andamento não sei o que fazer
             notificationRepository.deleteAllByServiceIn(createdServices);
             serviceRepository.deleteAll(createdServices);
