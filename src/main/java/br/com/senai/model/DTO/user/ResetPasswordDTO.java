@@ -9,7 +9,8 @@ import lombok.Data;
 @Data
 public class ResetPasswordDTO {
     @NotBlank
-    // TODO verificar se na criação de um usuário e no editar também está com a mesma regra de senha, tanto no backend quanto no frontend
+    // TODO GABRIEL verificar se na criação de um usuário e no editar também está com a mesma regra de senha, tanto no backend quanto no frontend
+    //  Padronizados no backend conforme no front, só falta na página de perfil
     @Size(min = 8, max = 72, message = "A nova senha deve ter entre 8 e 72 caracteres.")
     @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d).+$",
             message = "A senha deve conter pelo menos uma letra maiúscula e um número.")
