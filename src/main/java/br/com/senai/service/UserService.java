@@ -77,8 +77,10 @@ public class UserService {
 
     public UserEntity creditChronosToUser(UserEntity user, Integer amount) {
         validateChronosAmount(amount);
-        int newBalance = Math.min(user.getTimeChronos() + amount, 300);
-        user.setTimeChronos(newBalance);
+        if (user.getTimeChronos() + amount > 300) {
+            throw new QuantityChronosInvalidException("Excedido limite de chronos de 300 por usuario.");
+        }
+        user.setTimeChronos(user.getTimeChronos() + amount);
         return userRepository.save(user);
     }
 
