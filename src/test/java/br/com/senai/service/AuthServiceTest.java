@@ -12,20 +12,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.senai.exception.Auth.AuthException;
-import br.com.senai.model.DTO.user.SupabaseUserDTO;
 import br.com.senai.exception.Validation.EmailAlreadyExistsException;
 import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
 import br.com.senai.model.DTO.user.DocumentDTO;
 import br.com.senai.model.DTO.user.LoginDTO;
+import br.com.senai.model.DTO.user.SupabaseUserDTO;
 import br.com.senai.model.DTO.user.UserDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.UserRepository;
+import br.com.senai.service.auth.AuthService;
+import br.com.senai.service.service.SupabaseStorageService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import br.com.senai.service.auth.AuthService;
-import br.com.senai.service.service.SupabaseStorageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -53,8 +52,8 @@ class AuthServiceTest {
     @Test
     void deveRegistrarUsuarioComDocumentoESenhaCriptografada() {
         UserDTO dto = criarUserDTO();
-        when(userRepository.existsByEmail(dto.getEmail())).thenReturn(false);
-        when(userRepository.existsByPhoneNumber(dto.getPhoneNumber())).thenReturn(false);
+        when(userRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+        when(userRepository.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(dto.getPassword())).thenReturn("senha-criptografada");
         when(storageService.uploadBase64Image(eq("base64-documento"), eq("users"), isNull(), eq("png")))
                 .thenReturn("https://storage/documento.png");
@@ -81,7 +80,9 @@ class AuthServiceTest {
     @Test
     void deveFalharCadastroQuandoEmailJaExiste() {
         UserDTO dto = criarUserDTO();
-        when(userRepository.existsByEmail(dto.getEmail())).thenReturn(true);
+        UserEntity existingUser = new UserEntity();
+        existingUser.setEmail(dto.getEmail());
+        when(userRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(existingUser));
 
         assertThrows(EmailAlreadyExistsException.class, () -> authService.register(dto, "supabase-123"));
 
@@ -92,8 +93,10 @@ class AuthServiceTest {
     @Test
     void deveFalharCadastroQuandoTelefoneJaExiste() {
         UserDTO dto = criarUserDTO();
-        when(userRepository.existsByEmail(dto.getEmail())).thenReturn(false);
-        when(userRepository.existsByPhoneNumber(dto.getPhoneNumber())).thenReturn(true);
+        UserEntity existingUser = new UserEntity();
+        existingUser.setPhoneNumber(dto.getPhoneNumber());
+        when(userRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+        when(userRepository.findByPhoneNumber(dto.getPhoneNumber())).thenReturn(Optional.of(existingUser));
 
         assertThrows(PhoneNumberAlreadyExistsException.class, () -> authService.register(dto, "supabase-123"));
 
@@ -108,13 +111,13 @@ class AuthServiceTest {
         loginDTO.setPassword("senha123");
         UserEntity user = criarUsuario();
 
-        when(userRepository.existsByEmail("ana@chronora.com")).thenReturn(true);
+        when(userRepository.findByEmail("ana@chronora.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("senha123", "hash-senha")).thenReturn(true);
 
         UserEntity autenticado = authService.authenticate(loginDTO);
 
         assertSame(user, autenticado);
-        verify(userRepository).existsByEmail("ana@chronora.com");
+        verify(userRepository).findByEmail("ana@chronora.com");
     }
 
     @Test
@@ -124,7 +127,7 @@ class AuthServiceTest {
         loginDTO.setPassword("senha-errada");
         UserEntity user = criarUsuario();
 
-        when(userRepository.existsByEmail("ana@chronora.com")).thenReturn(true);
+        when(userRepository.findByEmail("ana@chronora.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("senha-errada", "hash-senha")).thenReturn(false);
 
         assertThrows(AuthException.class, () -> authService.authenticate(loginDTO));
@@ -135,7 +138,7 @@ class AuthServiceTest {
         LoginDTO loginDTO = new LoginDTO();
         loginDTO.setEmail("inexistente@chronora.com");
         loginDTO.setPassword("senha123");
-        when(userRepository.existsByEmail("inexistente@chronora.com")).thenReturn(false);
+        when(userRepository.findByEmail("inexistente@chronora.com")).thenReturn(Optional.empty());
 
         assertThrows(AuthException.class, () -> authService.authenticate(loginDTO));
 
@@ -145,7 +148,7 @@ class AuthServiceTest {
     @Test
     void deveCarregarUsuarioSpringSecurityPeloEmail() {
         UserEntity user = criarUsuario();
-        when(userRepository.existsByEmail("ana@chronora.com")).thenReturn(true);
+        when(userRepository.findByEmail("ana@chronora.com")).thenReturn(Optional.of(user));
 
         var details = authService.loadUserByUsername("ana@chronora.com");
 
@@ -157,7 +160,7 @@ class AuthServiceTest {
 
     @Test
     void deveRetornarErroAoCarregarUsuarioSpringSecurityInexistente() {
-        when(userRepository.existsByEmail("inexistente@chronora.com")).thenReturn(false);
+        when(userRepository.findByEmail("inexistente@chronora.com")).thenReturn(Optional.empty());
 
         assertThrows(UsernameNotFoundException.class,
                 () -> authService.loadUserByUsername("inexistente@chronora.com"));
@@ -196,7 +199,7 @@ class AuthServiceTest {
                 .build();
 
         when(userRepository.findBySupabaseUserId("supabase-novo")).thenReturn(Optional.empty());
-        when(userRepository.existsByEmail("ana@chronora.com")).thenReturn(true);
+        when(userRepository.findByEmail("ana@chronora.com")).thenReturn(Optional.of(user));
         when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         UserEntity resolved = authService.resolveUserForSupabaseUser(supabaseUser);
