@@ -298,6 +298,14 @@ public class ServiceService {
             throw new AuthException("Credenciais invalidas.");
         }
 
+        if (service.getStatus() != ServiceStatus.EM_ANDAMENTO) {
+            throw new AuthException("Este pedido nao esta em andamento.");
+        }
+
+        if (service.getUserAccepted() != null) {
+            userService.creditChronosToUser(service.getUserAccepted(), service.getTimeChronos());
+        }
+
         service.setStatus(ServiceStatus.CONCLUIDO);
         clearVerificationCode(service);
         service = serviceRepository.save(service);
