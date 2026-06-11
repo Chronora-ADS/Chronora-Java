@@ -33,7 +33,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-@AllArgsConstructor
 public class SupabaseAuthService {
     private static final Logger logger = LoggerFactory.getLogger(SupabaseAuthService.class);
 
@@ -46,19 +45,30 @@ public class SupabaseAuthService {
     private static final String LOCAL_TOKEN_PREFIX = "local-token:";
     private static final long LOCAL_TOKEN_TTL_SECONDS = 3600L;
 
-    @Value("${supabase.url}")
-    private String supabaseUrl;
-
-    @Value("${supabase.anon-key}")
-    private String supabaseAnonKey;
-
-    @Value("${supabase.service-role:}")
-    private String supabaseServiceRole;
-
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final String supabaseUrl;
+    private final String supabaseAnonKey;
+    private final String supabaseServiceRole;
+
+    // Construtor explícito
+    public SupabaseAuthService(RestTemplate restTemplate,
+                               ObjectMapper objectMapper,
+                               UserRepository userRepository,
+                               AuthService authService,
+                               @Value("${supabase.url}") String supabaseUrl,
+                               @Value("${supabase.anon-key}") String supabaseAnonKey,
+                               @Value("${supabase.service-role:}") String supabaseServiceRole) {
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
+        this.userRepository = userRepository;
+        this.authService = authService;
+        this.supabaseUrl = supabaseUrl;
+        this.supabaseAnonKey = supabaseAnonKey;
+        this.supabaseServiceRole = supabaseServiceRole;
+    }
 
     public SupabaseUserDTO validateToken(String token) {
         if (!isSupabaseConfigured()) {

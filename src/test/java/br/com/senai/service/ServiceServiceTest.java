@@ -430,7 +430,7 @@ class ServiceServiceTest {
     void devePrestadorConcluirServicoAlterandoStatusParaAguardandoConfirmacao() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.EM_ANDAMENTO, 20);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
-        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
 
         ServiceEntity resultado = serviceService.finishService(10L, TOKEN_HEADER);
