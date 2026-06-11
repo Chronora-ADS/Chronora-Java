@@ -62,13 +62,15 @@ public class UserService {
         return userRepository.save(userEntity);
     }
 
-    public void creditChronosToUser(UserEntity user, Integer amount) {
+    public UserEntity creditChronosToUser(UserEntity user, Integer amount) {
         validateChronosAmount(amount);
-        // TODO FELLIPE parece que, se o valor ser maior que 300, o usuário vai só perder o dinheiro a mais que viria depois dos 300.
-        //  Colocar uma mensagem de erro pra esse limite seria bom
-        int newBalance = Math.min(user.getTimeChronos() + amount, 300);
-        user.setTimeChronos(newBalance);
-        userRepository.save(user);
+        if (user.getTimeChronos() + amount > 300) {
+            throw new QuantityChronosInvalidException(
+                "Sua carteira atingiu o limite de 300 Chronos. Venda ou use alguns Chronos para poder receber os proximos."
+            );
+        }
+        user.setTimeChronos(user.getTimeChronos() + amount);
+        return userRepository.save(user);
     }
 
     public UserEntity getLoggedUser(String tokenHeader) {

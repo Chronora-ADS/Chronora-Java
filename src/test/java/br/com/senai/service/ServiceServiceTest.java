@@ -427,21 +427,38 @@ class ServiceServiceTest {
     }
 
     @Test
-    void deveFinalizarPedidoComSucessoEDispararNotificacoes() {
+    void devePrestadorConcluirServicoAlterandoStatusParaAguardandoConfirmacao() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.EM_ANDAMENTO, 20);
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
+        when(serviceRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        ServiceEntity resultado = serviceService.finishService(10L, TOKEN_HEADER);
+
+        assertEquals(ServiceStatus.AGUARDANDO_CONFIRMACAO, resultado.getStatus());
+        verify(notificationService).create(
+                "O prestador concluiu o servico. Confirme para finalizar o pedido.", criador, service);
+        verify(notificationService).create("Pedido concluido com sucesso", prestador, service);
+    }
+
+    @Test
+    void deveFinalizarPedidoComSucessoEDispararNotificacoes() {
+        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.AGUARDANDO_CONFIRMACAO, 20);
         service.setVerificationCode("1234");
         service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
+        when(userService.creditChronosToUser(prestador, 20)).thenReturn(prestador);
 
         ServiceEntity finalizado = serviceService.finishService(10L, TOKEN_HEADER);
 
         assertEquals(ServiceStatus.CONCLUIDO, finalizado.getStatus());
         assertNull(finalizado.getVerificationCode());
         assertNull(finalizado.getVerificationCodeExpiresAt());
+        verify(userService).creditChronosToUser(prestador, 20);
         verify(notificationService).create("Pedido finalizado", criador, service);
-        verify(notificationService).create("Pedido finalizado", prestador, service);
+        verify(notificationService).create("Solicitante finalizou o pedido", prestador, service);
     }
 
     @Test

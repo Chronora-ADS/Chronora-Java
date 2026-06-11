@@ -52,4 +52,7 @@ public class UserEntity {
 
     @Column(name = "supabase_user_id", unique = true)
     private String supabaseUserId;
+
+    @Column
+    private Double rating;
 }

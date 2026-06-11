@@ -1,0 +1,143 @@
+databaseChangeLog:
+  - changeSet:
+      id: review-001-add-rating-to-app-user
+      author: fellipe
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            columnExists:
+              tableName: app_user
+              columnName: rating
+      changes:
+        - addColumn:
+            tableName: app_user
+            columns:
+              - column:
+                  name: rating
+                  type: DOUBLE PRECISION
+
+  - changeSet:
+      id: review-002-add-rated-flags-to-service
+      author: fellipe
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            columnExists:
+              tableName: service
+              columnName: rated_by_creator
+      changes:
+        - addColumn:
+            tableName: service
+            columns:
+              - column:
+                  name: rated_by_creator
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rated_by_provider
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: review-003-create-review-table
+      author: fellipe
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            tableExists:
+              tableName: review
+      changes:
+        - createTable:
+            tableName: review
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: review_pkey
+                    nullable: false
+              - column:
+                  name: service_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reviewer_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reviewee_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rating
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: review-004-fk-review-service
+      author: fellipe
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            foreignKeyConstraintExists:
+              foreignKeyName: fk_review_service
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: review
+            baseColumnNames: service_id
+            referencedTableName: service
+            referencedColumnNames: id
+            constraintName: fk_review_service
+
+  - changeSet:
+      id: review-005-fk-review-reviewer
+      author: fellipe
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            foreignKeyConstraintExists:
+              foreignKeyName: fk_review_reviewer
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: review
+            baseColumnNames: reviewer_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fk_review_reviewer
+
+  - changeSet:
+      id: review-006-fk-review-reviewee
+      author: fellipe
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - not:
+            foreignKeyConstraintExists:
+              foreignKeyName: fk_review_reviewee
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: review
+            baseColumnNames: reviewee_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fk_review_reviewee
