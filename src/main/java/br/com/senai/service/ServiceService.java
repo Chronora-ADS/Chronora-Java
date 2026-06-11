@@ -270,6 +270,11 @@ public class ServiceService {
                     service.getUserCreator(),
                     service
             );
+            notificationService.create(
+                    "Pedido concluido com sucesso",
+                    service.getUserAccepted(),
+                    service
+            );
             return service;
         }
 
@@ -288,7 +293,7 @@ public class ServiceService {
 
         notificationService.create("Pedido finalizado", service.getUserCreator(), service);
         if (service.getUserAccepted() != null) {
-            notificationService.create("Pedido finalizado", service.getUserAccepted(), service);
+            notificationService.create("Solicitante finalizou o pedido", service.getUserAccepted(), service);
         }
         return service;
     }
