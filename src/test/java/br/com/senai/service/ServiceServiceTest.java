@@ -569,7 +569,7 @@ class ServiceServiceTest {
         assertSame(service, renovado);
         assertEquals(novoPrazo, renovado.getDeadline());
         verify(serviceRepository).save(service);
-        verify(notificationService).create(ServiceService.DEADLINE_RENEWED_MESSAGE, criador, service);
+        verify(notificationService).create("Prazo do pedido renovado.", criador, service);
     }
 
     @Test
@@ -608,14 +608,14 @@ class ServiceServiceTest {
 
         when(serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, hoje))
                 .thenReturn(List.of(service));
-        when(notificationService.exists(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service))
+        when(notificationService.exists("Prazo do pedido chegou. Renove o prazo ou cancele o pedido.", criador, service))
                 .thenReturn(false);
         when(serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, hoje))
                 .thenReturn(List.of());
 
         serviceService.processDeadlineRules(hoje);
 
-        verify(notificationService).create(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service);
+        verify(notificationService).create("Prazo do pedido chegou. Renove o prazo ou cancele o pedido.", criador, service);
         verify(serviceRepository, never()).save(any());
     }
 
@@ -627,14 +627,14 @@ class ServiceServiceTest {
 
         when(serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, hoje))
                 .thenReturn(List.of(service));
-        when(notificationService.exists(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service))
+        when(notificationService.exists("Prazo do pedido chegou. Renove o prazo ou cancele o pedido.", criador, service))
                 .thenReturn(true);
         when(serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, hoje))
                 .thenReturn(List.of());
 
         serviceService.processDeadlineRules(hoje);
 
-        verify(notificationService, never()).create(ServiceService.DEADLINE_ACTION_MESSAGE, criador, service);
+        verify(notificationService, never()).create("Prazo do pedido chegou. Renove o prazo ou cancele o pedido.", criador, service);
         verify(serviceRepository, never()).save(any());
     }
 
@@ -658,7 +658,7 @@ class ServiceServiceTest {
         assertNull(service.getVerificationCode());
         assertNull(service.getVerificationCodeExpiresAt());
         verify(serviceRepository).save(service);
-        verify(notificationService).create(ServiceService.DEADLINE_AUTO_CANCEL_MESSAGE, criador, service);
+        verify(notificationService).create("Pedido cancelado automaticamente por prazo expirado.", criador, service);
     }
 
     @Test

@@ -47,7 +47,7 @@ public class UptimeCheckScheduler {
             long elapsedMs = (System.nanoTime() - start) / 1_000_000;
             Object statusValue = response.getBody() != null ? response.getBody().get("status") : null;
             String status = statusValue != null ? statusValue.toString() : "UNKNOWN";
-  
+
             check.setStatusCode(response.getStatusCode().value());
             check.setStatus(status);
             check.setResponseTimeMs(elapsedMs);

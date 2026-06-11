@@ -54,11 +54,6 @@ public class ServiceService {
     private static final int MAX_CATEGORY_COUNT = 10;
     private static final int MAX_CANCELLATION_JUSTIFICATION_LENGTH = 1000;
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
-    // TODO por que fazer tantas variáveis para texto de deadline?
-    public static final String DEADLINE_ACTION_MESSAGE = "Prazo do pedido chegou. Renove o prazo ou cancele o pedido.";
-    public static final String DEADLINE_AUTO_CANCEL_MESSAGE = "Pedido cancelado automaticamente por prazo expirado.";
-    public static final String DEADLINE_RENEWED_MESSAGE = "Prazo do pedido renovado.";
-    private static final ZoneId DEADLINE_ZONE = ZoneId.of("America/Sao_Paulo");
 
     private final ServiceRepository serviceRepository;
     private final UserService userService;
@@ -416,19 +411,19 @@ public class ServiceService {
             throw new AuthException("Somente pedidos criados podem ter prazo renovado.");
         }
 
-        if (newDeadline == null || !newDeadline.isAfter(LocalDate.now(DEADLINE_ZONE))) {
+        if (newDeadline == null || !newDeadline.isAfter(LocalDate.now(ZoneId.of("America/Sao_Paulo")))) {
             throw new IllegalArgumentException("Novo prazo deve ser uma data futura.");
         }
 
         service.setDeadline(newDeadline);
         service = serviceRepository.save(service);
-        notificationService.create(DEADLINE_RENEWED_MESSAGE, user, service);
+        notificationService.create("Prazo do pedido renovado.", user, service);
         return service;
     }
 
     @Transactional
     public void processDeadlineRules() {
-        processDeadlineRules(LocalDate.now(DEADLINE_ZONE));
+        processDeadlineRules(LocalDate.now(ZoneId.of("America/Sao_Paulo")));
     }
 
     @Transactional
@@ -641,9 +636,9 @@ public class ServiceService {
 
         for (ServiceEntity service : servicesDueToday) {
             UserEntity owner = service.getUserCreator();
-            boolean alreadyNotified = notificationService.exists(DEADLINE_ACTION_MESSAGE, owner, service);
+            boolean alreadyNotified = notificationService.exists("Prazo do pedido chegou. Renove o prazo ou cancele o pedido.", owner, service);
             if (!alreadyNotified) {
-                notificationService.create(DEADLINE_ACTION_MESSAGE, owner, service);
+                notificationService.create("Prazo do pedido chegou. Renove o prazo ou cancele o pedido.", owner, service);
             }
         }
     }
@@ -655,7 +650,7 @@ public class ServiceService {
             clearVerificationCode(service);
             service.setStatus(ServiceStatus.CANCELADO);
             ServiceEntity savedService = serviceRepository.save(service);
-            notificationService.create(DEADLINE_AUTO_CANCEL_MESSAGE, savedService.getUserCreator(), savedService);
+            notificationService.create("Pedido cancelado automaticamente por prazo expirado.", savedService.getUserCreator(), savedService);
         }
     }
 

@@ -94,27 +94,21 @@ public class UserService {
             userEntity.setName(updatedName);
         }
 
-        // TODO verificar se os métodos de search de e-mail e telefone, buscando por cada um dos registros de usuários
-        //  é o melhor no quesito velocidade
         String updatedEmail = userEntity.getEmail();
         if (userEditDTO.getEmail() != null && !userEditDTO.getEmail().trim().isEmpty()) {
             String email = userEditDTO.getEmail().trim();
-            userRepository.findByEmail(email)
-                    .filter(existingUser -> !Objects.equals(existingUser.getId(), userEntity.getId()))
-                    .ifPresent(existingUser -> {
-                        throw new EmailAlreadyExistsException(email);
-                    });
+            if (userRepository.existsByEmail(email)) {
+                throw new EmailAlreadyExistsException(email);
+            }
             updatedEmail = email;
             userEntity.setEmail(updatedEmail);
         }
 
         Long updatedPhoneNumber = userEntity.getPhoneNumber();
         if (userEditDTO.getPhoneNumber() != null) {
-            userRepository.findByPhoneNumber(userEditDTO.getPhoneNumber())
-                    .filter(existingUser -> !Objects.equals(existingUser.getId(), userEntity.getId()))
-                    .ifPresent(existingUser -> {
-                        throw new PhoneNumberAlreadyExistsException(userEditDTO.getPhoneNumber().toString());
-                    });
+            if (userRepository.existsByPhoneNumber(userEditDTO.getPhoneNumber())) {
+                throw new PhoneNumberAlreadyExistsException(String.valueOf(userEditDTO.getPhoneNumber()));
+            }
             updatedPhoneNumber = userEditDTO.getPhoneNumber();
             userEntity.setPhoneNumber(updatedPhoneNumber);
         }

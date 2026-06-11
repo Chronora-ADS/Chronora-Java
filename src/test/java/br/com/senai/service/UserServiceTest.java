@@ -157,8 +157,8 @@ class UserServiceTest {
         editDTO.setDocument(criarDocumentoDTO());
         editDTO.setProfileImage(criarImagemPerfilDTO());
 
-        when(userRepository.findByEmail("ana.atualizada@chronora.com")).thenReturn(Optional.empty());
-        when(userRepository.findByPhoneNumber(11888888888L)).thenReturn(Optional.empty());
+        when(userRepository.existsByEmail("ana.atualizada@chronora.com")).thenReturn(false);
+        when(userRepository.existsByPhoneNumber(11888888888L)).thenReturn(false);
         when(passwordEncoder.encode("novaSenha123")).thenReturn("hash-novo");
         when(storageService.uploadBase64Image(eq("base64-documento"), eq("users"), eq("token-valido"), eq("png")))
                 .thenReturn("https://storage/novo-documento.png");
@@ -202,11 +202,8 @@ class UserServiceTest {
         UserEditDTO editDTO = new UserEditDTO();
         editDTO.setId(1L);
         editDTO.setEmail("duplicado@chronora.com");
-        when(userRepository.findByEmail("duplicado@chronora.com"))
-                .thenReturn(Optional.of(criarUsuario(2L, "Bia", "duplicado@chronora.com", 20)));
-
+        when(userRepository.existsByEmail("duplicado@chronora.com")).thenReturn(true);
         assertThrows(EmailAlreadyExistsException.class, () -> userService.put(editDTO, TOKEN_HEADER));
-
         verify(userRepository, never()).save(any());
     }
 
@@ -218,10 +215,8 @@ class UserServiceTest {
         editDTO.setPhoneNumber(11777777777L);
         UserEntity outroUsuario = criarUsuario(2L, "Bia", "bia@chronora.com", 20);
         outroUsuario.setPhoneNumber(11777777777L);
-        when(userRepository.findByPhoneNumber(11777777777L)).thenReturn(Optional.of(outroUsuario));
-
+        when(userRepository.existsByPhoneNumber(11777777777L)).thenReturn(true);
         assertThrows(PhoneNumberAlreadyExistsException.class, () -> userService.put(editDTO, TOKEN_HEADER));
-
         verify(userRepository, never()).save(any());
     }
 
