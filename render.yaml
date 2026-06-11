@@ -1,10 +1,10 @@
 services:
   - type: web
-    name: chronora-java-dev
+    name: chronora-java-prod
     runtime: docker
     plan: free
-    region: virginia
-    branch: master
+    region: oregon
+    branch: main
     dockerfilePath: ./Dockerfile
     healthCheckPath: /healthz
     autoDeployTrigger: commit
@@ -25,3 +25,5 @@ services:
         sync: false
       - key: SUPABASE_STORAGE_BUCKET
         value: service-images
+      - key: APP_SEED_ENABLED
+        value: false
