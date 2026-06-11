@@ -28,20 +28,15 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class DataInitializer {
-
     private final UserRepository userRepository;
     private final ServiceRepository serviceRepository;
     private final SupabaseAuthService supabaseAuthService;
     private final AuthService authService;
     private final SupabaseStorageService storageService;
 
-    public DataInitializer(
-            UserRepository userRepository,
-            ServiceRepository serviceRepository,
-            SupabaseAuthService supabaseAuthService,
-            AuthService authService,
-            SupabaseStorageService storageService
-    ) {
+    public DataInitializer(UserRepository userRepository, ServiceRepository serviceRepository,
+            SupabaseAuthService supabaseAuthService, AuthService authService,
+            SupabaseStorageService storageService) {
         this.userRepository = userRepository;
         this.serviceRepository = serviceRepository;
         this.supabaseAuthService = supabaseAuthService;
@@ -57,7 +52,7 @@ public class DataInitializer {
                 UserEntity user = createDefaultUser();
                 createDefaultServices(user);
             } else {
-                System.out.println("Supabase ja possui dados. Inicializacao ignorada.");
+                System.out.println("Supabase já possui dados. Inicialização ignorada.");
             }
         };
     }
@@ -93,19 +88,16 @@ public class DataInitializer {
         );
 
         UserEntity createdUser = authService.register(defaultUser, supabaseUserDTO.getId());
-        System.out.println("Usuario criado: " + createdUser.getEmail());
+        System.out.println("Usuário criado: " + createdUser.getEmail());
         return createdUser;
     }
 
     private void createDefaultServices(UserEntity userCreator) throws Exception {
         UserEntity managedUser = userRepository.findById(userCreator.getId())
-                .orElseThrow(() -> new RuntimeException("Usuario nao encontrado apos criacao"));
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado após criação"));
 
-        byte[] serviceImageBytes = Objects.requireNonNull(
-                getClass().getClassLoader().getResourceAsStream("imagem.png")
-        ).readAllBytes();
-        String base64ServiceImage = "data:image/png;base64,"
-                + Base64.getEncoder().encodeToString(serviceImageBytes);
+        byte[] serviceImageBytes = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("imagem.png")).readAllBytes();
+        String base64ServiceImage = "data:image/png;base64," + Base64.getEncoder().encodeToString(serviceImageBytes);
         String serviceImageUrl = storageService.uploadBase64Image(base64ServiceImage, "services", null);
 
         List<ServiceEntity> servicesToCreate = Arrays.asList(
@@ -1328,16 +1320,9 @@ public class DataInitializer {
         System.out.println(servicesToCreate.size() + " servicos criados com sucesso.");
     }
 
-    private ServiceEntity createService(
-            String title,
-            String description,
-            int timeChronos,
-            ServiceModality modality,
-            LocalDate deadline,
-            List<CategoryEntity> categories,
-            String imageUrl,
-            UserEntity userCreator
-    ) {
+    private ServiceEntity createService(String title, String description,
+            int timeChronos, ServiceModality modality, LocalDate deadline,
+            List<CategoryEntity> categories, String imageUrl, UserEntity userCreator) {
         ServiceEntity service = new ServiceEntity();
         service.setTitle(title);
         service.setDescription(description);

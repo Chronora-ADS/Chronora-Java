@@ -33,9 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/service")
 @Validated
 public class ServiceController {
-
     private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
-
     private final ServiceService serviceService;
 
     public ServiceController(ServiceService serviceService) {
@@ -43,10 +41,7 @@ public class ServiceController {
     }
 
     @PostMapping("/post")
-    public ResponseEntity<ServiceEntity> create(
-            @RequestHeader("Authorization") String tokenHeader,
-            @RequestBody @Valid ServiceDTO serviceDTO
-    ) {
+    public ResponseEntity<ServiceEntity> create(@RequestHeader("Authorization") String tokenHeader, @RequestBody @Valid ServiceDTO serviceDTO) {
         logger.info("Iniciando criacao de servico");
         ServiceEntity saved = serviceService.create(serviceDTO, tokenHeader);
         logger.info("Servico criado com id {}", saved.getId());
@@ -54,10 +49,7 @@ public class ServiceController {
     }
 
     @PutMapping("/put")
-    public ResponseEntity<ServiceEntity> put(
-            @RequestHeader("Authorization") String tokenHeader,
-            @RequestBody @Valid ServiceEditDTO serviceEditDTO
-    ) {
+    public ResponseEntity<ServiceEntity> put(@RequestHeader("Authorization") String tokenHeader, @RequestBody @Valid ServiceEditDTO serviceEditDTO) {
         logger.info("Editando servico {}", serviceEditDTO.getId());
         ServiceEntity service = serviceService.put(serviceEditDTO, tokenHeader);
         logger.info("Servico editado com sucesso: {}", service.getId());
@@ -65,86 +57,60 @@ public class ServiceController {
     }
 
     @PutMapping("/acceptService/{id}")
-    public ResponseEntity<ServiceEntity> acceptService(
-            @RequestHeader("Authorization") String tokenHeader,
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<ServiceEntity> acceptService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
         return ResponseEntity.ok(serviceService.acceptService(id, tokenHeader));
     }
 
     @PutMapping("/startService/{id}")
-    public ResponseEntity<ServiceEntity> startService(
-            @RequestHeader("Authorization") String tokenHeader,
-            @PathVariable Long id,
-            @RequestBody String verificationCode
-    ) {
+    public ResponseEntity<ServiceEntity> startService(@RequestHeader("Authorization") String tokenHeader,
+                                                      @PathVariable Long id,
+                                                      @RequestBody String verificationCode) {
         return ResponseEntity.ok(serviceService.startService(id, tokenHeader, verificationCode));
     }
 
     @PutMapping("/expireAcceptedService/{id}")
-    public ResponseEntity<ServiceEntity> expireAcceptedService(
-            @RequestHeader("Authorization") String tokenHeader,
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<ServiceEntity> expireAcceptedService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
         return ResponseEntity.ok(serviceService.expireAcceptedService(id, tokenHeader));
     }
 
     @PutMapping("/secondCall/{id}")
-    public ResponseEntity<ServiceEntity> secondCall(
-            @RequestHeader("Authorization") String tokenHeader,
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<ServiceEntity> secondCall(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
         return ResponseEntity.ok(serviceService.secondCall(id, tokenHeader));
     }
 
     @PutMapping("/finishService/{id}")
-    public ResponseEntity<ServiceEntity> finishService(
-            @RequestHeader("Authorization") String tokenHeader,
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<ServiceEntity> finishService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
         return ResponseEntity.ok(serviceService.finishService(id, tokenHeader));
     }
 
     @PutMapping("/cancelAcceptedService/{id}")
-    public ResponseEntity<ServiceEntity> cancelAcceptedService(
-            @RequestHeader("Authorization") String tokenHeader,
-            @PathVariable Long id,
-            @RequestBody(required = false) ServiceCancellationDTO cancellationDTO
-    ) {
+    public ResponseEntity<ServiceEntity> cancelAcceptedService(@RequestHeader("Authorization") String tokenHeader,
+                                                               @PathVariable Long id,
+                                                               @RequestBody(required = false) ServiceCancellationDTO cancellationDTO) {
         return ResponseEntity.ok(serviceService.cancelAcceptedService(id, tokenHeader, cancellationDTO));
     }
 
     @PutMapping("/cancelAcceptedService/{id}/justification")
-    public ResponseEntity<ServiceEntity> registerServiceCancellationJustification(
-            @RequestHeader("Authorization") String tokenHeader,
-            @PathVariable Long id,
-            @RequestBody @Valid ServiceCancellationDTO cancellationDTO
-    ) {
+    public ResponseEntity<ServiceEntity> registerServiceCancellationJustification(@RequestHeader("Authorization") String tokenHeader,
+                                                                                  @PathVariable Long id,
+                                                                                  @RequestBody @Valid ServiceCancellationDTO cancellationDTO) {
         return ResponseEntity.ok(serviceService.registerServiceCancellationJustification(id, tokenHeader, cancellationDTO));
     }
 
     @PutMapping("/cancelService/{id}")
-    public ResponseEntity<ServiceEntity> cancelService(
-            @RequestHeader("Authorization") String tokenHeader,
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<ServiceEntity> cancelService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
         return ResponseEntity.ok(serviceService.cancelService(id, tokenHeader));
     }
 
     @PutMapping("/renewDeadline/{id}")
-    public ResponseEntity<ServiceEntity> renewDeadline(
-            @RequestHeader("Authorization") String tokenHeader,
-            @PathVariable Long id,
-            @RequestBody @Valid ServiceDeadlineRenewalDTO renewalDTO
-    ) {
+    public ResponseEntity<ServiceEntity> renewDeadline(@RequestHeader("Authorization") String tokenHeader,
+                                                       @PathVariable Long id,
+                                                       @RequestBody @Valid ServiceDeadlineRenewalDTO renewalDTO) {
         return ResponseEntity.ok(serviceService.renewDeadline(id, tokenHeader, renewalDTO.getDeadline()));
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteService(
-            @RequestHeader("Authorization") String tokenHeader,
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<Void> deleteService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
         serviceService.deleteService(id, tokenHeader);
         return ResponseEntity.ok().build();
     }
@@ -157,11 +123,9 @@ public class ServiceController {
     }
 
     @GetMapping("/get/all")
-    public ResponseEntity<ApiResponse<List<ServiceEntity>>> getAll(
-            @RequestHeader("Authorization") String tokenHeader,
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) int size
-    ) {
+    public ResponseEntity<ApiResponse<List<ServiceEntity>>> getAll(@RequestHeader("Authorization") String tokenHeader,
+                                                                   @RequestParam(defaultValue = "0") @Min(0) int page,
+                                                                   @RequestParam(defaultValue = "10") @Min(1) int size) {
         Page<ServiceEntity> services = serviceService.getAll(tokenHeader, page, size);
         return ResponseEntity.ok(ApiResponse.ofPage(
                 services.getContent(),
@@ -173,32 +137,23 @@ public class ServiceController {
     }
 
     @GetMapping("/get/all/{status}")
-    public ResponseEntity<ApiResponse<List<ServiceEntity>>> getAllByStatus(
-            @PathVariable ServiceStatus status,
-            @RequestHeader("Authorization") String tokenHeader,
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) int size,
-            @RequestParam(required = false) String query,
-            @RequestParam(required = false) List<String> categories,
-            @RequestParam(required = false) String modality,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate deadline,
-            @RequestParam(required = false) @Min(0) Integer minTimeChronos,
-            @RequestParam(required = false) @Min(0) Integer maxTimeChronos,
-            @RequestParam(defaultValue = "0") String sort
-    ) {
+    public ResponseEntity<ApiResponse<List<ServiceEntity>>> getAllByStatus(@PathVariable ServiceStatus status,
+                                                                           @RequestHeader("Authorization") String tokenHeader,
+                                                                           @RequestParam(defaultValue = "0") @Min(0) int page,
+                                                                           @RequestParam(defaultValue = "10") @Min(1) int size,
+                                                                           @RequestParam(required = false) String query,
+                                                                           @RequestParam(required = false) List<String> categories,
+                                                                           @RequestParam(required = false) String modality,
+                                                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate deadline,
+                                                                           @RequestParam(required = false) @Min(0) Integer minTimeChronos,
+                                                                           @RequestParam(required = false) @Min(0) Integer maxTimeChronos,
+                                                                           @RequestParam(defaultValue = "0") String sort) {
+
         Page<ServiceEntity> services = serviceService.searchByStatus(
-                status,
-                tokenHeader,
-                page,
-                size,
-                query,
-                categories,
-                modality,
-                deadline,
-                minTimeChronos,
-                maxTimeChronos,
-                sort
+                status, tokenHeader, page, size, query, categories,
+                modality, deadline, minTimeChronos, maxTimeChronos, sort
         );
+
         return ResponseEntity.ok(ApiResponse.ofPage(
                 services.getContent(),
                 page,

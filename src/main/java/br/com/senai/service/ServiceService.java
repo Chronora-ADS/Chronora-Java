@@ -37,13 +37,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ServiceService {
-
     private static final long VERIFICATION_CODE_EXPIRATION_MINUTES = 2;
+    // TODO por que salvar em uma variável separada a primeira e segunda chamada, ainda por cima com os números 1 e 2?
     private static final int FIRST_VERIFICATION_CODE_CALL = 1;
     private static final int SECOND_VERIFICATION_CODE_CALL = 2;
     private static final int MAX_CATEGORY_COUNT = 10;
     private static final int MAX_CANCELLATION_JUSTIFICATION_LENGTH = 1000;
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    // TODO por que fazer tantas variáveis para texto de deadline?
     public static final String DEADLINE_ACTION_MESSAGE =
             "Prazo do pedido chegou. Renove o prazo ou cancele o pedido.";
     public static final String DEADLINE_AUTO_CANCEL_MESSAGE =
@@ -56,12 +57,8 @@ public class ServiceService {
     private final SupabaseStorageService storageService;
     private final NotificationService notificationService;
 
-    public ServiceService(
-            ServiceRepository serviceRepository,
-            UserService userService,
-            SupabaseStorageService storageService,
-            NotificationService notificationService
-    ) {
+    public ServiceService(ServiceRepository serviceRepository, UserService userService,
+                          SupabaseStorageService storageService, NotificationService notificationService) {
         this.serviceRepository = serviceRepository;
         this.userService = userService;
         this.storageService = storageService;
@@ -76,7 +73,7 @@ public class ServiceService {
         validateCategories(serviceDTO.getCategories());
 
         if (serviceDTO.getTimeChronos() > userEntity.getTimeChronos()) {
-            throw new QuantityChronosInvalidException("Quantidade de chronos do servico superior a quantidade em carteira.");
+            throw new QuantityChronosInvalidException("Quantidade de chronos do serviço superior à quantidade em carteira.");
         }
 
         ServiceEntity service = new ServiceEntity();
@@ -84,7 +81,7 @@ public class ServiceService {
         service.setDescription(serviceDTO.getDescription());
         service.setTimeChronos(serviceDTO.getTimeChronos());
         service.setDeadline(serviceDTO.getDeadline());
-        service.setModality(ServiceModality.fromValue(serviceDTO.getModality()));
+        service.setModality(ServiceModality.fromString(serviceDTO.getModality()));
         service.setPostedAt(LocalDateTime.now());
         service.setStatus(ServiceStatus.CRIADO);
         service.setCategoryEntities(buildCategories(serviceDTO.getCategories()));
@@ -107,7 +104,7 @@ public class ServiceService {
         ServiceEntity service = getById(serviceEditDTO.getId());
 
         if (!Objects.equals(service.getUserCreator().getId(), userEntity.getId())) {
-            throw new AuthException("Credenciais invalidas.");
+            throw new AuthException("Credenciais inválidas.");
         }
 
         if (serviceEditDTO.getTitle() != null && !serviceEditDTO.getTitle().isBlank()) {
@@ -125,7 +122,7 @@ public class ServiceService {
             int chronosDifference = serviceEditDTO.getTimeChronos() - service.getTimeChronos();
             if (chronosDifference > 0) {
                 if (chronosDifference > userEntity.getTimeChronos()) {
-                    throw new QuantityChronosInvalidException("Quantidade de chronos do servico superior a quantidade em carteira.");
+                    throw new QuantityChronosInvalidException("Quantidade de chronos do serviço superior a quantidade em carteira.");
                 }
                 userService.sellChronos(tokenHeader, chronosDifference);
             } else if (chronosDifference < 0) {
@@ -140,13 +137,17 @@ public class ServiceService {
         }
 
         if (serviceEditDTO.getModality() != null) {
-            service.setModality(ServiceModality.fromValue(serviceEditDTO.getModality()));
+            service.setModality(ServiceModality.fromString(serviceEditDTO.getModality()));
         }
 
         if (serviceEditDTO.getCategories() != null) {
             service.setCategoryEntities(buildCategories(serviceEditDTO.getCategories()));
         } else if (serviceEditDTO.getCategoryEntities() != null) {
-            service.setCategoryEntities(copyCategories(serviceEditDTO.getCategoryEntities()));
+            List<String> categoryNames = serviceEditDTO.getCategoryEntities().stream()
+                    .map(CategoryEntity::getName)
+                    .toList();
+            List<CategoryEntity> categories = buildCategories(categoryNames);
+            service.setCategoryEntities(categories);
         }
 
         if (serviceEditDTO.getServiceImage() != null && !serviceEditDTO.getServiceImage().isBlank()) {
@@ -165,17 +166,17 @@ public class ServiceService {
         ServiceEntity service = getById(id);
 
         if (isAcceptedByAnotherUser(service, userAccepted)) {
-            throw new AuthException("Pedido ja foi aceito por outro usuario.");
+            throw new AuthException("Pedido já foi aceito por outro usuario.");
         }
 
         if (Objects.equals(service.getUserCreator().getId(), userAccepted.getId())) {
-            throw new AuthException("Voce nao pode aceitar o proprio pedido.");
+            throw new AuthException("Você não pode aceitar o próprio pedido.");
         }
 
         if (service.getStatus() == ServiceStatus.EM_ANDAMENTO
                 || service.getStatus() == ServiceStatus.CONCLUIDO
                 || service.getStatus() == ServiceStatus.CANCELADO) {
-            throw new AuthException("Este pedido nao pode mais ser aceito.");
+            throw new AuthException("Este pedido não pode mais ser aceito.");
         }
 
         if (service.getUserAccepted() != null
@@ -201,7 +202,7 @@ public class ServiceService {
 
         if (service.getUserAccepted() == null
                 || !Objects.equals(service.getUserAccepted().getId(), userAccepted.getId())) {
-            throw new AuthException("Credenciais invalidas.");
+            throw new AuthException("Credenciais inválidas.");
         }
 
         if (service.getVerificationCode() == null || service.getVerificationCodeExpiresAt() == null) {
@@ -243,8 +244,8 @@ public class ServiceService {
             return service;
         }
 
-        if (!canManageAcceptedService(service, user)) {
-            throw new AuthException("Credenciais invalidas.");
+        if (canManageAcceptedService(service, user)) {
+            throw new AuthException("Credenciais inválidas.");
         }
 
         if (LocalDateTime.now().isBefore(service.getVerificationCodeExpiresAt())) {
@@ -270,22 +271,22 @@ public class ServiceService {
         if (service.getStatus() != ServiceStatus.ACEITO
                 || service.getUserAccepted() == null
                 || service.getVerificationCodeExpiresAt() == null) {
-            throw new AuthException("Este pedido nao esta aguardando segunda chamada.");
+            throw new AuthException("Este pedido não está aguardando segunda chamada.");
         }
 
         if (LocalDateTime.now().isBefore(service.getVerificationCodeExpiresAt())) {
-            throw new AuthException("A segunda chamada so pode ser iniciada apos o codigo expirar.");
+            throw new AuthException("A segunda chamada só pode ser iniciada após o codigo expirar.");
         }
 
         if (isFinalVerificationCodeCall(service)) {
-            throw new AuthException("A segunda chamada ja foi utilizada.");
+            throw new AuthException("A segunda chamada já foi utilizada.");
         }
 
         startVerificationCodeCall(service, SECOND_VERIFICATION_CODE_CALL);
         service = serviceRepository.save(service);
 
-        notificationService.create("Segunda chamada iniciada", service.getUserCreator(), service);
-        notificationService.create("Segunda chamada iniciada", service.getUserAccepted(), service);
+        notificationService.create("Segunda chamada iniciada.", service.getUserCreator(), service);
+        notificationService.create("Segunda chamada iniciada.", service.getUserAccepted(), service);
         return service;
     }
 
@@ -294,12 +295,12 @@ public class ServiceService {
         UserEntity user = userService.getLoggedUser(tokenHeader);
         ServiceEntity service = getById(id);
 
-        if (!canManageAcceptedService(service, user)) {
-            throw new AuthException("Credenciais invalidas.");
+        if (canManageAcceptedService(service, user)) {
+            throw new AuthException("Credenciais inválidas.");
         }
 
         if (service.getStatus() != ServiceStatus.EM_ANDAMENTO) {
-            throw new AuthException("Este pedido nao esta em andamento.");
+            throw new AuthException("Este pedido não está em andamento.");
         }
 
         if (service.getUserAccepted() != null) {
@@ -310,9 +311,9 @@ public class ServiceService {
         clearVerificationCode(service);
         service = serviceRepository.save(service);
 
-        notificationService.create("Pedido finalizado", service.getUserCreator(), service);
+        notificationService.create("Pedido finalizado.", service.getUserCreator(), service);
         if (service.getUserAccepted() != null) {
-            notificationService.create("Pedido finalizado", service.getUserAccepted(), service);
+            notificationService.create("Pedido finalizado.", service.getUserAccepted(), service);
         }
         return service;
     }
@@ -327,15 +328,15 @@ public class ServiceService {
             clearVerificationCode(service);
             service = serviceRepository.save(service);
 
-            notificationService.create("Pedido cancelado", user, service);
+            notificationService.create("Pedido cancelado.", user, service);
             if (service.getUserAccepted() != null) {
-                notificationService.create("Pedido cancelado por " + user.getName(), service.getUserAccepted(), service);
+                notificationService.create("Pedido cancelado por " + user.getName() + ".", service.getUserAccepted(), service);
             }
             return service;
         }
 
         if (service.getUserAccepted() == null || !Objects.equals(user.getId(), service.getUserAccepted().getId())) {
-            throw new AuthException("Credenciais invalidas.");
+            throw new AuthException("Credenciais inválidas.");
         }
 
         if (service.getStatus() == ServiceStatus.ACEITO) {
@@ -347,8 +348,8 @@ public class ServiceService {
             service = serviceRepository.save(service);
         }
 
-        notificationService.create("Pedido cancelado", user, service);
-        notificationService.create("Pedido cancelado por " + user.getName(), service.getUserCreator(), service);
+        notificationService.create("Pedido cancelado.", user, service);
+        notificationService.create("Pedido cancelado por " + user.getName() + ".", service.getUserCreator(), service);
         return service;
     }
 
@@ -357,12 +358,12 @@ public class ServiceService {
         UserEntity user = userService.getLoggedUser(tokenHeader);
         ServiceEntity service = getById(id);
 
-        if (!canManageAcceptedService(service, user)) {
-            throw new AuthException("Credenciais invalidas.");
+        if (canManageAcceptedService(service, user)) {
+            throw new AuthException("Credenciais inválidas.");
         }
 
         if (service.getStatus() != ServiceStatus.ACEITO || service.getUserAccepted() == null) {
-            throw new AuthException("Este servico nao pode ser cancelado para reabertura.");
+            throw new AuthException("Este serviço não pode ser cancelado para reabertura.");
         }
 
         UserEntity otherUser = Objects.equals(user.getId(), service.getUserCreator().getId())
@@ -379,8 +380,8 @@ public class ServiceService {
         }
         reopenAcceptedService(service);
 
-        notificationService.create("Servico cancelado", user, service);
-        notificationService.create("Servico cancelado por " + user.getName(), otherUser, service);
+        notificationService.create("Serviço cancelado.", user, service);
+        notificationService.create("Serviço cancelado por " + user.getName() + ".", otherUser, service);
         return service;
     }
 
@@ -390,7 +391,7 @@ public class ServiceService {
         ServiceEntity service = getById(id);
 
         if (!Objects.equals(service.getServiceCancellationRequestedByUserId(), user.getId())) {
-            throw new AuthException("Somente o usuario que cancelou o servico pode registrar a justificativa.");
+            throw new AuthException("Somente o usuário que cancelou o serviço pode registrar a justificativa.");
         }
 
         service.setServiceCancellationJustification(
@@ -398,7 +399,7 @@ public class ServiceService {
         );
         service = serviceRepository.save(service);
 
-        notificationService.create("Justificativa de cancelamento registrada", user, service);
+        notificationService.create("Justificativa de cancelamento registrada.", user, service);
         return service;
     }
 
@@ -408,7 +409,7 @@ public class ServiceService {
         ServiceEntity service = getById(id);
 
         if (!Objects.equals(user.getId(), service.getUserCreator().getId())) {
-            throw new AuthException("Credenciais invalidas.");
+            throw new AuthException("Credenciais inválidas.");
         }
 
         if (service.getStatus() != ServiceStatus.CRIADO) {
@@ -433,9 +434,8 @@ public class ServiceService {
     @Transactional
     public void processDeadlineRules(LocalDate today) {
         if (today == null) {
-            throw new IllegalArgumentException("Data de processamento e obrigatoria.");
+            throw new IllegalArgumentException("Data de processamento e obrigatória.");
         }
-
         notifyServicesDueToday(today);
         cancelExpiredServices(today);
     }
@@ -450,7 +450,7 @@ public class ServiceService {
         }
 
         if (!canHardDelete(service)) {
-            throw new AuthException("Somente pedidos criados ou aceitos podem ser excluidos.");
+            throw new AuthException("Somente pedidos criados ou aceitos podem ser excluídos.");
         }
 
         userService.buyChronos(tokenHeader, service.getTimeChronos());
@@ -459,8 +459,7 @@ public class ServiceService {
     }
 
     public ServiceEntity getById(Long id) {
-        return serviceRepository.findById(id)
-                .orElseThrow(() -> new ServiceNotFoundException("Servico com ID " + id + " nao encontrado."));
+        return serviceRepository.findById(id).orElseThrow(() -> new ServiceNotFoundException("Serviço com ID " + id + " não encontrado."));
     }
 
     @Transactional
@@ -475,6 +474,7 @@ public class ServiceService {
         return serviceRepository.findAllByStatus(status, PageRequest.of(page, size));
     }
 
+    // TODO ver sobre trocar nome do searchByStatus, pois está pesquisando por mais do que só status
     @Transactional
     public Page<ServiceEntity> searchByStatus(
             ServiceStatus status,
@@ -514,6 +514,9 @@ public class ServiceService {
             Integer maxTimeChronos
     ) {
         return (root, criteriaQuery, criteriaBuilder) -> {
+            if (criteriaQuery == null) {
+                throw new IllegalArgumentException("CriteriaQuery não pode ser nulo.");
+            }
             criteriaQuery.distinct(true);
 
             List<Predicate> predicates = new ArrayList<>();
@@ -573,6 +576,8 @@ public class ServiceService {
             return Sort.by(Sort.Direction.ASC, "id");
         }
 
+        // TODO ver porque não tem o sort igual à 2
+
         if ("3".equals(sort)) {
             return Sort.by(Sort.Direction.DESC, "timeChronos").and(Sort.by(Sort.Direction.DESC, "id"));
         }
@@ -609,7 +614,7 @@ public class ServiceService {
             return null;
         }
 
-        return ServiceModality.fromValue(modality);
+        return ServiceModality.fromString(modality);
     }
 
     private List<CategoryEntity> buildCategories(List<String> categories) {
@@ -624,23 +629,15 @@ public class ServiceService {
         return categoryEntities;
     }
 
-    private List<CategoryEntity> copyCategories(List<CategoryEntity> categories) {
-        List<String> categoryNames = categories.stream()
-                .map(CategoryEntity::getName)
-                .toList();
-        return buildCategories(categoryNames);
-    }
-
-    private ServiceEntity reopenAcceptedService(ServiceEntity service) {
+    private void reopenAcceptedService(ServiceEntity service) {
         clearVerificationCode(service);
         service.setUserAccepted(null);
         service.setStatus(ServiceStatus.CRIADO);
-        return serviceRepository.save(service);
+        serviceRepository.save(service);
     }
 
     private void notifyServicesDueToday(LocalDate today) {
-        List<ServiceEntity> servicesDueToday =
-                serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, today);
+        List<ServiceEntity> servicesDueToday = serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, today);
 
         for (ServiceEntity service : servicesDueToday) {
             UserEntity owner = service.getUserCreator();
@@ -652,8 +649,7 @@ public class ServiceService {
     }
 
     private void cancelExpiredServices(LocalDate today) {
-        List<ServiceEntity> expiredServices =
-                serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, today);
+        List<ServiceEntity> expiredServices = serviceRepository.findAllByStatusAndDeadlineBefore(ServiceStatus.CRIADO, today);
 
         for (ServiceEntity service : expiredServices) {
             clearVerificationCode(service);
@@ -716,6 +712,7 @@ public class ServiceService {
                 }
             }
         } catch (JsonProcessingException ignored) {
+            // TODO descobrir porque está vazio, sem lançar exceção especializada
             // Mantem compatibilidade com chamadas antigas que enviavam texto puro.
         }
 
@@ -723,14 +720,13 @@ public class ServiceService {
     }
 
     private boolean isAcceptedByAnotherUser(ServiceEntity service, UserEntity user) {
-        return service.getUserAccepted() != null
-                && !Objects.equals(service.getUserAccepted().getId(), user.getId());
+        return service.getUserAccepted() != null && !Objects.equals(service.getUserAccepted().getId(), user.getId());
     }
 
     private boolean canManageAcceptedService(ServiceEntity service, UserEntity user) {
-        return Objects.equals(service.getUserCreator().getId(), user.getId())
-                || (service.getUserAccepted() != null
-                && Objects.equals(service.getUserAccepted().getId(), user.getId()));
+        return !Objects.equals(service.getUserCreator().getId(), user.getId())
+                && (service.getUserAccepted() == null
+                || !Objects.equals(service.getUserAccepted().getId(), user.getId()));
     }
 
     private boolean canHardDelete(ServiceEntity service) {
@@ -739,52 +735,50 @@ public class ServiceService {
 
     private String normalizeCancellationJustification(String justification) {
         if (justification == null || justification.isBlank()) {
-            throw new IllegalArgumentException("Justificativa do cancelamento e obrigatoria");
+            throw new IllegalArgumentException("Justificativa do cancelamento e obrigatoria.");
         }
 
         String normalizedJustification = justification.trim();
         if (normalizedJustification.length() > MAX_CANCELLATION_JUSTIFICATION_LENGTH) {
-            throw new IllegalArgumentException("Justificativa do cancelamento deve ter no maximo 1000 caracteres");
+            throw new IllegalArgumentException("Justificativa do cancelamento deve ter no maximo 1000 caracteres.");
         }
         return normalizedJustification;
     }
 
     private boolean hasCancellationJustification(ServiceCancellationDTO cancellationDTO) {
-        return cancellationDTO != null
-                && cancellationDTO.getJustification() != null
-                && !cancellationDTO.getJustification().isBlank();
+        return cancellationDTO != null && cancellationDTO.getJustification() != null && !cancellationDTO.getJustification().isBlank();
     }
 
     private void validateServiceChronos(Integer timeChronos) {
         if (timeChronos == null || timeChronos <= 0) {
-            throw new QuantityChronosInvalidException("A quantidade de chronos do servico deve ser maior que zero.");
+            throw new QuantityChronosInvalidException("A quantidade de chronos do serviço deve ser maior que zero.");
         }
         if (timeChronos > 100) {
-            throw new QuantityChronosInvalidException("Limite de chronos de 100 por servico excedido.");
+            throw new QuantityChronosInvalidException("Limite de chronos de 100 por serviço excedido.");
         }
     }
 
     private void validateDescription(String description) {
         if (description == null || description.isBlank()) {
-            throw new IllegalArgumentException("Descricao do servico e obrigatoria");
+            throw new IllegalArgumentException("Descrição do serviço e obrigatória.");
         }
         if (description.length() > 2500) {
-            throw new IllegalArgumentException("Descricao do servico deve ter no maximo 2500 caracteres");
+            throw new IllegalArgumentException("Descrição do serviço deve ter no máximo 2500 caracteres.");
         }
     }
 
     private void validateCategories(List<String> categories) {
         if (categories == null || categories.isEmpty()) {
-            throw new IllegalArgumentException("Categoria do servico e obrigatoria");
+            throw new IllegalArgumentException("Categoria do serviço e obrigatória.");
         }
         if (categories.size() > MAX_CATEGORY_COUNT) {
-            throw new IllegalArgumentException("O servico pode ter no maximo 10 categorias");
+            // TODO ver se existe esse máximo de categorias no front
+            throw new IllegalArgumentException("O serviço pode ter no máximo 10 categorias.");
         }
 
-        boolean hasBlankCategory = categories.stream()
-                .anyMatch(category -> category == null || category.isBlank());
+        boolean hasBlankCategory = categories.stream().anyMatch(category -> category == null || category.isBlank());
         if (hasBlankCategory) {
-            throw new IllegalArgumentException("Categoria do servico e obrigatoria");
+            throw new IllegalArgumentException("Categoria do serviço e obrigatória.");
         }
     }
 

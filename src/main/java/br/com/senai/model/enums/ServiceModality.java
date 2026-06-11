@@ -1,65 +1,41 @@
 package br.com.senai.model.enums;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-import java.text.Normalizer;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Set;
+import lombok.Getter;
 
+@Getter
 public enum ServiceModality {
-    PRESENCIAL("Presencial", Set.of(
-            "PRESENCIAL",
-            "PRESENTIAL",
-            "IN_PERSON",
-            "INPERSON",
-            "ONSITE",
-            "ON_SITE"
-    )),
-    REMOTO("Remoto", Set.of(
-            "REMOTO",
-            "REMOTE",
-            "ONLINE",
-            "VIRTUAL",
-            "A_DISTANCIA",
-            "DISTANCIA"
-    ));
+    PRESENCIAL(0),
+    REMOTO(1);
 
-    private final String value;
-    private final Set<String> acceptedValues;
+    private final int codigo;
 
-    ServiceModality(String value, Set<String> acceptedValues) {
-        this.value = value;
-        this.acceptedValues = acceptedValues;
+    ServiceModality(int codigo) {
+        this.codigo = codigo;
     }
 
-    @JsonValue
-    public String getValue() {
-        return value;
+    public static ServiceModality fromCodigo(int codigo) {
+        for (ServiceModality m : values()) {
+            if (m.codigo == codigo) {
+                return m;
+            }
+        }
+        throw new IllegalArgumentException("Código inválido: " + codigo);
     }
 
-    @JsonCreator
-    public static ServiceModality fromValue(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
+    public static ServiceModality fromString(String text) {
+        if (text == null || text.isBlank()) {
+            throw new IllegalArgumentException("Modalidade inválida");
         }
 
-        String normalized = normalize(value);
+        String normalizedText = text.trim().toUpperCase();
+        if (normalizedText.equals(ServiceModality.PRESENCIAL.name())) {
+            return ServiceModality.PRESENCIAL;
+        }
 
-        return Arrays.stream(values())
-                .filter(modality -> modality.acceptedValues.contains(normalized))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Modalidade inválida: " + value + ". Use Remoto ou Presencial."
-                ));
-    }
+        if (normalizedText.equals(ServiceModality.REMOTO.name())) {
+            return ServiceModality.REMOTO;
+        }
 
-    private static String normalize(String value) {
-        return Normalizer.normalize(value, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}+", "")
-                .trim()
-                .toUpperCase(Locale.ROOT)
-                .replaceAll("[^A-Z0-9]+", "_")
-                .replaceAll("^_+|_+$", "");
+        throw new IllegalArgumentException("Modalidade inválida " + text);
     }
 }

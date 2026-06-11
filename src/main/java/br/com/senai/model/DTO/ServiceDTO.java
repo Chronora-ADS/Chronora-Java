@@ -6,10 +6,16 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ServiceDTO {
     @NotBlank(message = "Titulo do servico e obrigatorio")
     private String title;
@@ -35,81 +41,4 @@ public class ServiceDTO {
 
     @NotBlank(message = "Imagem de servico e obrigatoria")
     private String serviceImage;
-
-    public ServiceDTO() {
-    }
-
-    public ServiceDTO(
-            String title,
-            String description,
-            Integer timeChronos,
-            String modality,
-            LocalDate deadline,
-            List<String> categories,
-            String serviceImage
-    ) {
-        this.title = title;
-        this.description = description;
-        this.timeChronos = timeChronos;
-        this.modality = modality;
-        this.deadline = deadline;
-        this.categories = categories;
-        this.serviceImage = serviceImage;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Integer getTimeChronos() {
-        return timeChronos;
-    }
-
-    public void setTimeChronos(Integer timeChronos) {
-        this.timeChronos = timeChronos;
-    }
-
-    public String getModality() {
-        return modality;
-    }
-
-    public void setModality(String modality) {
-        this.modality = modality;
-    }
-
-    public LocalDate getDeadline() {
-        return deadline;
-    }
-
-    public void setDeadline(LocalDate deadline) {
-        this.deadline = deadline;
-    }
-
-    public List<String> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(List<String> categories) {
-        this.categories = categories;
-    }
-
-    public String getServiceImage() {
-        return serviceImage;
-    }
-
-    public void setServiceImage(String serviceImage) {
-        this.serviceImage = serviceImage;
-    }
 }

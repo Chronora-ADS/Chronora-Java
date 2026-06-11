@@ -10,29 +10,17 @@ import org.junit.jupiter.api.Test;
 class ServiceModalityTest {
 
     @Test
-    void deveAceitarVariantesDeRemoto() {
-        assertEquals(ServiceModality.REMOTO, ServiceModality.fromValue("Remoto"));
-        assertEquals(ServiceModality.REMOTO, ServiceModality.fromValue("REMOTE"));
-        assertEquals(ServiceModality.REMOTO, ServiceModality.fromValue("online"));
-        assertEquals(ServiceModality.REMOTO, ServiceModality.fromValue("\u00C0 dist\u00E2ncia"));
+    void deveAceitarFromCodigoDePresencial() {
+        assertEquals(ServiceModality.PRESENCIAL, ServiceModality.fromCodigo(0));
     }
 
     @Test
-    void deveAceitarVariantesDePresencial() {
-        assertEquals(ServiceModality.PRESENCIAL, ServiceModality.fromValue("Presencial"));
-        assertEquals(ServiceModality.PRESENCIAL, ServiceModality.fromValue("PRESENTIAL"));
-        assertEquals(ServiceModality.PRESENCIAL, ServiceModality.fromValue("in person"));
-        assertEquals(ServiceModality.PRESENCIAL, ServiceModality.fromValue("on-site"));
-    }
-
-    @Test
-    void deveRetornarNullQuandoValorForNuloOuVazio() {
-        assertNull(ServiceModality.fromValue(null));
-        assertNull(ServiceModality.fromValue(" "));
+    void deveAceitarFromCodigoDeRemoto() {
+        assertEquals(ServiceModality.REMOTO, ServiceModality.fromCodigo(1));
     }
 
     @Test
     void deveLancarErroQuandoValorNaoForReconhecido() {
-        assertThrows(IllegalArgumentException.class, () -> ServiceModality.fromValue("misterioso"));
+        assertThrows(IllegalArgumentException.class, () -> ServiceModality.fromCodigo(2));
     }
 }

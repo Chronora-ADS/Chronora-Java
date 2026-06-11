@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class HealthController {
-
     private final String appName;
     private final String appVersion;
     private final String gitCommit;

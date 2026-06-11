@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/notification")
 public class NotificationController {
-
     private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
-
     private final NotificationService notificationService;
 
     public NotificationController(NotificationService notificationService) {
@@ -25,9 +23,9 @@ public class NotificationController {
 
     @GetMapping("/get/all")
     public ResponseEntity<List<NotificationEntity>> getAll(@RequestHeader("Authorization") String tokenHeader) {
-        logger.info("Listando todas as notificacoes");
+        logger.info("Listando todas as notificações");
         List<NotificationEntity> notifications = notificationService.getAll(tokenHeader);
-        logger.info("Total de notificacoes encontradas: {}", notifications.size());
+        logger.info("Total de notificações encontradas: {}", notifications.size());
         return ResponseEntity.ok(notifications);
     }
 }

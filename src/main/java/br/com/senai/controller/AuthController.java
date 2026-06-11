@@ -25,16 +25,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-
     private final AuthService authService;
     private final SupabaseAuthService supabaseAuthService;
     private final JWTBlacklist jwtBlacklist;
 
-    public AuthController(
-            AuthService authService,
-            SupabaseAuthService supabaseAuthService,
-            JWTBlacklist jwtBlacklist
-    ) {
+    public AuthController(AuthService authService, SupabaseAuthService supabaseAuthService, JWTBlacklist jwtBlacklist) {
         this.authService = authService;
         this.supabaseAuthService = supabaseAuthService;
         this.jwtBlacklist = jwtBlacklist;
@@ -50,12 +45,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody UserDTO userDTO) {
         authService.validateRegistrationAvailable(userDTO);
-
-        SupabaseUserDTO supabaseUserDTO = supabaseAuthService.signUp(
-                userDTO.getEmail(),
-                userDTO.getPassword(),
-                authService.buildUserMetadata(userDTO)
-        );
+        SupabaseUserDTO supabaseUserDTO = supabaseAuthService.signUp(userDTO.getEmail(), userDTO.getPassword(), authService.buildUserMetadata(userDTO));
 
         UserEntity newUser;
         try {
@@ -80,10 +70,7 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<Void> resetPassword(
-            @RequestHeader("Authorization") String tokenHeader,
-            @Valid @RequestBody ResetPasswordDTO body
-    ) {
+    public ResponseEntity<Void> resetPassword(@RequestHeader("Authorization") String tokenHeader, @Valid @RequestBody ResetPasswordDTO body) {
         supabaseAuthService.resetPassword(extractBearerToken(tokenHeader), body.getNewPassword());
         return ResponseEntity.ok().build();
     }
