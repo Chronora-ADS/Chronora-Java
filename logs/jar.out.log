@@ -1356,8 +1356,8 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-06 20:21:07 - o.s.web.servlet.DispatcherServlet - POST "/auth/login", parameters={}
 2026-05-06 20:21:07 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.AuthController#login(LoginDTO)
 2026-05-06 20:21:07 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.AuthController#login(LoginDTO)
-2026-05-06 20:21:07 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.LoginDTO@7925be66]
-2026-05-06 20:21:07 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.LoginDTO@6173a1d4]
+2026-05-06 20:21:07 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.LoginDTO@7925be66]
+2026-05-06 20:21:07 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.LoginDTO@6173a1d4]
 2026-05-06 20:21:07 - o.s.web.client.RestTemplate - HTTP POST https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/token?grant_type=password
 2026-05-06 20:21:07 - o.s.web.client.RestTemplate - HTTP POST https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/token?grant_type=password
 2026-05-06 20:21:07 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -1403,7 +1403,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-06 20:21:08 - o.s.web.client.RestTemplate - HTTP GET https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/user
 2026-05-06 20:21:08 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
 2026-05-06 20:21:08 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-06 20:21:08 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@a7cc743]
+2026-05-06 20:21:08 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@a7cc743]
 2026-05-06 20:21:08 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-06 20:21:08 - o.s.web.client.RestTemplate - Response 200 OK
 2026-05-06 20:21:08 - o.s.web.client.RestTemplate - Reading to [java.lang.String] as "application/json"

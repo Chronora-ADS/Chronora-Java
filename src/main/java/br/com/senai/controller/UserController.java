@@ -1,7 +1,7 @@
 package br.com.senai.controller;
 
-import br.com.senai.model.DTO.UserEditDTO;
-import br.com.senai.model.DTO.UserResponseDTO;
+import br.com.senai.model.DTO.user.UserEditDTO;
+import br.com.senai.model.DTO.user.UserResponseDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.service.UserService;
 import jakarta.validation.Valid;

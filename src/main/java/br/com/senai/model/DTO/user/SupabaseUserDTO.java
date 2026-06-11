@@ -1,55 +1,21 @@
-package br.com.senai.model.DTO;
+package br.com.senai.model.DTO.user;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SupabaseUserDTO {
     private String id;
     private String email;
     private String phone;
     private String createdAt;
 
-    public SupabaseUserDTO() {
-    }
-
-    public SupabaseUserDTO(String id, String email, String phone, String createdAt) {
-        this.id = id;
-        this.email = email;
-        this.phone = phone;
-        this.createdAt = createdAt;
-    }
-
+    // TODO ver para que serve esse builder
     public static Builder builder() {
         return new Builder();
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(String createdAt) {
-        this.createdAt = createdAt;
     }
 
     public static class Builder {

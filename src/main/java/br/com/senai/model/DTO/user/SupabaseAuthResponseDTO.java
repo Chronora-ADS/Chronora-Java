@@ -1,55 +1,21 @@
-package br.com.senai.model.DTO;
+package br.com.senai.model.DTO.user;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SupabaseAuthResponseDTO {
     private SupabaseUserDTO user;
     private String accessToken;
     private String refreshToken;
     private Long expiresIn;
 
-    public SupabaseAuthResponseDTO() {
-    }
-
-    public SupabaseAuthResponseDTO(SupabaseUserDTO user, String accessToken, String refreshToken, Long expiresIn) {
-        this.user = user;
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-        this.expiresIn = expiresIn;
-    }
-
+    // TODO ver para que serve esse builder
     public static Builder builder() {
         return new Builder();
-    }
-
-    public SupabaseUserDTO getUser() {
-        return user;
-    }
-
-    public void setUser(SupabaseUserDTO user) {
-        this.user = user;
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
-    public String getRefreshToken() {
-        return refreshToken;
-    }
-
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
-    public Long getExpiresIn() {
-        return expiresIn;
-    }
-
-    public void setExpiresIn(Long expiresIn) {
-        this.expiresIn = expiresIn;
     }
 
     public static class Builder {

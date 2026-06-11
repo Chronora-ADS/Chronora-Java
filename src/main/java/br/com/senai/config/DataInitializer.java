@@ -1,7 +1,7 @@
 package br.com.senai.config;
 
-import br.com.senai.model.DTO.DocumentDTO;
-import br.com.senai.model.DTO.UserDTO;
+import br.com.senai.model.DTO.user.DocumentDTO;
+import br.com.senai.model.DTO.user.UserDTO;
 import br.com.senai.model.entity.CategoryEntity;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;

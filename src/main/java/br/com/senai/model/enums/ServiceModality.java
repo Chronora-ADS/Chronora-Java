@@ -4,8 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum ServiceModality {
-    PRESENCIAL(0),
-    REMOTO(1);
+    PRESENCIAL(0), REMOTO(1);
 
     private final int codigo;
 
@@ -19,12 +18,12 @@ public enum ServiceModality {
                 return m;
             }
         }
-        throw new IllegalArgumentException("Código inválido: " + codigo);
+        throw new IllegalArgumentException("Código inválido: " + codigo + ".");
     }
 
     public static ServiceModality fromString(String text) {
         if (text == null || text.isBlank()) {
-            throw new IllegalArgumentException("Modalidade inválida");
+            throw new IllegalArgumentException("Modalidade inválida.");
         }
 
         String normalizedText = text.trim().toUpperCase();
@@ -36,6 +35,6 @@ public enum ServiceModality {
             return ServiceModality.REMOTO;
         }
 
-        throw new IllegalArgumentException("Modalidade inválida " + text);
+        throw new IllegalArgumentException("Modalidade inválida " + text + ".");
     }
 }

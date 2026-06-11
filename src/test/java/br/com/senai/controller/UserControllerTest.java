@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import br.com.senai.model.DTO.UserEditDTO;
+import br.com.senai.model.DTO.user.UserEditDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.service.UserService;
 import org.junit.jupiter.api.Test;

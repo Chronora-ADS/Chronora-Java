@@ -57,9 +57,11 @@ public class ServiceEntity {
 
     private LocalDateTime verificationCodeExpiresAt;
 
+    // TODO novamente, para que serve o call count do código de verificação?
     @Column(name = "verification_code_call_count")
     private Integer verificationCodeCallCount = 0;
 
+    // TODO justificativa e quem justificou dentro do serviço é desnecessária, levando em consideração que criar as notificações já é o suficiente
     @Column(name = "service_cancellation_justification", length = 1000)
     private String serviceCancellationJustification;
 
@@ -78,7 +80,6 @@ public class ServiceEntity {
         if (categoryEntities == null) {
             return List.of();
         }
-
         return categoryEntities.stream()
                 .map(CategoryEntity::getName)
                 .toList();
@@ -89,7 +90,6 @@ public class ServiceEntity {
             this.categoryEntities = null;
             return;
         }
-
         this.categoryEntities = categories.stream()
                 .map(category -> {
                     CategoryEntity categoryEntity = new CategoryEntity();

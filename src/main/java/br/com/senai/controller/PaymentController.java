@@ -1,9 +1,9 @@
 package br.com.senai.controller;
 
-import br.com.senai.model.DTO.BuyChronosRequestDTO;
-import br.com.senai.model.DTO.BuyChronosResponseDTO;
-import br.com.senai.model.DTO.PaymentStatusResponseDTO;
-import br.com.senai.model.DTO.SellChronosRequestDTO;
+import br.com.senai.model.DTO.payment.BuyChronosRequestDTO;
+import br.com.senai.model.DTO.payment.BuyChronosResponseDTO;
+import br.com.senai.model.DTO.payment.PaymentStatusResponseDTO;
+import br.com.senai.model.DTO.payment.SellChronosRequestDTO;
 import br.com.senai.service.PaymentService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

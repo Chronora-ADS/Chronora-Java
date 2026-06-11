@@ -1441,8 +1441,8 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-06 20:19:12 - o.s.web.servlet.DispatcherServlet - POST "/auth/login", parameters={}
 2026-05-06 20:19:12 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.AuthController#login(LoginDTO)
 2026-05-06 20:19:12 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.AuthController#login(LoginDTO)
-2026-05-06 20:19:12 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.LoginDTO@3d951fe1]
-2026-05-06 20:19:12 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.LoginDTO@7caccee4]
+2026-05-06 20:19:12 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.LoginDTO@3d951fe1]
+2026-05-06 20:19:12 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.LoginDTO@7caccee4]
 2026-05-06 20:19:12 - o.s.web.client.RestTemplate - HTTP POST https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/token?grant_type=password
 2026-05-06 20:19:12 - o.s.web.client.RestTemplate - HTTP POST https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/token?grant_type=password
 2026-05-06 20:19:12 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
@@ -1451,7 +1451,7 @@ Hibernate: insert into uptime_check (checked_at,error_message,response_time_ms,s
 2026-05-06 20:19:12 - o.s.web.client.RestTemplate - Writing [{password=SenhaForte1, email=codex+1778109102911@example.com}] as "application/json"
 2026-05-06 20:19:12 - o.s.web.servlet.DispatcherServlet - POST "/auth/login", parameters={}
 2026-05-06 20:19:12 - o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to br.com.senai.controller.AuthController#login(LoginDTO)
-2026-05-06 20:19:12 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.LoginDTO@3435dbf8]
+2026-05-06 20:19:12 - o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [br.com.senai.model.DTO.user.LoginDTO@3435dbf8]
 2026-05-06 20:19:12 - o.s.web.client.RestTemplate - HTTP POST https://rxwijdozdixhihsktcjh.supabase.co/auth/v1/token?grant_type=password
 2026-05-06 20:19:12 - o.s.web.client.RestTemplate - Accept=[text/plain, application/json, application/*+json, */*]
 2026-05-06 20:19:12 - o.s.web.client.RestTemplate - Writing [{password=SenhaForte1, email=codex+1778109102911@example.com}] as "application/json"
@@ -1507,7 +1507,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-06 20:19:13 - o.s.web.client.RestTemplate - Response 200 OK
 2026-05-06 20:19:13 - o.s.web.client.RestTemplate - Reading to [java.lang.String] as "application/json"
 2026-05-06 20:19:13 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-06 20:19:13 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@4abfad48]
+2026-05-06 20:19:13 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@4abfad48]
 2026-05-06 20:19:13 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-06 20:19:13 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
@@ -1516,7 +1516,7 @@ Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.documen
 2026-05-06 20:19:13 - org.hibernate.SQL - select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 Hibernate: select ue1_0.id,ue1_0.document_name,ue1_0.document_type,ue1_0.document_url,ue1_0.email,ue1_0.name,ue1_0.password,ue1_0.phone_number,r1_0.user_id,r1_0.role,ue1_0.supabase_user_id,ue1_0.time_chronos from app_user ue1_0 left join user_roles r1_0 on ue1_0.id=r1_0.user_id where ue1_0.supabase_user_id=?
 2026-05-06 20:19:13 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
-2026-05-06 20:19:13 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.UserResponseDTO@56ac6bd4]
+2026-05-06 20:19:13 - o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [br.com.senai.model.DTO.user.UserResponseDTO@56ac6bd4]
 2026-05-06 20:19:13 - o.s.web.servlet.DispatcherServlet - Completed 200 OK
 2026-05-06 20:19:13 - org.hibernate.SQL - select se1_0.id,se1_0.deadline,se1_0.description,se1_0.modality,se1_0.posted_at,se1_0.service_image_url,se1_0.status,se1_0.time_chronos,se1_0.title,se1_0.user_accepted_id,se1_0.user_creator_id,se1_0.verification_code,se1_0.verification_code_expires_at from service se1_0 offset ? rows fetch first ? rows only
 Hibernate: select se1_0.id,se1_0.deadline,se1_0.description,se1_0.modality,se1_0.posted_at,se1_0.service_image_url,se1_0.status,se1_0.time_chronos,se1_0.title,se1_0.user_accepted_id,se1_0.user_creator_id,se1_0.verification_code,se1_0.verification_code_expires_at from service se1_0 offset ? rows fetch first ? rows only
