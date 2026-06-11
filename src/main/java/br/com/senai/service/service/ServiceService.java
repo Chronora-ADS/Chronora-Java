@@ -14,6 +14,7 @@ import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.ServiceModality;
 import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.ServiceRepository;
+import br.com.senai.service.auth.SupabaseAuthService;
 import br.com.senai.service.user.UserService;
 import br.com.senai.service.notification.NotificationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,6 +34,8 @@ import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -42,6 +45,8 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class ServiceService {
+    private static final Logger logger = LoggerFactory.getLogger(ServiceService.class);
+
     private static final long VERIFICATION_CODE_EXPIRATION_MINUTES = 2;
     // TODO por que salvar em uma variável separada a primeira e segunda chamada, ainda por cima com os números 1 e 2?
     private static final int FIRST_VERIFICATION_CODE_CALL = 1;
@@ -706,9 +711,8 @@ public class ServiceService {
                     }
                 }
             }
-        } catch (JsonProcessingException ignored) {
-            // TODO descobrir porque está vazio, sem lançar exceção especializada
-            // Mantem compatibilidade com chamadas antigas que enviavam texto puro.
+        } catch (JsonProcessingException e) {
+            logger.debug("Código de verificação não é JSON, tratando como texto puro: {}", trimmedVerificationCode, e);
         }
 
         return trimmedVerificationCode.replace("\"", "").trim();

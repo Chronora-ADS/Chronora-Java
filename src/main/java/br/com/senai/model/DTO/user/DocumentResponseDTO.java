@@ -9,7 +9,6 @@ public class DocumentResponseDTO {
     private String type;
     private String url;
 
-    // TODO para que serve o fromEntity?
     public static DocumentResponseDTO fromEntity(DocumentEntity documentEntity) {
         if (documentEntity == null) {
             return null;

@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +35,8 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @AllArgsConstructor
 public class SupabaseAuthService {
+    private static final Logger logger = LoggerFactory.getLogger(SupabaseAuthService.class);
+
     private static final String USER_ENDPOINT = "/auth/v1/user";
     private static final String SIGNUP_ENDPOINT = "/auth/v1/signup";
     private static final String PASSWORD_TOKEN_ENDPOINT = "/auth/v1/token?grant_type=password";
@@ -358,9 +362,8 @@ public class SupabaseAuthService {
             headers.setBearerAuth(supabaseServiceRole);
 
             restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
-        } catch (RestClientException ignored) {
-            // TODO descobrir porque está vazio, sem lançar exceção especializada
-            // best effort para não mascarar o erro principal da operação chamadora
+        } catch (RestClientException e) {
+            logger.error("Falha ao deletar usuário no Supabase (ID: {}): {}", supabaseUserId, e.getMessage(), e);
         }
     }
 

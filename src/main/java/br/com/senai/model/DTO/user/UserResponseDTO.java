@@ -14,7 +14,6 @@ public class UserResponseDTO {
     private String profileImage;
     private DocumentResponseDTO document;
 
-    // TODO para que serve fromEntity?
     public static UserResponseDTO fromEntity(UserEntity userEntity) {
         UserResponseDTO response = new UserResponseDTO();
         response.setId(userEntity.getId());
