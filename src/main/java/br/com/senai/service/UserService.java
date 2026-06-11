@@ -75,6 +75,13 @@ public class UserService {
         return userRepository.save(userEntity);
     }
 
+    public UserEntity creditChronosToUser(UserEntity user, Integer amount) {
+        validateChronosAmount(amount);
+        int newBalance = Math.min(user.getTimeChronos() + amount, 300);
+        user.setTimeChronos(newBalance);
+        return userRepository.save(user);
+    }
+
     public UserEntity getLoggedUser(String tokenHeader) {
         if (tokenHeader == null || !tokenHeader.startsWith("Bearer ")) {
             throw new AuthException("Token invalido.");
