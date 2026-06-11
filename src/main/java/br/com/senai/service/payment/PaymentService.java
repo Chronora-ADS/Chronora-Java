@@ -1,4 +1,4 @@
-package br.com.senai.service;
+package br.com.senai.service.payment;
 
 import br.com.senai.exception.Validation.QuantityChronosInvalidException;
 import br.com.senai.model.DTO.payment.BuyChronosResponseDTO;
@@ -8,6 +8,8 @@ import br.com.senai.model.enums.PaymentStatus;
 import br.com.senai.model.enums.PaymentType;
 import br.com.senai.repository.PaymentTransactionRepository;
 import br.com.senai.repository.UserRepository;
+import br.com.senai.service.user.UserService;
+import br.com.senai.service.notification.NotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

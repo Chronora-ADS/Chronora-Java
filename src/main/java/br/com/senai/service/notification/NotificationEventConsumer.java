@@ -1,4 +1,4 @@
-package br.com.senai.service;
+package br.com.senai.service.notification;
 
 import br.com.senai.model.DTO.notification.NotificationEventDTO;
 import org.slf4j.Logger;

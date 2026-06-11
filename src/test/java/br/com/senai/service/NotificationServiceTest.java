@@ -13,6 +13,10 @@ import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.repository.NotificationRepository;
 import java.util.List;
+
+import br.com.senai.service.notification.NotificationEventPublisher;
+import br.com.senai.service.notification.NotificationService;
+import br.com.senai.service.user.UserService;
 import org.springframework.amqp.AmqpException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

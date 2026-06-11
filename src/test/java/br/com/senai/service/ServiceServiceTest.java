@@ -31,6 +31,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import br.com.senai.service.notification.NotificationService;
+import br.com.senai.service.service.ServiceService;
+import br.com.senai.service.service.SupabaseStorageService;
+import br.com.senai.service.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

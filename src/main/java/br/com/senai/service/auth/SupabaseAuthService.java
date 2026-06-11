@@ -1,4 +1,4 @@
-package br.com.senai.service;
+package br.com.senai.service.auth;
 
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.SupabaseIntegrationException;
@@ -14,6 +14,8 @@ import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -29,8 +31,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@AllArgsConstructor
 public class SupabaseAuthService {
-
     private static final String USER_ENDPOINT = "/auth/v1/user";
     private static final String SIGNUP_ENDPOINT = "/auth/v1/signup";
     private static final String PASSWORD_TOKEN_ENDPOINT = "/auth/v1/token?grant_type=password";
@@ -53,18 +55,6 @@ public class SupabaseAuthService {
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
     private final AuthService authService;
-
-    public SupabaseAuthService(
-            RestTemplate restTemplate,
-            ObjectMapper objectMapper,
-            UserRepository userRepository,
-            AuthService authService
-    ) {
-        this.restTemplate = restTemplate;
-        this.objectMapper = objectMapper;
-        this.userRepository = userRepository;
-        this.authService = authService;
-    }
 
     public SupabaseUserDTO validateToken(String token) {
         if (!isSupabaseConfigured()) {
@@ -90,16 +80,16 @@ public class SupabaseAuthService {
             }
 
             if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                throw new AuthException("Token invalido ou expirado");
+                throw new AuthException("Token inválido ou expirado.");
             }
 
             throw new SupabaseIntegrationException("Resposta inesperada do Supabase: " + response.getStatusCode(), null);
         } catch (HttpClientErrorException.Unauthorized e) {
-            throw new AuthException("Token invalido");
+            throw new AuthException("Token inválido.");
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             throw new SupabaseIntegrationException("Erro na chamada ao Supabase", e);
         } catch (RestClientException e) {
-            throw new SupabaseIntegrationException("Falha de conexao com o Supabase", e);
+            throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
         } catch (Exception e) {
             throw new SupabaseIntegrationException("Erro inesperado ao validar token", e);
         }
@@ -151,9 +141,9 @@ public class SupabaseAuthService {
         } catch (HttpClientErrorException.Conflict e) {
             throw new EmailAlreadyExistsException(email);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            throw new SupabaseIntegrationException("Erro ao cadastrar no Supabase", e);
+            throw new SupabaseIntegrationException("Erro na chamada ao cadastrar no Supabase", e);
         } catch (RestClientException e) {
-            throw new SupabaseIntegrationException("Falha de rede com o Supabase", e);
+            throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
         } catch (Exception e) {
             throw new SupabaseIntegrationException("Erro inesperado no cadastro", e);
         }
@@ -193,16 +183,16 @@ public class SupabaseAuthService {
             }
 
             if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                throw new AuthException("Credenciais invalidas");
+                throw new AuthException("Credenciais inválidas.");
             }
 
             throw new SupabaseIntegrationException("Erro no login no Supabase", null);
         } catch (HttpClientErrorException.Unauthorized e) {
-            throw new AuthException("Credenciais invalidas");
+            throw new AuthException("Credenciais inválidas.");
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            throw new SupabaseIntegrationException("Erro ao fazer login no Supabase", e);
+            throw new SupabaseIntegrationException("Erro na chamada ao fazer login no Supabase", e);
         } catch (RestClientException e) {
-            throw new SupabaseIntegrationException("Falha de conexao com o Supabase", e);
+            throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
         } catch (Exception e) {
             throw new SupabaseIntegrationException("Erro inesperado no login", e);
         }
@@ -210,7 +200,7 @@ public class SupabaseAuthService {
 
     public SupabaseAuthResponseDTO refreshSession(String refreshToken) {
         if (!StringUtils.hasText(refreshToken)) {
-            throw new AuthException("Refresh token obrigatorio");
+            throw new AuthException("Refresh token obrigatório.");
         }
 
         if (!isSupabaseConfigured()) {
@@ -239,28 +229,24 @@ public class SupabaseAuthService {
             }
 
             if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                throw new AuthException("Refresh token invalido");
+                throw new AuthException("Refresh token inválido.");
             }
 
-            throw new SupabaseIntegrationException("Erro ao renovar sessao no Supabase", null);
+            throw new SupabaseIntegrationException("Erro ao renovar sessão no Supabase.", null);
         } catch (HttpClientErrorException.Unauthorized e) {
-            throw new AuthException("Refresh token invalido");
+            throw new AuthException("Refresh token inválido.");
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            throw new SupabaseIntegrationException("Erro ao renovar sessao no Supabase", e);
+            throw new SupabaseIntegrationException("Erro na chamada ao renovar sessão no Supabase", e);
         } catch (RestClientException e) {
-            throw new SupabaseIntegrationException("Falha de conexao com o Supabase", e);
+            throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
         } catch (Exception e) {
-            throw new SupabaseIntegrationException("Erro inesperado ao renovar sessao", e);
+            throw new SupabaseIntegrationException("Erro inesperado no renovar sessão", e);
         }
-    }
-
-    public void sendPasswordRecovery(String email) {
-        sendPasswordRecovery(email, null);
     }
 
     public void sendPasswordRecovery(String email, String redirectTo) {
         if (!StringUtils.hasText(email)) {
-            throw new AuthException("Email obrigatorio");
+            throw new AuthException("E-mail obrigatório.");
         }
 
         if (!isSupabaseConfigured()) {
@@ -281,15 +267,15 @@ public class SupabaseAuthService {
                     String.class
             );
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            throw new SupabaseIntegrationException("Erro ao solicitar recuperacao de senha", e);
+            throw new SupabaseIntegrationException("Erro ao solicitar recuperação de senha", e);
         } catch (RestClientException e) {
-            throw new SupabaseIntegrationException("Falha de conexao com o Supabase", e);
+            throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
         }
     }
 
     public void resetPassword(String accessToken, String newPassword) {
         if (!StringUtils.hasText(newPassword)) {
-            throw new AuthException("Nova senha obrigatoria");
+            throw new AuthException("Nova senha obrigatória.");
         }
 
         SupabaseUserDTO user = validateToken(accessToken);
@@ -306,27 +292,22 @@ public class SupabaseAuthService {
                         String.class
                 );
             } catch (HttpClientErrorException | HttpServerErrorException e) {
-                throw new SupabaseIntegrationException("Erro ao redefinir senha no Supabase", e);
+                throw new SupabaseIntegrationException("Erro na chamada ao redefinir senha no Supabase", e);
             } catch (RestClientException e) {
-                throw new SupabaseIntegrationException("Falha de conexao com o Supabase", e);
+                throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
             }
         }
 
         authService.updatePassword(user.getId(), newPassword);
     }
 
-    public void updateUser(
-            String accessToken,
-            String email,
-            String password,
-            Map<String, Object> userMetadata
-    ) {
+    public void updateUser(String accessToken, String email, String password, Map<String, Object> userMetadata) {
         if (!isSupabaseConfigured()) {
             return;
         }
 
         if (!StringUtils.hasText(accessToken)) {
-            throw new AuthException("Token obrigatorio");
+            throw new AuthException("Token obrigatório.");
         }
 
         Map<String, Object> body = new HashMap<>();
@@ -354,14 +335,14 @@ public class SupabaseAuthService {
 
             if (response.getStatusCode() != HttpStatus.OK && response.getStatusCode() != HttpStatus.CREATED) {
                 throw new SupabaseIntegrationException(
-                        "Erro ao atualizar usuario no Supabase: " + response.getStatusCode(),
+                        "Erro ao atualizar usuário no Supabase: " + response.getStatusCode(),
                         null
                 );
             }
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            throw new SupabaseIntegrationException("Erro ao atualizar usuario no Supabase", e);
+            throw new SupabaseIntegrationException("Erro ao atualizar usuário no Supabase", e);
         } catch (RestClientException e) {
-            throw new SupabaseIntegrationException("Falha de conexao com o Supabase", e);
+            throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
         }
     }
 
@@ -378,7 +359,8 @@ public class SupabaseAuthService {
 
             restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
         } catch (RestClientException ignored) {
-            // best effort para nao mascarar o erro principal da operacao chamadora
+            // TODO descobrir porque está vazio, sem lançar exceção especializada
+            // best effort para não mascarar o erro principal da operação chamadora
         }
     }
 

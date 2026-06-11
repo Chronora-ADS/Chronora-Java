@@ -1,4 +1,4 @@
-package br.com.senai.service;
+package br.com.senai.service.service;
 
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.ServiceNotFoundException;
@@ -14,6 +14,8 @@ import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.ServiceModality;
 import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.ServiceRepository;
+import br.com.senai.service.user.UserService;
+import br.com.senai.service.notification.NotificationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

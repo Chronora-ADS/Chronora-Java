@@ -3,7 +3,7 @@ package br.com.senai.controller;
 import br.com.senai.model.DTO.user.UserEditDTO;
 import br.com.senai.model.DTO.user.UserResponseDTO;
 import br.com.senai.model.entity.UserEntity;
-import br.com.senai.service.UserService;
+import br.com.senai.service.user.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

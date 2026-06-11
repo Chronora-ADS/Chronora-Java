@@ -23,6 +23,9 @@ import br.com.senai.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import br.com.senai.service.auth.AuthService;
+import br.com.senai.service.service.SupabaseStorageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

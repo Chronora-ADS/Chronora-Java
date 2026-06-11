@@ -1,4 +1,4 @@
-package br.com.senai.service;
+package br.com.senai.service.payment;
 
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentClient;

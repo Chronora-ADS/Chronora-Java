@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.senai.model.DTO.user.UserEditDTO;
 import br.com.senai.model.entity.UserEntity;
-import br.com.senai.service.UserService;
+import br.com.senai.service.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

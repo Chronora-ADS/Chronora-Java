@@ -1,4 +1,4 @@
-package br.com.senai.service;
+package br.com.senai.service.service;
 
 import br.com.senai.exception.SupabaseIntegrationException;
 import java.util.Base64;
@@ -41,16 +41,14 @@ public class SupabaseStorageService {
     }
 
     public String uploadBase64Image(String base64Image, String folder, String userJwtToken, String fileTypeHint) {
-        if (!isSupabaseConfigured()) {
+        if (!(StringUtils.hasText(supabaseUrl) && StringUtils.hasText(anonKey) && StringUtils.hasText(serviceRole))) {
             return "http://localhost:" + serverPort + "/assets/fundo.jpg";
         }
-
         String[] parts = base64Image.split(",");
         String base64Data = (parts.length > 1) ? parts[1] : parts[0];
 
         try {
             byte[] imageBytes = Base64.getDecoder().decode(base64Data);
-
             String extension = guessExtension(base64Image, fileTypeHint);
             String fileName = folder + "/" + UUID.randomUUID() + extension;
             String uploadUrl = supabaseUrl + "/storage/v1/object/" + bucketName + "/" + fileName;
@@ -75,7 +73,7 @@ public class SupabaseStorageService {
 
             throw new SupabaseIntegrationException("Falha no upload da imagem: " + response.getStatusCode(), null);
         } catch (IllegalArgumentException e) {
-            throw new SupabaseIntegrationException("Imagem em base64 invalida", e);
+            throw new SupabaseIntegrationException("Imagem em base64 inválida", e);
         } catch (RestClientException e) {
             throw new SupabaseIntegrationException("Falha ao enviar imagem para o Supabase Storage", e);
         }
@@ -125,11 +123,5 @@ public class SupabaseStorageService {
             case "webp" -> MediaType.parseMediaType("image/webp");
             default -> MediaType.IMAGE_PNG;
         };
-    }
-
-    private boolean isSupabaseConfigured() {
-        return StringUtils.hasText(supabaseUrl)
-                && StringUtils.hasText(anonKey)
-                && StringUtils.hasText(serviceRole);
     }
 }

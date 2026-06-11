@@ -1,4 +1,4 @@
-package br.com.senai.service;
+package br.com.senai.service.user;
 
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.Validation.EmailAlreadyExistsException;
@@ -14,6 +14,9 @@ import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.NotificationRepository;
 import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
+import br.com.senai.service.auth.AuthService;
+import br.com.senai.service.auth.SupabaseAuthService;
+import br.com.senai.service.service.SupabaseStorageService;
 import jakarta.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;

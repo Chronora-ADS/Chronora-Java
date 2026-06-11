@@ -1,4 +1,4 @@
-package br.com.senai.service;
+package br.com.senai.service.auth;
 
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.UserNotFoundException;
@@ -14,6 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import br.com.senai.service.service.SupabaseStorageService;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,21 +26,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 @Service
+@AllArgsConstructor
 public class AuthService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final SupabaseStorageService storageService;
-
-    public AuthService(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            SupabaseStorageService storageService
-    ) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.storageService = storageService;
-    }
 
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email)
@@ -46,19 +40,18 @@ public class AuthService implements UserDetailsService {
                         .password(userEntity.getPassword())
                         .roles(userEntity.getRoles().toArray(new String[0]))
                         .build())
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado."));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
     }
 
     public UserEntity findBySupabaseUserId(String supabaseUserId) {
-        return userRepository.findBySupabaseUserId(supabaseUserId)
-                .orElseThrow(() -> new UserNotFoundException(
-                        "Usuario com ID Supabase " + supabaseUserId + " nao encontrado."
-                ));
+        return userRepository.findBySupabaseUserId(supabaseUserId).orElseThrow(() -> new UserNotFoundException(
+                "Usuário com ID Supabase " + supabaseUserId + " não encontrado."
+        ));
     }
 
     public UserEntity resolveUserForSupabaseUser(SupabaseUserDTO supabaseUser) {
         if (supabaseUser == null || !StringUtils.hasText(supabaseUser.getId())) {
-            throw new UserNotFoundException("Usuario do Supabase invalido.");
+            throw new UserNotFoundException("Usuário do Supabase inválido.");
         }
 
         Optional<UserEntity> bySupabaseId = userRepository.findBySupabaseUserId(supabaseUser.getId());
@@ -69,15 +62,12 @@ public class AuthService implements UserDetailsService {
         }
 
         if (!StringUtils.hasText(supabaseUser.getEmail())) {
-            throw new UserNotFoundException(
-                    "Usuario com ID Supabase " + supabaseUser.getId() + " nao encontrado."
-            );
+            throw new UserNotFoundException("Usuário com ID Supabase " + supabaseUser.getId() + " não encontrado.");
         }
 
-        UserEntity user = userRepository.findByEmail(supabaseUser.getEmail())
-                .orElseThrow(() -> new UserNotFoundException(
-                        "Usuario com ID Supabase " + supabaseUser.getId() + " nao encontrado."
-                ));
+        UserEntity user = userRepository.findByEmail(supabaseUser.getEmail()).orElseThrow(() -> new UserNotFoundException(
+                "Usuário com ID Supabase " + supabaseUser.getId() + " não encontrado."
+        ));
 
         user.setSupabaseUserId(supabaseUser.getId());
         syncEmailFromSupabase(user, supabaseUser.getEmail());
@@ -91,12 +81,8 @@ public class AuthService implements UserDetailsService {
     public UserEntity register(UserDTO userDTO, String supabaseUserId) {
         validateRegistrationAvailable(userDTO);
 
-        String documentUrl = storageService.uploadBase64Image(
-                userDTO.getDocument().getData(),
-                "users",
-                null,
-                userDTO.getDocument().getType()
-        );
+        String documentUrl = storageService.uploadBase64Image(userDTO.getDocument().getData(),
+                "users", null, userDTO.getDocument().getType());
 
         UserEntity userEntity = new UserEntity();
         userEntity.setName(userDTO.getName());
@@ -142,12 +128,12 @@ public class AuthService implements UserDetailsService {
     public UserEntity authenticate(LoginDTO loginDTO) {
         Optional<UserEntity> userOptional = userRepository.findByEmail(loginDTO.getEmail());
         if (userOptional.isEmpty()) {
-            throw new AuthException("Credenciais invalidas");
+            throw new AuthException("Credenciais inválidas.");
         }
 
         UserEntity user = userOptional.get();
         if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
-            throw new AuthException("Credenciais invalidas");
+            throw new AuthException("Credenciais inválidas.");
         }
         return user;
     }

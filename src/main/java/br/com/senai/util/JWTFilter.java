@@ -2,14 +2,16 @@ package br.com.senai.util;
 
 import br.com.senai.model.DTO.user.SupabaseUserDTO;
 import br.com.senai.model.entity.UserEntity;
-import br.com.senai.service.AuthService;
-import br.com.senai.service.SupabaseAuthService;
+import br.com.senai.service.auth.AuthService;
+import br.com.senai.service.auth.SupabaseAuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,20 +19,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
+@AllArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
     private final AuthService authService;
     private final SupabaseAuthService supabaseAuthService;
     private final JWTBlacklist jwtBlacklist;
-
-    public JWTFilter(
-            AuthService authService,
-            SupabaseAuthService supabaseAuthService,
-            JWTBlacklist jwtBlacklist
-    ) {
-        this.authService = authService;
-        this.supabaseAuthService = supabaseAuthService;
-        this.jwtBlacklist = jwtBlacklist;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -45,12 +38,12 @@ public class JWTFilter extends OncePerRequestFilter {
 
         String token = getToken(request);
         if (token == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalido");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido.");
             return;
         }
 
         if (jwtBlacklist.contains(token)) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expirado");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expirado.");
             return;
         }
 
@@ -64,7 +57,7 @@ public class JWTFilter extends OncePerRequestFilter {
                     userEntity.getEmail(), null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalido: " + e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido: " + e.getMessage());
             return;
         }
 

@@ -1,4 +1,4 @@
-package br.com.senai.service;
+package br.com.senai.service.service;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

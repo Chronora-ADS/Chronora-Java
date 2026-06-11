@@ -1,9 +1,11 @@
-package br.com.senai.service;
+package br.com.senai.service.uptime;
 
 import br.com.senai.model.entity.UptimeCheckEntity;
 import br.com.senai.repository.UptimeCheckRepository;
 import java.time.Instant;
 import java.util.Map;
+
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 @Component
+@AllArgsConstructor
 public class UptimeCheckScheduler {
 
     private static final Logger logger = LoggerFactory.getLogger(UptimeCheckScheduler.class);
@@ -21,16 +24,6 @@ public class UptimeCheckScheduler {
     private final RestTemplate restTemplate = new RestTemplate();
     private final int serverPort;
     private final String healthPath;
-
-    public UptimeCheckScheduler(
-            UptimeCheckRepository uptimeCheckRepository,
-            @Value("${server.port:8080}") int serverPort,
-            @Value("${uptime.check.path:/health}") String healthPath
-    ) {
-        this.uptimeCheckRepository = uptimeCheckRepository;
-        this.serverPort = serverPort;
-        this.healthPath = healthPath;
-    }
 
     @Scheduled(
             fixedDelayString = "${uptime.check.delay-ms:60000}",
@@ -43,11 +36,13 @@ public class UptimeCheckScheduler {
         check.setCheckedAt(Instant.now());
 
         try {
+            // TODO uso cru da classe parametrizada "Map"
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
             long elapsedMs = (System.nanoTime() - start) / 1_000_000;
             Object statusValue = response.getBody() != null ? response.getBody().get("status") : null;
             String status = statusValue != null ? statusValue.toString() : "UNKNOWN";
 
+            // TODO utilização do response.getStatusCodeValue(), método deprecado
             check.setStatusCode(response.getStatusCodeValue());
             check.setStatus(status);
             check.setResponseTimeMs(elapsedMs);

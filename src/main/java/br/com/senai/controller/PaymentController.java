@@ -4,7 +4,7 @@ import br.com.senai.model.DTO.payment.BuyChronosRequestDTO;
 import br.com.senai.model.DTO.payment.BuyChronosResponseDTO;
 import br.com.senai.model.DTO.payment.PaymentStatusResponseDTO;
 import br.com.senai.model.DTO.payment.SellChronosRequestDTO;
-import br.com.senai.service.PaymentService;
+import br.com.senai.service.payment.PaymentService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;

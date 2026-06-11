@@ -7,7 +7,7 @@ import br.com.senai.model.DTO.service.ServiceDeadlineRenewalDTO;
 import br.com.senai.model.DTO.service.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.enums.ServiceStatus;
-import br.com.senai.service.ServiceService;
+import br.com.senai.service.service.ServiceService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.time.LocalDate;

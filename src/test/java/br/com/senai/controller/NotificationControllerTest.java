@@ -5,7 +5,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.senai.model.entity.NotificationEntity;
-import br.com.senai.service.NotificationService;
+import br.com.senai.service.notification.NotificationService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
