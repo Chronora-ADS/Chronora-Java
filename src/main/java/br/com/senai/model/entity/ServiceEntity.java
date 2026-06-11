@@ -68,6 +68,9 @@ public class ServiceEntity {
     @Column(name = "service_cancellation_requested_by_user_id")
     private Long serviceCancellationRequestedByUserId;
 
+    @Column(name = "service_cancellation_counterparty_user_id")
+    private Long serviceCancellationCounterpartyUserId;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "service_entity_category_entities",

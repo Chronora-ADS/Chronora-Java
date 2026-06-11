@@ -97,6 +97,40 @@ class NotificationServiceTest {
     }
 
     @Test
+    void deveCriarNotificacaoComDetalhesHistoricos() {
+        UserEntity user = criarUsuario();
+        ServiceEntity service = criarServico();
+        when(notificationRepository.save(org.mockito.ArgumentMatchers.any(NotificationEntity.class)))
+                .thenAnswer(invocation -> {
+                    NotificationEntity notification = invocation.getArgument(0);
+                    notification.setId(100L);
+                    return notification;
+                });
+
+        NotificationEntity criada = notificationService.createWithDetails(
+                "Justificativa de cancelamento do servico",
+                user,
+                service,
+                "SERVICE_CANCELLATION_JUSTIFICATION",
+                "Fornecedor nao respondeu.",
+                "Ana",
+                "Requisitante"
+        );
+
+        assertEquals(100L, criada.getId());
+        assertEquals("Justificativa de cancelamento do servico", criada.getMessage());
+        assertEquals("SERVICE_CANCELLATION_JUSTIFICATION", criada.getNotificationType());
+        assertEquals("Fornecedor nao respondeu.", criada.getDetail());
+        assertEquals("Ana", criada.getActorName());
+        assertEquals("Requisitante", criada.getActorRole());
+        assertSame(user, criada.getUser());
+        assertSame(service, criada.getService());
+        assertNotNull(criada.getNotificationTime());
+        verify(notificationEventPublisher)
+                .publish(org.mockito.ArgumentMatchers.any(NotificationEventDTO.class));
+    }
+
+    @Test
     void deveListarNotificacoesDoUsuarioLogado() {
         UserEntity user = criarUsuario();
         NotificationEntity notification = new NotificationEntity();
