@@ -186,6 +186,28 @@ public class PaymentService {
         }
     }
 
+    @Transactional
+    public void simulatePaymentApproval(Long transactionId, String tokenHeader) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+
+        PaymentTransactionEntity transaction = paymentTransactionRepository
+                .findByIdAndUserId(transactionId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Transacao nao encontrada."));
+
+        if (transaction.getStatus() != PaymentStatus.PENDING) {
+            throw new RuntimeException("Transacao nao esta pendente.");
+        }
+
+        creditChronos(transaction);
+        transaction.setStatus(PaymentStatus.PAID);
+        paymentTransactionRepository.save(transaction);
+
+        notificationService.create(
+                "Pagamento simulado! " + transaction.getChronosAmount() + " Chronos foram adicionados ao seu saldo.",
+                user
+        );
+    }
+
     private void creditChronos(PaymentTransactionEntity transaction) {
         userRepository.findById(transaction.getUserId()).ifPresent(user -> {
             int newBalance = Math.min(user.getTimeChronos() + transaction.getChronosAmount(), MAX_CHRONOS);
