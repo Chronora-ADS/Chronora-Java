@@ -3,8 +3,8 @@ package br.com.senai.model.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-@Embeddable
 @Data
+@Embeddable
 public class DocumentEntity {
     @Column(name = "document_name", nullable = false)
     private String name;

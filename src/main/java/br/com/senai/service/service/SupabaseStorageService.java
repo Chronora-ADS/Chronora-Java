@@ -1,0 +1,127 @@
+package br.com.senai.service.service;
+
+import br.com.senai.exception.SupabaseIntegrationException;
+import java.util.Base64;
+import java.util.Locale;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientException;
+
+@Service
+public class SupabaseStorageService {
+
+    @Value("${supabase.url}")
+    private String supabaseUrl;
+
+    @Value("${supabase.anon-key}")
+    private String anonKey;
+
+    @Value("${supabase.storage-bucket}")
+    private String bucketName;
+
+    @Value("${supabase.service-role}")
+    private String serviceRole;
+
+    @Value("${server.port:8085}")
+    private String serverPort;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    public String uploadBase64Image(String base64Image, String folder, String userJwtToken) {
+        return uploadBase64Image(base64Image, folder, userJwtToken, null);
+    }
+
+    public String uploadBase64Image(String base64Image, String folder, String userJwtToken, String fileTypeHint) {
+        if (!(StringUtils.hasText(supabaseUrl) && StringUtils.hasText(anonKey) && StringUtils.hasText(serviceRole))) {
+            return "http://localhost:" + serverPort + "/assets/fundo.jpg";
+        }
+        String[] parts = base64Image.split(",");
+        String base64Data = (parts.length > 1) ? parts[1] : parts[0];
+
+        try {
+            byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+            String extension = guessExtension(base64Image, fileTypeHint);
+            String fileName = folder + "/" + UUID.randomUUID() + extension;
+            String uploadUrl = supabaseUrl + "/storage/v1/object/" + bucketName + "/" + fileName;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(resolveMediaType(extension));
+            headers.set("apikey", anonKey);
+            headers.set("Authorization", "Bearer " + resolveToken(userJwtToken));
+
+            HttpEntity<byte[]> requestEntity = new HttpEntity<>(imageBytes, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    uploadUrl,
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED) {
+                return supabaseUrl + "/storage/v1/object/public/" + bucketName + "/" + fileName;
+            }
+
+            throw new SupabaseIntegrationException("Falha no upload da imagem: " + response.getStatusCode(), null);
+        } catch (IllegalArgumentException e) {
+            throw new SupabaseIntegrationException("Imagem em base64 inválida", e);
+        } catch (RestClientException e) {
+            throw new SupabaseIntegrationException("Falha ao enviar imagem para o Supabase Storage", e);
+        }
+    }
+
+    private String resolveToken(String userJwtToken) {
+        if (StringUtils.hasText(userJwtToken)) {
+            return userJwtToken;
+        }
+        return serviceRole;
+    }
+
+    private String guessExtension(String base64Image, String fileTypeHint) {
+        if (StringUtils.hasText(fileTypeHint)) {
+            String normalized = normalizeExtension(fileTypeHint);
+            if (!normalized.isBlank()) {
+                return "." + normalized;
+            }
+        }
+
+        if (base64Image.startsWith("data:image/")) {
+            int start = "data:image/".length();
+            int end = base64Image.indexOf(";", start);
+            if (end != -1) {
+                return "." + normalizeExtension(base64Image.substring(start, end));
+            }
+        }
+
+        return ".png";
+    }
+
+    private String normalizeExtension(String extension) {
+        String normalized = extension.trim().toLowerCase(Locale.ROOT);
+        if (normalized.startsWith(".")) {
+            normalized = normalized.substring(1);
+        }
+        if ("jpeg".equals(normalized)) {
+            return "jpg";
+        }
+        return normalized;
+    }
+
+    private MediaType resolveMediaType(String extension) {
+        return switch (normalizeExtension(extension)) {
+            case "jpg" -> MediaType.IMAGE_JPEG;
+            case "gif" -> MediaType.IMAGE_GIF;
+            case "webp" -> MediaType.parseMediaType("image/webp");
+            default -> MediaType.IMAGE_PNG;
+        };
+    }
+}

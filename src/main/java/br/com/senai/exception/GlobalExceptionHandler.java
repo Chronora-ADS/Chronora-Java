@@ -3,59 +3,95 @@ package br.com.senai.exception;
 import br.com.senai.exception.Auth.AuthException;
 import br.com.senai.exception.NotFound.NotFoundException;
 import br.com.senai.exception.Validation.EmailAlreadyExistsException;
+import br.com.senai.exception.Validation.ExpiredValidationCodeException;
+import br.com.senai.exception.Validation.IncorrectValidationCodeException;
 import br.com.senai.exception.Validation.InvalidDocumentException;
 import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-
+import br.com.senai.exception.Validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    // 1. Trata todas as "não encontradas" → 404
+
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<?> handleNotFound(NotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(errorBody(ex.getMessage(), HttpStatus.NOT_FOUND));
     }
 
-    // 2. Trata autenticação → 401
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<?> handleAuth(AuthException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(errorBody(ex.getMessage(), HttpStatus.UNAUTHORIZED));
     }
 
-    // 3. Trata conflitos (email/telefone duplicado) → 409
     @ExceptionHandler({EmailAlreadyExistsException.class, PhoneNumberAlreadyExistsException.class})
     public ResponseEntity<?> handleConflict(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(errorBody(ex.getMessage(), HttpStatus.CONFLICT));
     }
 
-    // 4. Trata outras validações → 400
-    @ExceptionHandler(InvalidDocumentException.class)
-    public ResponseEntity<?> handleInvalidDoc(InvalidDocumentException ex) {
+    @ExceptionHandler({
+            InvalidDocumentException.class,
+            ValidationException.class,
+            IncorrectValidationCodeException.class,
+            ExpiredValidationCodeException.class,
+            IllegalArgumentException.class
+    })
+    public ResponseEntity<?> handleValidation(RuntimeException ex) {
         return ResponseEntity.badRequest()
                 .body(errorBody(ex.getMessage(), HttpStatus.BAD_REQUEST));
     }
 
-    // 5. Erros de integração com Supabase → 502
-    @ExceptionHandler(SupabaseIntegrationException.class)
-    public ResponseEntity<?> handleSupabase(SupabaseIntegrationException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                .body(errorBody("Serviço externo indisponível", HttpStatus.BAD_GATEWAY));
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(error -> error.getDefaultMessage())
+                .orElse("Dados inválidos");
+
+        return ResponseEntity.badRequest()
+                .body(errorBody(message, HttpStatus.BAD_REQUEST));
     }
 
-    // 6. Fallback geral → 500
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<?> handleUnreadableBody(HttpMessageNotReadableException ex) {
+        logger.warn("Corpo de requisição inválido: {}", ex.getMostSpecificCause().getMessage());
+        return ResponseEntity.badRequest()
+                .body(errorBody("JSON inválido", HttpStatus.BAD_REQUEST));
+    }
+
+    @ExceptionHandler(SupabaseIntegrationException.class)
+    public ResponseEntity<?> handleSupabase(SupabaseIntegrationException ex) {
+        logger.error("Falha de integração com Supabase", ex);
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(errorBody("Servico externo indisponível", HttpStatus.BAD_GATEWAY));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleRuntime(RuntimeException ex) {
+        logger.error("Erro de processamento na requisição: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(errorBody(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleUnexpected(Exception ex) {
+        logger.error("Erro inesperado na requisição", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(errorBody("Erro interno", HttpStatus.INTERNAL_SERVER_ERROR));
+                .body(errorBody("Erro interno do servidor: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     private Map<String, Object> errorBody(String message, HttpStatus status) {

@@ -1,0 +1,147 @@
+package br.com.senai.service.auth;
+
+import br.com.senai.exception.Auth.AuthException;
+import br.com.senai.exception.NotFound.UserNotFoundException;
+import br.com.senai.exception.Validation.EmailAlreadyExistsException;
+import br.com.senai.exception.Validation.PhoneNumberAlreadyExistsException;
+import br.com.senai.model.DTO.user.LoginDTO;
+import br.com.senai.model.DTO.user.SupabaseUserDTO;
+import br.com.senai.model.DTO.user.UserDTO;
+import br.com.senai.model.entity.DocumentEntity;
+import br.com.senai.model.entity.UserEntity;
+import br.com.senai.repository.UserRepository;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import br.com.senai.service.service.SupabaseStorageService;
+import lombok.AllArgsConstructor;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+@Service
+@AllArgsConstructor
+public class AuthService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final SupabaseStorageService storageService;
+
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return userRepository.findByEmail(email)
+                .map(userEntity -> User.builder()
+                        .username(userEntity.getEmail())
+                        .password(userEntity.getPassword())
+                        .roles(userEntity.getRoles().toArray(new String[0]))
+                        .build())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
+    }
+
+    public UserEntity findBySupabaseUserId(String supabaseUserId) {
+        return userRepository.findBySupabaseUserId(supabaseUserId).orElseThrow(() -> new UserNotFoundException(
+                "Usuário com ID Supabase " + supabaseUserId + " não encontrado."
+        ));
+    }
+
+    public UserEntity resolveUserForSupabaseUser(SupabaseUserDTO supabaseUser) {
+        if (supabaseUser == null || !StringUtils.hasText(supabaseUser.getId())) {
+            throw new UserNotFoundException("Usuário do Supabase inválido.");
+        }
+
+        Optional<UserEntity> bySupabaseId = userRepository.findBySupabaseUserId(supabaseUser.getId());
+        if (bySupabaseId.isPresent()) {
+            UserEntity user = bySupabaseId.get();
+            syncEmailFromSupabase(user, supabaseUser.getEmail());
+            return user;
+        }
+
+        if (!StringUtils.hasText(supabaseUser.getEmail())) {
+            throw new UserNotFoundException("Usuário com ID Supabase " + supabaseUser.getId() + " não encontrado.");
+        }
+
+        UserEntity user = userRepository.findByEmail(supabaseUser.getEmail()).orElseThrow(() -> new UserNotFoundException(
+                "Usuário com ID Supabase " + supabaseUser.getId() + " não encontrado."
+        ));
+
+        user.setSupabaseUserId(supabaseUser.getId());
+        syncEmailFromSupabase(user, supabaseUser.getEmail());
+        return userRepository.save(user);
+    }
+
+    public void validateRegistrationAvailable(UserDTO userDTO) {
+        validateUniqueEmailAndPhone(userDTO.getEmail(), userDTO.getPhoneNumber());
+    }
+
+    public UserEntity register(UserDTO userDTO, String supabaseUserId) {
+        validateRegistrationAvailable(userDTO);
+
+        String documentUrl = storageService.uploadBase64Image(userDTO.getDocument().getData(),
+                "users", null, userDTO.getDocument().getType());
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setName(userDTO.getName());
+        userEntity.setEmail(userDTO.getEmail());
+        userEntity.setPhoneNumber(userDTO.getPhoneNumber());
+        userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        userEntity.setSupabaseUserId(supabaseUserId);
+        userEntity.setRoles(List.of("USER"));
+        userEntity.setTimeChronos(12);
+
+        DocumentEntity doc = new DocumentEntity();
+        doc.setName(userDTO.getDocument().getName());
+        doc.setType(userDTO.getDocument().getType());
+        doc.setUrl(documentUrl);
+        userEntity.setDocumentEntity(doc);
+
+        return userRepository.save(userEntity);
+    }
+
+    public void validateUniqueEmailAndPhone(String email, Long phoneNumber) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new EmailAlreadyExistsException(email);
+        }
+
+        if (userRepository.findByPhoneNumber(phoneNumber).isPresent()) {
+            throw new PhoneNumberAlreadyExistsException(phoneNumber.toString());
+        }
+    }
+
+    public Map<String, Object> buildUserMetadata(UserDTO userDTO) {
+        Map<String, Object> userMetadata = new HashMap<>();
+        userMetadata.put("name", userDTO.getName());
+        userMetadata.put("phone", userDTO.getPhoneNumber());
+        return userMetadata;
+    }
+
+    public void updatePassword(String supabaseUserId, String rawPassword) {
+        UserEntity userEntity = findBySupabaseUserId(supabaseUserId);
+        userEntity.setPassword(passwordEncoder.encode(rawPassword));
+        userRepository.save(userEntity);
+    }
+
+    public UserEntity authenticate(LoginDTO loginDTO) {
+        Optional<UserEntity> userOptional = userRepository.findByEmail(loginDTO.getEmail());
+        if (userOptional.isEmpty()) {
+            throw new AuthException("Credenciais inválidas.");
+        }
+
+        UserEntity user = userOptional.get();
+        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
+            throw new AuthException("Credenciais inválidas.");
+        }
+        return user;
+    }
+
+    private void syncEmailFromSupabase(UserEntity user, String email) {
+        if (StringUtils.hasText(email) && !email.equals(user.getEmail())) {
+            user.setEmail(email);
+            userRepository.save(user);
+        }
+    }
+}

@@ -1,78 +1,78 @@
 package br.com.senai.controller;
 
-import br.com.senai.model.DTO.LoginDTO;
-import br.com.senai.model.DTO.SupabaseAuthResponseDTO;
-import br.com.senai.model.DTO.SupabaseUserDTO;
-import br.com.senai.model.DTO.UserDTO;
+import br.com.senai.model.DTO.user.ForgotPasswordDTO;
+import br.com.senai.model.DTO.user.LoginDTO;
+import br.com.senai.model.DTO.user.RefreshTokenDTO;
+import br.com.senai.model.DTO.user.ResetPasswordDTO;
+import br.com.senai.model.DTO.user.SupabaseAuthResponseDTO;
+import br.com.senai.model.DTO.user.SupabaseUserDTO;
+import br.com.senai.model.DTO.user.UserDTO;
+import br.com.senai.model.DTO.user.UserResponseDTO;
 import br.com.senai.model.entity.UserEntity;
-import br.com.senai.service.AuthService;
-import br.com.senai.service.SupabaseAuthService;
+import br.com.senai.service.auth.AuthService;
+import br.com.senai.service.auth.SupabaseAuthService;
 import br.com.senai.util.JWTBlacklist;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
-@RequiredArgsConstructor
 public class AuthController {
-
     private final AuthService authService;
     private final SupabaseAuthService supabaseAuthService;
     private final JWTBlacklist jwtBlacklist;
 
+    public AuthController(AuthService authService, SupabaseAuthService supabaseAuthService, JWTBlacklist jwtBlacklist) {
+        this.authService = authService;
+        this.supabaseAuthService = supabaseAuthService;
+        this.jwtBlacklist = jwtBlacklist;
+    }
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO dto) {
-        try {
-            // 1. Login no Supabase
-            SupabaseAuthResponseDTO supabaseResponse = supabaseAuthService.signIn(dto.getEmail(), dto.getPassword());
-            // 2. Verificar se usuário existe no banco local
-            UserEntity userEntity = authService.findBySupabaseUserId(supabaseResponse.getUser().getId());
-            if (userEntity == null) {
-                return ResponseEntity.badRequest()
-                        .body("Usuário não encontrado no sistema. Faça o cadastro primeiro.");
-            }
-            // 3. Retornar token do Supabase
-            Map<String, Object> response = new HashMap<>();
-            response.put("access_token", supabaseResponse.getAccessToken());
-            response.put("user", userEntity);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginDTO dto) {
+        SupabaseAuthResponseDTO session = supabaseAuthService.signIn(dto.getEmail(), dto.getPassword());
+        authService.resolveUserForSupabaseUser(session.getUser());
+        return ResponseEntity.ok(toSessionResponse(session));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody UserDTO userDTO) {
+        authService.validateRegistrationAvailable(userDTO);
+        SupabaseUserDTO supabaseUserDTO = supabaseAuthService.signUp(userDTO.getEmail(), userDTO.getPassword(), authService.buildUserMetadata(userDTO));
+
+        UserEntity newUser;
         try {
-            // 1. Registrar no Supabase
-            Map<String, Object> userMetadata = new HashMap<>();
-            userMetadata.put("name", userDTO.getName());
-            userMetadata.put("phone", userDTO.getPhoneNumber());
-
-            SupabaseUserDTO supabaseUserDTO = supabaseAuthService.signUp(
-                    userDTO.getEmail(),
-                    userDTO.getPassword(),
-                    userMetadata
-            );
-
-            // 2. Registrar no banco local com o ID do Supabase
-            UserEntity newUser = authService.register(userDTO, supabaseUserDTO.getId());
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Usuário criado com sucesso");
-            response.put("user", newUser);
-            response.put("supabase_user_id", supabaseUserDTO.getId());
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            newUser = authService.register(userDTO, supabaseUserDTO.getId());
+        } catch (RuntimeException ex) {
+            supabaseAuthService.deleteUser(supabaseUserDTO.getId());
+            throw ex;
         }
+        return ResponseEntity.ok(UserResponseDTO.fromEntity(newUser));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordDTO body) {
+        supabaseAuthService.sendPasswordRecovery(body.getEmail(), body.getRedirectTo());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Map<String, Object>> refresh(@Valid @RequestBody RefreshTokenDTO body) {
+        SupabaseAuthResponseDTO session = supabaseAuthService.refreshSession(body.getRefreshToken());
+        return ResponseEntity.ok(toSessionResponse(session));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestHeader("Authorization") String tokenHeader, @Valid @RequestBody ResetPasswordDTO body) {
+        supabaseAuthService.resetPassword(extractBearerToken(tokenHeader), body.getNewPassword());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/logout")
@@ -85,21 +85,31 @@ public class AuthController {
     }
 
     @PostMapping("/validate-token")
-    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String tokenHeader) {
-        try {
-            if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
-                String token = tokenHeader.substring(7);
-                var supabaseUser = supabaseAuthService.validateToken(token);
+    public ResponseEntity<UserResponseDTO> validateToken(@RequestHeader("Authorization") String tokenHeader) {
+        String token = extractBearerToken(tokenHeader);
+        SupabaseUserDTO supabaseUser = supabaseAuthService.validateToken(token);
+        UserEntity userEntity = authService.resolveUserForSupabaseUser(supabaseUser);
+        return ResponseEntity.ok(UserResponseDTO.fromEntity(userEntity));
+    }
 
-                UserEntity userEntity = authService.findBySupabaseUserId(supabaseUser.getId());
-
-                if (userEntity != null) {
-                    return ResponseEntity.ok(userEntity);
-                }
-            }
-            return ResponseEntity.badRequest().body("Token inválido");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Token inválido: " + e.getMessage());
+    private String extractBearerToken(String tokenHeader) {
+        if (tokenHeader == null || !tokenHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Token invalido");
         }
+        return tokenHeader.substring(7);
+    }
+
+    private Map<String, Object> toSessionResponse(SupabaseAuthResponseDTO session) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("access_token", session.getAccessToken());
+
+        if (session.getRefreshToken() != null) {
+            response.put("refresh_token", session.getRefreshToken());
+        }
+        if (session.getExpiresIn() != null) {
+            response.put("expires_in", session.getExpiresIn());
+        }
+
+        return response;
     }
 }
