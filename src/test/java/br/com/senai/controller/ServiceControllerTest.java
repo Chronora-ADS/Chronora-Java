@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class ServiceControllerTest {
@@ -192,7 +193,7 @@ class ServiceControllerTest {
     @Test
     void deveListarPedidosPaginadosViaController() {
         ServiceEntity service = criarServico(10L, ServiceStatus.CRIADO);
-        when(serviceService.getAll(TOKEN_HEADER, 0, 10)).thenReturn(new PageImpl<>(List.of(service)));
+        when(serviceService.getAll(TOKEN_HEADER, 0, 10)).thenReturn(new PageImpl<>(List.of(service), PageRequest.of(0, 10), 1));
 
         var response = serviceController.getAll(TOKEN_HEADER, 0, 10);
         Page<ServiceEntity> page = response.getBody();
@@ -209,7 +210,7 @@ class ServiceControllerTest {
     void deveListarPedidosPorStatusViaController() {
         ServiceEntity service = criarServico(10L, ServiceStatus.ACEITO);
         when(serviceService.filterServices(ServiceStatus.ACEITO, TOKEN_HEADER, 0, 10, null, null, null, null, null, null, "0"))
-                .thenReturn(new PageImpl<>(List.of(service)));
+                .thenReturn(new PageImpl<>(List.of(service), PageRequest.of(0, 10), 1));
 
         var response = serviceController.getAllByStatus(ServiceStatus.ACEITO, TOKEN_HEADER, 0, 10, null, null, null, null, null, null, "0");
         Page<ServiceEntity> page = response.getBody();

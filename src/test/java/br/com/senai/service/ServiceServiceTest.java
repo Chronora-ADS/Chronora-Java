@@ -341,8 +341,6 @@ class ServiceServiceTest {
         service.setVerificationCodeCallCount(1);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
-        when(serviceRepository.save(service)).thenReturn(service);
-
         assertThrows(ExpiredValidationCodeException.class,
                 () -> serviceService.startService(10L, TOKEN_HEADER, "1234"));
 
@@ -371,8 +369,8 @@ class ServiceServiceTest {
         assertTrue(segundaChamada.getVerificationCode().matches("\\d{4}"));
         assertEquals(2, segundaChamada.getVerificationCodeCallCount());
         assertTrue(segundaChamada.getVerificationCodeExpiresAt().isAfter(LocalDateTime.now()));
-        verify(notificationService).create("Segunda chamada iniciada", criador, service);
-        verify(notificationService).create("Segunda chamada iniciada", prestador, service);
+        verify(notificationService).create("Segunda chamada iniciada.", criador, service);
+        verify(notificationService).create("Segunda chamada iniciada.", prestador, service);
     }
 
     @Test
@@ -457,7 +455,7 @@ class ServiceServiceTest {
         assertNull(finalizado.getVerificationCode());
         assertNull(finalizado.getVerificationCodeExpiresAt());
         verify(userService).creditChronosToUser(prestador, 20);
-        verify(notificationService).create("Pedido finalizado", criador, service);
+        verify(notificationService).create("Pedido finalizado.", criador, service);
         verify(notificationService).create("Solicitante finalizou o pedido", prestador, service);
     }
 
@@ -475,8 +473,8 @@ class ServiceServiceTest {
         assertEquals(ServiceStatus.CANCELADO, cancelado.getStatus());
         assertNull(cancelado.getVerificationCode());
         assertNull(cancelado.getVerificationCodeExpiresAt());
-        verify(notificationService).create("Pedido cancelado", criador, service);
-        verify(notificationService).create("Pedido cancelado por Ana", prestador, service);
+        verify(notificationService).create("Pedido cancelado.", criador, service);
+        verify(notificationService).create("Pedido cancelado por Ana.", prestador, service);
     }
 
     @Test
