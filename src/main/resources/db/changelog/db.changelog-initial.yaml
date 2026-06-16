@@ -385,8 +385,15 @@ databaseChangeLog:
   - changeSet:
       id: 0016-alter-modality-to-smallint
       author: seu-nome
+      validCheckSum: ANY
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: character varying
+            sql: SELECT data_type FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'service' AND column_name = 'modality'
       changes:
-        - modifyDataType:
-            tableName: service
-            columnName: modality
-            newDataType: SMALLINT
+        - sql:
+            sql: |
+              UPDATE service SET modality = '0' WHERE modality = 'PRESENCIAL';
+              UPDATE service SET modality = '1' WHERE modality = 'REMOTO';
+              ALTER TABLE service ALTER COLUMN modality TYPE SMALLINT USING modality::SMALLINT;
