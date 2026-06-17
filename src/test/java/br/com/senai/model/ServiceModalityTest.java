@@ -23,4 +23,11 @@ class ServiceModalityTest {
     void deveLancarErroQuandoValorNaoForReconhecido() {
         assertThrows(IllegalArgumentException.class, () -> ServiceModality.fromCodigo(2));
     }
+
+    @Test
+    void deveAceitarTextoDeModalidadeSemHibrido() {
+        assertEquals(ServiceModality.PRESENCIAL, ServiceModality.fromString("Presencial"));
+        assertEquals(ServiceModality.REMOTO, ServiceModality.fromString("Remoto"));
+        assertEquals(ServiceModality.REMOTO, ServiceModality.fromString("A distancia"));
+    }
 }

@@ -2,6 +2,7 @@ package br.com.senai.model.entity;
 
 import br.com.senai.model.enums.ServiceModality;
 import br.com.senai.model.enums.ServiceStatus;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -55,6 +56,7 @@ public class ServiceEntity {
 
     private String verificationCode;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime verificationCodeExpiresAt;
 
     // TODO ISAIAS novamente, para que serve o call count do código de verificação?

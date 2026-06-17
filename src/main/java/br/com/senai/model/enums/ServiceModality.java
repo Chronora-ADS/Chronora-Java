@@ -2,9 +2,13 @@ package br.com.senai.model.enums;
 
 import lombok.Getter;
 
+import java.text.Normalizer;
+import java.util.Locale;
+
 @Getter
 public enum ServiceModality {
-    PRESENCIAL(0), REMOTO(1);
+    PRESENCIAL(0),
+    REMOTO(1);
 
     private final int codigo;
 
@@ -13,28 +17,37 @@ public enum ServiceModality {
     }
 
     public static ServiceModality fromCodigo(int codigo) {
-        for (ServiceModality m : values()) {
-            if (m.codigo == codigo) {
-                return m;
+        for (ServiceModality modality : values()) {
+            if (modality.codigo == codigo) {
+                return modality;
             }
         }
-        throw new IllegalArgumentException("Código inválido: " + codigo + ".");
+        throw new IllegalArgumentException("Codigo invalido: " + codigo + ".");
     }
 
     public static ServiceModality fromString(String text) {
         if (text == null || text.isBlank()) {
-            throw new IllegalArgumentException("Modalidade inválida.");
+            throw new IllegalArgumentException("Modalidade invalida.");
         }
 
-        String normalizedText = text.trim().toUpperCase();
-        if (normalizedText.equals(ServiceModality.PRESENCIAL.name())) {
-            return ServiceModality.PRESENCIAL;
+        String normalizedText = Normalizer.normalize(text.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace('-', '_')
+                .replace(' ', '_')
+                .toUpperCase(Locale.ROOT);
+
+        if (normalizedText.equals("PRESENCIAL")) {
+            return PRESENCIAL;
         }
 
-        if (normalizedText.equals(ServiceModality.REMOTO.name())) {
-            return ServiceModality.REMOTO;
+        if (normalizedText.equals("REMOTO")
+                || normalizedText.equals("REMOTE")
+                || normalizedText.equals("A_DISTANCIA")) {
+            return REMOTO;
         }
 
-        throw new IllegalArgumentException("Modalidade inválida " + text + ".");
+        throw new IllegalArgumentException(
+                "Modalidade inválida. Use Remoto ou Presencial."
+        );
     }
 }
