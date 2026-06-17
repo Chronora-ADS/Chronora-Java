@@ -1,6 +1,7 @@
 package br.com.senai.controller;
 
 import br.com.senai.model.DTO.payment.PaymentTransactionSummaryDTO;
+import br.com.senai.model.DTO.payment.PlatformStatsDTO;
 import br.com.senai.service.payment.ModeratorService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,5 +26,12 @@ public class ModeratorController {
             @RequestHeader("Authorization") String tokenHeader
     ) {
         return ResponseEntity.ok(moderatorService.getAllTransactions(tokenHeader));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<PlatformStatsDTO> getStats(
+            @RequestHeader("Authorization") String tokenHeader
+    ) {
+        return ResponseEntity.ok(moderatorService.getStats(tokenHeader));
     }
 }

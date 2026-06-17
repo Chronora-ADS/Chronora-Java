@@ -1,13 +1,19 @@
 package br.com.senai.service.payment;
 
 import br.com.senai.model.DTO.payment.PaymentTransactionSummaryDTO;
+import br.com.senai.model.DTO.payment.PlatformStatsDTO;
 import br.com.senai.model.entity.UserEntity;
+import br.com.senai.model.enums.PaymentStatus;
+import br.com.senai.model.enums.PaymentType;
+import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.PaymentTransactionRepository;
+import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
 import br.com.senai.service.user.UserService;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -17,21 +23,21 @@ public class ModeratorService {
 
     private final PaymentTransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final ServiceRepository serviceRepository;
     private final UserService userService;
 
     public ModeratorService(PaymentTransactionRepository transactionRepository,
                             UserRepository userRepository,
+                            ServiceRepository serviceRepository,
                             UserService userService) {
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
+        this.serviceRepository = serviceRepository;
         this.userService = userService;
     }
 
     public List<PaymentTransactionSummaryDTO> getAllTransactions(String tokenHeader) {
-        UserEntity requester = userService.getLoggedUser(tokenHeader);
-        if (requester.getRoles() == null || !requester.getRoles().contains("ROLE_MODERATOR")) {
-            throw new RuntimeException("Acesso negado.");
-        }
+        requireModerator(tokenHeader);
 
         var transactions = transactionRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
 
@@ -42,5 +48,49 @@ public class ModeratorService {
         return transactions.stream()
                 .map(t -> PaymentTransactionSummaryDTO.from(t, userNames.getOrDefault(t.getUserId(), "Desconhecido")))
                 .toList();
+    }
+
+    public PlatformStatsDTO getStats(String tokenHeader) {
+        requireModerator(tokenHeader);
+
+        long totalUsuarios = userRepository.count();
+
+        long totalPedidos      = serviceRepository.count();
+        long pedidosCriados    = serviceRepository.findAllByStatusIs(ServiceStatus.CRIADO).size();
+        long pedidosEmAndamento= serviceRepository.findAllByStatusIs(ServiceStatus.EM_ANDAMENTO).size();
+        long pedidosConcluidos = serviceRepository.findAllByStatusIs(ServiceStatus.CONCLUIDO).size();
+        long pedidosCancelados = serviceRepository.findAllByStatusIs(ServiceStatus.CANCELADO).size();
+
+        long totalTransacoes    = transactionRepository.count();
+        long transacoesPagas    = transactionRepository.countByStatus(PaymentStatus.PAID);
+        long transacoesPendentes= transactionRepository.countByStatus(PaymentStatus.PENDING);
+        long transacoesFalhas   = transactionRepository.countByStatus(PaymentStatus.FAILED);
+
+        Long chronosComprados = transactionRepository.sumChronosByTypeAndStatus(PaymentType.BUY, PaymentStatus.PAID);
+        Long chronosVendidos  = transactionRepository.sumChronosByTypeAndStatus(PaymentType.SELL, PaymentStatus.PAID);
+        BigDecimal volume     = transactionRepository.sumAmountByStatus(PaymentStatus.PAID);
+
+        return new PlatformStatsDTO(
+                totalUsuarios,
+                totalPedidos,
+                pedidosCriados,
+                pedidosEmAndamento,
+                pedidosConcluidos,
+                pedidosCancelados,
+                totalTransacoes,
+                transacoesPagas,
+                transacoesPendentes,
+                transacoesFalhas,
+                chronosComprados != null ? chronosComprados : 0L,
+                chronosVendidos  != null ? chronosVendidos  : 0L,
+                volume != null ? volume : BigDecimal.ZERO
+        );
+    }
+
+    private void requireModerator(String tokenHeader) {
+        UserEntity requester = userService.getLoggedUser(tokenHeader);
+        if (requester.getRoles() == null || !requester.getRoles().contains("ROLE_MODERATOR")) {
+            throw new RuntimeException("Acesso negado.");
+        }
     }
 }
