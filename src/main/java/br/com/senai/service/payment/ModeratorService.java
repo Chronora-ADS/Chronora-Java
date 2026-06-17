@@ -2,6 +2,8 @@ package br.com.senai.service.payment;
 
 import br.com.senai.model.DTO.payment.PaymentTransactionSummaryDTO;
 import br.com.senai.model.DTO.payment.PlatformStatsDTO;
+import br.com.senai.model.DTO.service.ModeratorServiceSummaryDTO;
+import br.com.senai.model.DTO.user.UserResponseDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.PaymentStatus;
 import br.com.senai.model.enums.PaymentType;
@@ -85,6 +87,22 @@ public class ModeratorService {
                 chronosVendidos  != null ? chronosVendidos  : 0L,
                 volume != null ? volume : BigDecimal.ZERO
         );
+    }
+
+    public List<UserResponseDTO> getAllUsers(String tokenHeader) {
+        requireModerator(tokenHeader);
+        return userRepository.findAll(Sort.by(Sort.Direction.ASC, "name"))
+                .stream()
+                .map(UserResponseDTO::fromEntity)
+                .toList();
+    }
+
+    public List<ModeratorServiceSummaryDTO> getAllServices(String tokenHeader) {
+        requireModerator(tokenHeader);
+        return serviceRepository.findAll(Sort.by(Sort.Direction.DESC, "postedAt"))
+                .stream()
+                .map(ModeratorServiceSummaryDTO::from)
+                .toList();
     }
 
     private void requireModerator(String tokenHeader) {
