@@ -26,6 +26,7 @@ public class SecurityConfig {
                     .requestMatchers("/health").permitAll()
                     .requestMatchers("/healthz").permitAll()
                     .requestMatchers("/payment/webhook").permitAll()
+                    .requestMatchers("/monitoring/**").permitAll()
                     .anyRequest().authenticated())
             .httpBasic(Customizer.withDefaults());
 
