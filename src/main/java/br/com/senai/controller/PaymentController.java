@@ -38,7 +38,7 @@ public class PaymentController {
             @RequestHeader("Authorization") String tokenHeader,
             @RequestBody @Valid BuyChronosRequestDTO request
     ) {
-        BuyChronosResponseDTO response = paymentService.createBuyPayment(tokenHeader, request.chronosAmount());
+        BuyChronosResponseDTO response = paymentService.createBuyPayment(tokenHeader, request);
         return ResponseEntity.ok(response);
     }
 

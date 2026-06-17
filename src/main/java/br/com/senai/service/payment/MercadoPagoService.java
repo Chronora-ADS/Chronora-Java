@@ -3,6 +3,7 @@ package br.com.senai.service.payment;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
+import com.mercadopago.client.payment.PaymentPayerIdentificationRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
@@ -70,6 +71,41 @@ public class MercadoPagoService {
         }
     }
 
+    public CardPaymentResult createCardPayment(BigDecimal amount, String description,
+                                               String payerEmail, String cardToken,
+                                               String cardPaymentMethodId, int installments,
+                                               String payerDocNumber) {
+        try {
+            PaymentCreateRequest request = PaymentCreateRequest.builder()
+                    .transactionAmount(amount)
+                    .description(description)
+                    .token(cardToken)
+                    .installments(installments)
+                    .paymentMethodId(cardPaymentMethodId)
+                    .payer(PaymentPayerRequest.builder()
+                            .email(payerEmail)
+                            .identification(PaymentPayerIdentificationRequest.builder()
+                                    .type("CPF")
+                                    .number(payerDocNumber)
+                                    .build())
+                            .build())
+                    .build();
+
+            PaymentClient client = new PaymentClient();
+            Payment payment = client.create(request);
+
+            logger.info("Pagamento cartao criado: id={}, status={}", payment.getId(), payment.getStatus());
+            return new CardPaymentResult(payment.getId(), payment.getStatus());
+        } catch (MPApiException e) {
+            String detail = e.getApiResponse() != null ? e.getApiResponse().getContent() : e.getMessage();
+            logger.error("MP API error ao criar pagamento cartao: status={}, body={}", e.getStatusCode(), detail);
+            throw new RuntimeException("Erro ao criar pagamento com cartao: " + detail, e);
+        } catch (MPException e) {
+            logger.error("MP error ao criar pagamento cartao: {}", e.getMessage());
+            throw new RuntimeException("Erro ao criar pagamento com cartao: " + e.getMessage(), e);
+        }
+    }
+
     public PixPaymentResult sendPixPayout(BigDecimal amount, String pixKey, String payerEmail) {
         try {
             PaymentCreateRequest request = PaymentCreateRequest.builder()
@@ -116,5 +152,11 @@ public class MercadoPagoService {
         private final String qrCode;
         private final String qrCodeBase64;
         private final OffsetDateTime expiresAt;
+    }
+
+    @Data
+    public static class CardPaymentResult {
+        private final Long mpPaymentId;
+        private final String status;
     }
 }
