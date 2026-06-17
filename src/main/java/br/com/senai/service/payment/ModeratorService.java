@@ -60,10 +60,10 @@ public class ModeratorService {
         long totalUsuarios = userRepository.count();
 
         long totalPedidos      = serviceRepository.count();
-        long pedidosCriados    = serviceRepository.findAllByStatusIs(ServiceStatus.CRIADO).size();
-        long pedidosEmAndamento= serviceRepository.findAllByStatusIs(ServiceStatus.EM_ANDAMENTO).size();
-        long pedidosConcluidos = serviceRepository.findAllByStatusIs(ServiceStatus.CONCLUIDO).size();
-        long pedidosCancelados = serviceRepository.findAllByStatusIs(ServiceStatus.CANCELADO).size();
+        long pedidosCriados    = serviceRepository.countByStatus(ServiceStatus.CRIADO);
+        long pedidosEmAndamento= serviceRepository.countByStatus(ServiceStatus.EM_ANDAMENTO);
+        long pedidosConcluidos = serviceRepository.countByStatus(ServiceStatus.CONCLUIDO);
+        long pedidosCancelados = serviceRepository.countByStatus(ServiceStatus.CANCELADO);
 
         long totalTransacoes    = transactionRepository.count();
         long transacoesPagas    = transactionRepository.countByStatus(PaymentStatus.PAID);
@@ -93,7 +93,7 @@ public class ModeratorService {
 
     public List<UserResponseDTO> getAllUsers(String tokenHeader) {
         requireModerator(tokenHeader);
-        return userRepository.findAll(Sort.by(Sort.Direction.ASC, "name"))
+        return userRepository.findAllWithRoles()
                 .stream()
                 .map(UserResponseDTO::fromEntity)
                 .toList();
@@ -101,7 +101,7 @@ public class ModeratorService {
 
     public List<ModeratorServiceSummaryDTO> getAllServices(String tokenHeader) {
         requireModerator(tokenHeader);
-        return serviceRepository.findAll(Sort.by(Sort.Direction.DESC, "postedAt"))
+        return serviceRepository.findAllWithCategoriesOrderByPostedAtDesc()
                 .stream()
                 .map(ModeratorServiceSummaryDTO::from)
                 .toList();

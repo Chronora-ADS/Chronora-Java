@@ -16,7 +16,8 @@ public record PaymentTransactionSummaryDTO(
         Integer chronosAmount,
         BigDecimal totalAmount,
         String createdAt,
-        boolean isPix
+        boolean isPix,
+        Long mpPaymentId
 ) {
     public static PaymentTransactionSummaryDTO from(PaymentTransactionEntity t, String userName) {
         return new PaymentTransactionSummaryDTO(
@@ -28,7 +29,8 @@ public record PaymentTransactionSummaryDTO(
                 t.getChronosAmount(),
                 t.getTotalAmount(),
                 t.getCreatedAt().atOffset(ZoneOffset.UTC).toString(),
-                t.getQrCode() != null
+                t.getQrCode() != null,
+                t.getMpPaymentId()
         );
     }
 }
