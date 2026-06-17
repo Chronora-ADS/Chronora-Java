@@ -3,6 +3,8 @@ package br.com.senai.model.DTO.user;
 import br.com.senai.model.entity.UserEntity;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class UserResponseDTO {
     private Long id;
@@ -13,6 +15,7 @@ public class UserResponseDTO {
     private Double rating;
     private String profileImage;
     private DocumentResponseDTO document;
+    private List<String> roles;
 
     public static UserResponseDTO fromEntity(UserEntity userEntity) {
         UserResponseDTO response = new UserResponseDTO();
@@ -24,6 +27,7 @@ public class UserResponseDTO {
         response.setRating(userEntity.getRating() != null ? userEntity.getRating() : 0.0);
         response.setProfileImage(userEntity.getProfileImage());
         response.setDocument(DocumentResponseDTO.fromEntity(userEntity.getDocumentEntity()));
+        response.setRoles(userEntity.getRoles());
         return response;
     }
 }
