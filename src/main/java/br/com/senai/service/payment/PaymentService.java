@@ -7,7 +7,9 @@ import br.com.senai.model.entity.PaymentTransactionEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.PaymentStatus;
 import br.com.senai.model.enums.PaymentType;
+import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.PaymentTransactionRepository;
+import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
 import br.com.senai.service.user.UserService;
 import br.com.senai.service.notification.NotificationService;
@@ -33,17 +35,20 @@ public class PaymentService {
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final ServiceRepository serviceRepository;
 
     public PaymentService(UserService userService,
                           MercadoPagoService mercadoPagoService,
                           PaymentTransactionRepository paymentTransactionRepository,
                           UserRepository userRepository,
-                          NotificationService notificationService) {
+                          NotificationService notificationService,
+                          ServiceRepository serviceRepository) {
         this.userService = userService;
         this.mercadoPagoService = mercadoPagoService;
         this.paymentTransactionRepository = paymentTransactionRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.serviceRepository = serviceRepository;
     }
 
     @Transactional
@@ -213,6 +218,15 @@ public class PaymentService {
 
         if (user.getTimeChronos() - chronosAmount < 0) {
             throw new QuantityChronosInvalidException("Saldo insuficiente de Chronos.");
+        }
+
+        int reservedChronos = serviceRepository.sumTimeChronosByUserCreatorAndStatus(user, ServiceStatus.EM_ANDAMENTO);
+        int availableChronos = user.getTimeChronos() - reservedChronos;
+        if (chronosAmount > availableChronos) {
+            throw new QuantityChronosInvalidException(
+                "Você tem " + reservedChronos + " Chronos reservados em pedidos em andamento. " +
+                "Máximo disponível para venda: " + availableChronos + "."
+            );
         }
 
         BigDecimal subtotal = CHRONOS_SELL_PRICE.multiply(BigDecimal.valueOf(chronosAmount));
