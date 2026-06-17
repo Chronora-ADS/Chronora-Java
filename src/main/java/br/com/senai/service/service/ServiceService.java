@@ -27,6 +27,7 @@ import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -210,7 +211,7 @@ public class ServiceService {
             throw new IncorrectValidationCodeException("Codigo de verificacao indisponivel");
         }
 
-        if (LocalDateTime.now().isAfter(service.getVerificationCodeExpiresAt())) {
+        if (nowForVerificationCode().isAfter(service.getVerificationCodeExpiresAt())) {
             UserEntity acceptedUser = service.getUserAccepted();
             if (isFinalVerificationCodeCall(service)) {
                 reopenAcceptedService(service);
@@ -249,7 +250,7 @@ public class ServiceService {
             throw new AuthException("Credenciais inválidas.");
         }
 
-        if (LocalDateTime.now().isBefore(service.getVerificationCodeExpiresAt())) {
+        if (nowForVerificationCode().isBefore(service.getVerificationCodeExpiresAt())) {
             return service;
         }
 
@@ -275,7 +276,7 @@ public class ServiceService {
             throw new AuthException("Este pedido não está aguardando segunda chamada.");
         }
 
-        if (LocalDateTime.now().isBefore(service.getVerificationCodeExpiresAt())) {
+        if (nowForVerificationCode().isBefore(service.getVerificationCodeExpiresAt())) {
             throw new AuthException("A segunda chamada só pode ser iniciada após o codigo expirar.");
         }
 
@@ -694,8 +695,12 @@ public class ServiceService {
 
     private void startVerificationCodeCall(ServiceEntity service, int callCount) {
         service.setVerificationCode(generateVerificationCode());
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES));
         service.setVerificationCodeCallCount(callCount);
+    }
+
+    private LocalDateTime nowForVerificationCode() {
+        return LocalDateTime.now(ZoneOffset.UTC);
     }
 
     private boolean isFinalVerificationCodeCall(ServiceEntity service) {

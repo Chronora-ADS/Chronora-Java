@@ -29,6 +29,7 @@ import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.ServiceRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -287,7 +288,7 @@ class ServiceServiceTest {
     void deveIniciarPedidoComCodigoCorreto() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().plusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
@@ -305,7 +306,7 @@ class ServiceServiceTest {
     void deveIniciarPedidoComCodigoCorretoEmJson() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().plusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
@@ -323,7 +324,7 @@ class ServiceServiceTest {
     void deveRetornarErroQuandoCodigoDeVerificacaoForIncorreto() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().plusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
 
@@ -337,7 +338,7 @@ class ServiceServiceTest {
     void deveManterPedidoAceitoQuandoPrimeiraChamadaExpirar() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().minusMinutes(1));
         service.setVerificationCodeCallCount(1);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
@@ -355,7 +356,7 @@ class ServiceServiceTest {
     void deveIniciarSegundaChamadaQuandoPrimeiraChamadaExpirar() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().minusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
@@ -368,7 +369,7 @@ class ServiceServiceTest {
         assertNotNull(segundaChamada.getVerificationCode());
         assertTrue(segundaChamada.getVerificationCode().matches("\\d{4}"));
         assertEquals(2, segundaChamada.getVerificationCodeCallCount());
-        assertTrue(segundaChamada.getVerificationCodeExpiresAt().isAfter(LocalDateTime.now()));
+        assertTrue(segundaChamada.getVerificationCodeExpiresAt().isAfter(nowForVerificationCode()));
         verify(notificationService).create("Segunda chamada iniciada.", criador, service);
         verify(notificationService).create("Segunda chamada iniciada.", prestador, service);
     }
@@ -377,7 +378,7 @@ class ServiceServiceTest {
     void deveRejeitarSegundaChamadaAntesDaPrimeiraExpirar() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().plusMinutes(1));
         service.setVerificationCodeCallCount(1);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
@@ -392,7 +393,7 @@ class ServiceServiceTest {
     void deveRejeitarSegundaChamadaQuandoUsuarioNaoForSolicitante() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().minusMinutes(1));
         service.setVerificationCodeCallCount(1);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(prestador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
@@ -407,7 +408,7 @@ class ServiceServiceTest {
     void deveExpirarAceiteDePedidoQuandoSegundaChamadaVencer() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().minusMinutes(1));
         service.setVerificationCodeCallCount(2);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
@@ -443,7 +444,7 @@ class ServiceServiceTest {
     void deveFinalizarPedidoComSucessoEDispararNotificacoes() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.AGUARDANDO_CONFIRMACAO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().plusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
@@ -463,7 +464,7 @@ class ServiceServiceTest {
     void deveCancelarPedidoComoProprietarioEDispararNotificacoesParaAsPartes() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.EM_ANDAMENTO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().plusMinutes(1));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
         when(serviceRepository.save(service)).thenReturn(service);
@@ -481,7 +482,7 @@ class ServiceServiceTest {
     void deveCancelarServicoAceitoEReabrirPedidoAntesDaJustificativa() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().plusMinutes(1));
         service.setVerificationCodeCallCount(1);
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
         when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
@@ -510,7 +511,7 @@ class ServiceServiceTest {
     void deveRegistrarJustificativaRecebidaNoCancelamentoENotificarOsDoisParticipantes() {
         ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().plusMinutes(1));
         service.setVerificationCodeCallCount(1);
         ServiceCancellationDTO cancellationDTO = new ServiceCancellationDTO();
         cancellationDTO.setJustification("Texto que deve ficar somente no aplicativo.");
@@ -719,7 +720,7 @@ class ServiceServiceTest {
         ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
         service.setDeadline(hoje.minusDays(1));
         service.setVerificationCode("1234");
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(1));
+        service.setVerificationCodeExpiresAt(nowForVerificationCode().plusMinutes(1));
 
         when(serviceRepository.findAllByStatusAndDeadline(ServiceStatus.CRIADO, hoje))
                 .thenReturn(List.of());
@@ -825,6 +826,10 @@ class ServiceServiceTest {
         service.setUserCreator(userCreator);
         service.setUserAccepted(userAccepted);
         return service;
+    }
+
+    private LocalDateTime nowForVerificationCode() {
+        return LocalDateTime.now(ZoneOffset.UTC);
     }
 
     private UserEntity criarUsuario(Long id, String nome, int chronos) {
