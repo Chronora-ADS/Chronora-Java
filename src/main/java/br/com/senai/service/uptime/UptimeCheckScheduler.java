@@ -27,7 +27,7 @@ public class UptimeCheckScheduler {
 
     public UptimeCheckScheduler(UptimeCheckRepository uptimeCheckRepository,
                                 @Value("${server.port:8085}") int serverPort,
-                                @Value("${management.endpoints.web.base-path:/actuator}") String healthPath) {
+                                @Value("${management.endpoints.web.base-path:/health}") String healthPath) {
         this.uptimeCheckRepository = uptimeCheckRepository;
         this.serverPort = serverPort;
         this.healthPath = healthPath;
