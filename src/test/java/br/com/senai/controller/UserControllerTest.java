@@ -58,7 +58,7 @@ class UserControllerTest {
         assertEquals(200, response.getStatusCode().value());
         assertEquals("Ana Silva", response.getBody().getName());
         assertEquals("https://storage/avatar.jpg", response.getBody().getProfileImage());
-        assertEquals(0.0, response.getBody().getRating());
+        assertEquals(4.25, response.getBody().getRating());
         verify(userService).getLoggedUser(TOKEN_HEADER);
     }
 
@@ -95,6 +95,7 @@ class UserControllerTest {
         user.setPassword("hash");
         user.setTimeChronos(chronos);
         user.setProfileImage("https://storage/avatar.jpg");
+        user.setRating(4.25);
         user.setSupabaseUserId("supabase-123");
         return user;
     }
