@@ -4,10 +4,10 @@ services:
     runtime: docker
     plan: free
     region: oregon
-    branch: main
+    branch: master
     dockerfilePath: ./Dockerfile
     healthCheckPath: /healthz
-    autoDeployTrigger: commit
+    autoDeployTrigger: github_actions
     envVars:
       - key: PORT
         value: 10000
