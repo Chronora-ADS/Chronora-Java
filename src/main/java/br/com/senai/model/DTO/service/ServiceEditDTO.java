@@ -1,6 +1,7 @@
 package br.com.senai.model.DTO.service;
 
 import br.com.senai.model.entity.CategoryEntity;
+import br.com.senai.model.enums.TrackingType;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
@@ -32,4 +33,8 @@ public class ServiceEditDTO {
 
     private List<CategoryEntity> categoryEntities;
     private String serviceImage;
+    private TrackingType trackingType;
+
+    @Size(max = 500, message = "Descricao da metrica de progresso deve ter no maximo 500 caracteres.")
+    private String trackingDescription;
 }

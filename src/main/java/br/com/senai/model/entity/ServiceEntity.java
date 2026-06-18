@@ -2,6 +2,7 @@ package br.com.senai.model.entity;
 
 import br.com.senai.model.enums.ServiceModality;
 import br.com.senai.model.enums.ServiceStatus;
+import br.com.senai.model.enums.TrackingType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.CollectionTable;
@@ -53,6 +54,13 @@ public class ServiceEntity {
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = false)
     private ServiceStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tracking_type", nullable = false, length = 20)
+    private TrackingType trackingType = TrackingType.TIME;
+
+    @Column(name = "tracking_description", length = 500)
+    private String trackingDescription;
 
     private String verificationCode;
 

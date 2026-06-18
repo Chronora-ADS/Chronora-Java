@@ -12,6 +12,7 @@ import br.com.senai.model.DTO.service.ServiceEditDTO;
 import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.enums.ServiceModality;
 import br.com.senai.model.enums.ServiceStatus;
+import br.com.senai.model.enums.TrackingType;
 import br.com.senai.service.service.ServiceService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -239,7 +240,9 @@ class ServiceControllerTest {
                 "Remoto",
                 LocalDate.now().plusDays(10),
                 List.of("Programacao"),
-                "base64-imagem"
+                "base64-imagem",
+                TrackingType.TIME,
+                null
         );
     }
 

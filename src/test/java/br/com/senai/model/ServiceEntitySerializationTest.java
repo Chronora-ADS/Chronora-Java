@@ -3,6 +3,7 @@ package br.com.senai.model;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.com.senai.model.entity.ServiceEntity;
+import br.com.senai.model.enums.TrackingType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.LocalDateTime;
@@ -19,11 +20,15 @@ class ServiceEntitySerializationTest {
         service.setVerificationCodeExpiresAt(
                 LocalDateTime.of(2026, 6, 17, 22, 32, 8)
         );
+        service.setTrackingType(TrackingType.CUSTOM);
+        service.setTrackingDescription("Por metro quadrado pintado");
 
         String json = mapper.writeValueAsString(service);
 
         assertTrue(json.contains(
                 "\"verificationCodeExpiresAt\":\"2026-06-17T22:32:08.000Z\""
         ));
+        assertTrue(json.contains("\"trackingType\":\"CUSTOM\""));
+        assertTrue(json.contains("\"trackingDescription\":\"Por metro quadrado pintado\""));
     }
 }

@@ -13,6 +13,7 @@ import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.ServiceModality;
 import br.com.senai.model.enums.ServiceStatus;
+import br.com.senai.model.enums.TrackingType;
 import br.com.senai.repository.ServiceRepository;
 import br.com.senai.service.auth.SupabaseAuthService;
 import br.com.senai.service.user.UserService;
@@ -53,6 +54,7 @@ public class ServiceService {
     private static final int FIRST_VERIFICATION_CODE_CALL = 1;
     private static final int SECOND_VERIFICATION_CODE_CALL = 2;
     private static final int MAX_CATEGORY_COUNT = 10;
+    private static final int MAX_TRACKING_DESCRIPTION_LENGTH = 500;
     private static final int MAX_CANCELLATION_JUSTIFICATION_LENGTH = 1000;
     private static final String SERVICE_CANCELLATION_JUSTIFICATION_MESSAGE =
             "Justificativa de cancelamento do servico";
@@ -73,6 +75,10 @@ public class ServiceService {
         validateServiceChronos(serviceDTO.getTimeChronos());
         validateDescription(serviceDTO.getDescription());
         validateCategories(serviceDTO.getCategories());
+        String trackingDescription = normalizeTrackingDescription(
+                serviceDTO.getTrackingType(),
+                serviceDTO.getTrackingDescription()
+        );
 
         if (serviceDTO.getTimeChronos() > userEntity.getTimeChronos()) {
             throw new QuantityChronosInvalidException("Quantidade de chronos do serviço superior à quantidade em carteira.");
@@ -86,6 +92,8 @@ public class ServiceService {
         service.setModality(ServiceModality.fromString(serviceDTO.getModality()));
         service.setPostedAt(LocalDateTime.now());
         service.setStatus(ServiceStatus.CRIADO);
+        service.setTrackingType(serviceDTO.getTrackingType());
+        service.setTrackingDescription(trackingDescription);
         service.setCategoryEntities(buildCategories(serviceDTO.getCategories()));
         service.setUserCreator(userEntity);
 
@@ -108,6 +116,8 @@ public class ServiceService {
         if (!Objects.equals(service.getUserCreator().getId(), userEntity.getId())) {
             throw new AuthException("Credenciais inválidas.");
         }
+
+        updateTrackingMetric(service, serviceEditDTO);
 
         if (serviceEditDTO.getTitle() != null && !serviceEditDTO.getTitle().isBlank()) {
             service.setTitle(serviceEditDTO.getTitle().trim());
@@ -844,6 +854,61 @@ public class ServiceService {
         if (description.length() > 2500) {
             throw new IllegalArgumentException("Descrição do serviço deve ter no máximo 2500 caracteres.");
         }
+    }
+
+    private void updateTrackingMetric(ServiceEntity service, ServiceEditDTO serviceEditDTO) {
+        boolean trackingUpdateRequested = serviceEditDTO.getTrackingType() != null
+                || serviceEditDTO.getTrackingDescription() != null;
+        if (!trackingUpdateRequested) {
+            return;
+        }
+
+        if (service.getStatus() != ServiceStatus.CRIADO) {
+            throw new IllegalArgumentException(
+                    "A metrica de progresso nao pode ser alterada apos o aceite do pedido."
+            );
+        }
+
+        TrackingType trackingType = serviceEditDTO.getTrackingType() != null
+                ? serviceEditDTO.getTrackingType()
+                : service.getTrackingType();
+        String trackingDescription = normalizeTrackingDescription(
+                trackingType,
+                serviceEditDTO.getTrackingDescription() != null
+                        ? serviceEditDTO.getTrackingDescription()
+                        : service.getTrackingDescription()
+        );
+
+        service.setTrackingType(trackingType);
+        service.setTrackingDescription(trackingDescription);
+    }
+
+    private String normalizeTrackingDescription(
+            TrackingType trackingType,
+            String trackingDescription
+    ) {
+        if (trackingType == null) {
+            throw new IllegalArgumentException("Metrica de progresso do servico e obrigatoria.");
+        }
+
+        if (trackingType != TrackingType.CUSTOM) {
+            return null;
+        }
+
+        if (trackingDescription == null || trackingDescription.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Descreva como o progresso sera medido para a metrica customizada."
+            );
+        }
+
+        String normalizedDescription = trackingDescription.trim();
+        if (normalizedDescription.length() > MAX_TRACKING_DESCRIPTION_LENGTH) {
+            throw new IllegalArgumentException(
+                    "Descricao da metrica de progresso deve ter no maximo 500 caracteres."
+            );
+        }
+
+        return normalizedDescription;
     }
 
     private void validateCategories(List<String> categories) {

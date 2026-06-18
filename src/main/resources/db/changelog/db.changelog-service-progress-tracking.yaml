@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260618-add-service-progress-tracking
+      author: codex
+      comment: Adiciona a metrica imutavel de acompanhamento de progresso ao pedido.
+      changes:
+        - addColumn:
+            tableName: service
+            columns:
+              - column:
+                  name: tracking_type
+                  type: VARCHAR(20)
+                  defaultValue: TIME
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tracking_description
+                  type: VARCHAR(500)
+        - sql:
+            sql: |
+              ALTER TABLE service
+              ADD CONSTRAINT chk_service_tracking_type
+              CHECK (tracking_type IN ('TIME', 'COMPLETION', 'CUSTOM'));
+              ALTER TABLE service
+              ADD CONSTRAINT chk_service_custom_tracking_description
+              CHECK (tracking_type <> 'CUSTOM' OR (tracking_description IS NOT NULL AND CHAR_LENGTH(TRIM(tracking_description)) > 0));
+      rollback:
+        - sql:
+            sql: |
+              ALTER TABLE service DROP CONSTRAINT chk_service_custom_tracking_description;
+              ALTER TABLE service DROP CONSTRAINT chk_service_tracking_type;
+        - dropColumn:
+            tableName: service
+            columnName: tracking_description
+        - dropColumn:
+            tableName: service
+            columnName: tracking_type
