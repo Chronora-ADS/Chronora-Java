@@ -292,30 +292,6 @@ public class ServiceService {
     }
 
     @Transactional
-    public ServiceEntity renewVerificationCode(Long id, String tokenHeader) {
-        UserEntity user = userService.getLoggedUser(tokenHeader);
-        ServiceEntity service = getById(id);
-
-        if (!Objects.equals(service.getUserCreator().getId(), user.getId())) {
-            throw new AuthException("Somente o solicitante pode renovar o codigo.");
-        }
-
-        if (service.getStatus() != ServiceStatus.ACEITO || service.getUserAccepted() == null) {
-            throw new AuthException("Este pedido nao esta aguardando confirmacao de inicio.");
-        }
-
-        if (isFinalVerificationCodeCall(service)) {
-            throw new AuthException("Use a segunda chamada para gerar um novo codigo.");
-        }
-
-        service.setVerificationCode(generateVerificationCode());
-        service.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES));
-        service = serviceRepository.save(service);
-
-        return service;
-    }
-
-    @Transactional
     public ServiceEntity finishService(Long id, String tokenHeader) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
         ServiceEntity service = getById(id);
