@@ -33,6 +33,11 @@ public class PaymentController {
         this.objectMapper = objectMapper;
     }
 
+    @GetMapping("/config")
+    public ResponseEntity<java.util.Map<String, Object>> getChronosConfig() {
+        return ResponseEntity.ok(paymentService.getChronosConfig());
+    }
+
     @PostMapping("/buy/create")
     public ResponseEntity<BuyChronosResponseDTO> createBuyPayment(
             @RequestHeader("Authorization") String tokenHeader,
