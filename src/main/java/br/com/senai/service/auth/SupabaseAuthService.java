@@ -154,7 +154,16 @@ public class SupabaseAuthService {
             throw new SupabaseIntegrationException("Erro no cadastro no Supabase: " + response.getStatusCode(), null);
         } catch (HttpClientErrorException.Conflict e) {
             throw new EmailAlreadyExistsException(email);
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
+        } catch (HttpClientErrorException e) {
+            String responseBody = e.getResponseBodyAsString();
+            if (responseBody != null && (
+                    responseBody.contains("user_already_exists") ||
+                    responseBody.contains("User already registered") ||
+                    responseBody.contains("Email already registered"))) {
+                throw new EmailAlreadyExistsException(email);
+            }
+            throw new SupabaseIntegrationException("Erro na chamada ao cadastrar no Supabase", e);
+        } catch (HttpServerErrorException e) {
             throw new SupabaseIntegrationException("Erro na chamada ao cadastrar no Supabase", e);
         } catch (RestClientException e) {
             throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
