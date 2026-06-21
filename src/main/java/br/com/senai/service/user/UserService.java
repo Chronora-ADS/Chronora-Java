@@ -8,18 +8,15 @@ import br.com.senai.model.DTO.user.DocumentDTO;
 import br.com.senai.model.DTO.user.SupabaseUserDTO;
 import br.com.senai.model.DTO.user.UserEditDTO;
 import br.com.senai.model.entity.DocumentEntity;
-import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
-import br.com.senai.model.enums.ServiceStatus;
-import br.com.senai.repository.NotificationRepository;
-import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
 import br.com.senai.service.auth.AuthService;
 import br.com.senai.service.auth.SupabaseAuthService;
 import br.com.senai.service.service.SupabaseStorageService;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -35,8 +32,6 @@ public class UserService {
     private final SupabaseAuthService supabaseAuthService;
     private final SupabaseStorageService storageService;
     private final PasswordEncoder passwordEncoder;
-    private final ServiceRepository serviceRepository;
-    private final NotificationRepository notificationRepository;
 
     public UserEntity buyChronos(String tokenHeader, Integer chronos) {
         UserEntity userEntity = getLoggedUser(tokenHeader);
@@ -87,7 +82,7 @@ public class UserService {
         if (id == null) {
             return Optional.empty();
         }
-        return userRepository.findById(id);
+        return userRepository.findById(id).filter(UserEntity::isActive);
     }
 
     public UserEntity put(UserEditDTO userEditDTO, String tokenHeader) {
@@ -153,13 +148,9 @@ public class UserService {
     @Transactional
     public void delete(String tokenHeader) {
         UserEntity user = getLoggedUser(tokenHeader);
-        deleteUserDependencies(user);
-
-        if (user.getSupabaseUserId() != null && !user.getSupabaseUserId().isBlank()) {
-            supabaseAuthService.deleteUser(user.getSupabaseUserId());
-        }
-
-        userRepository.delete(user);
+        user.setActive(false);
+        user.setDeletedAt(LocalDateTime.now(ZoneOffset.UTC));
+        userRepository.save(user);
     }
 
     private String extractBearerToken(String tokenHeader) {
@@ -178,32 +169,6 @@ public class UserService {
             metadata.put("phone", phoneNumber);
         }
         supabaseAuthService.updateUser(extractBearerToken(tokenHeader), email, password, metadata);
-    }
-
-    private void deleteUserDependencies(UserEntity user) {
-        notificationRepository.deleteAllByUser(user);
-
-        for (ServiceEntity acceptedService : serviceRepository.findAllByUserAccepted(user)) {
-            acceptedService.setUserAccepted(null);
-            // TODO GABRIEL adicionar notificações para o usuário que criou o pedido ficar sabendo que o outro usuário foi deletado
-            if (acceptedService.getStatus() == ServiceStatus.ACEITO) {
-                acceptedService.setStatus(ServiceStatus.CRIADO);
-            } else if (acceptedService.getStatus() == ServiceStatus.EM_ANDAMENTO) {
-                // TODO GABRIEL ver sobre o que fazer se o usuário deletar o perfil tendo um pedido em andamento
-                acceptedService.setStatus(ServiceStatus.CANCELADO);
-            }
-            acceptedService.setVerificationCode(null);
-            acceptedService.setVerificationCodeExpiresAt(null);
-            serviceRepository.save(acceptedService);
-        }
-
-        List<ServiceEntity> createdServices = serviceRepository.findAllByUserCreator(user);
-        if (!createdServices.isEmpty()) {
-            // TODO GABRIEL ver o que fazer se os serviços criados pelo usuário que vai ser deletado vão ser tratados
-            //  os que aceitaram o pedido deveria ter uma notificação, os que estão em andamento não sei o que fazer
-            notificationRepository.deleteAllByServiceIn(createdServices);
-            serviceRepository.deleteAll(createdServices);
-        }
     }
 
     private void validateChronosAmount(Integer chronos) {

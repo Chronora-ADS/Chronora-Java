@@ -153,17 +153,6 @@ class FuncionalidadesFuturasBddTest {
             fail("Implementar quando edicao de perfil validar senha atual.");
         }
 
-        @Test
-        @Disabled("Pendente: exclusao atual remove dados fisicamente; ainda nao ha desativacao logica.")
-        @DisplayName("Cenario: desativar conta logicamente apos confirmacao de exclusao")
-        void deveDesativarContaLogicamenteAposConfirmacaoDeExclusao() {
-            // Dado que existe um usuario autenticado
-            // Quando confirmar a exclusao da conta
-            // Entao a conta deve ser marcada como inativa ou deletada logicamente
-            // E os dados historicos necessarios devem ser preservados
-            // E novas autenticacoes devem ser bloqueadas
-            fail("Implementar quando UserEntity possuir active/deletedAt/status de exclusao logica.");
-        }
     }
 
     @Nested

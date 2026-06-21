@@ -35,6 +35,7 @@ public class AuthService implements UserDetailsService {
 
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email)
+                .filter(UserEntity::isActive)
                 .map(userEntity -> User.builder()
                         .username(userEntity.getEmail())
                         .password(userEntity.getPassword())
@@ -44,7 +45,9 @@ public class AuthService implements UserDetailsService {
     }
 
     public UserEntity findBySupabaseUserId(String supabaseUserId) {
-        return userRepository.findBySupabaseUserId(supabaseUserId).orElseThrow(() -> new UserNotFoundException(
+        return userRepository.findBySupabaseUserId(supabaseUserId)
+                .filter(UserEntity::isActive)
+                .orElseThrow(() -> new UserNotFoundException(
                 "Usuário com ID Supabase " + supabaseUserId + " não encontrado."
         ));
     }
@@ -57,6 +60,7 @@ public class AuthService implements UserDetailsService {
         Optional<UserEntity> bySupabaseId = userRepository.findBySupabaseUserId(supabaseUser.getId());
         if (bySupabaseId.isPresent()) {
             UserEntity user = bySupabaseId.get();
+            validateActive(user);
             syncEmailFromSupabase(user, supabaseUser.getEmail());
             return user;
         }
@@ -65,7 +69,9 @@ public class AuthService implements UserDetailsService {
             throw new UserNotFoundException("Usuário com ID Supabase " + supabaseUser.getId() + " não encontrado.");
         }
 
-        UserEntity user = userRepository.findByEmail(supabaseUser.getEmail()).orElseThrow(() -> new UserNotFoundException(
+        UserEntity user = userRepository.findByEmail(supabaseUser.getEmail())
+                .filter(UserEntity::isActive)
+                .orElseThrow(() -> new UserNotFoundException(
                 "Usuário com ID Supabase " + supabaseUser.getId() + " não encontrado."
         ));
 
@@ -132,10 +138,16 @@ public class AuthService implements UserDetailsService {
         }
 
         UserEntity user = userOptional.get();
-        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
+        if (!user.isActive() || !passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
             throw new AuthException("Credenciais inválidas.");
         }
         return user;
+    }
+
+    private void validateActive(UserEntity user) {
+        if (!user.isActive()) {
+            throw new AuthException("Conta desativada.");
+        }
     }
 
     private void syncEmailFromSupabase(UserEntity user, String email) {

@@ -146,6 +146,20 @@ class AuthServiceTest {
     }
 
     @Test
+    void deveBloquearLoginDeUsuarioInativo() {
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setEmail("ana@chronora.com");
+        loginDTO.setPassword("senha123");
+        UserEntity user = criarUsuario();
+        user.setActive(false);
+
+        when(userRepository.findByEmail("ana@chronora.com")).thenReturn(Optional.of(user));
+
+        assertThrows(AuthException.class, () -> authService.authenticate(loginDTO));
+        verify(passwordEncoder, never()).matches(any(), any());
+    }
+
+    @Test
     void deveCarregarUsuarioSpringSecurityPeloEmail() {
         UserEntity user = criarUsuario();
         when(userRepository.findByEmail("ana@chronora.com")).thenReturn(Optional.of(user));
@@ -207,6 +221,21 @@ class AuthServiceTest {
         assertSame(user, resolved);
         assertEquals("supabase-novo", resolved.getSupabaseUserId());
         verify(userRepository).save(user);
+    }
+
+    @Test
+    void deveBloquearTokenSupabaseDeUsuarioInativo() {
+        UserEntity user = criarUsuario();
+        user.setActive(false);
+        SupabaseUserDTO supabaseUser = SupabaseUserDTO.builder()
+                .id("supabase-123")
+                .email("ana@chronora.com")
+                .build();
+
+        when(userRepository.findBySupabaseUserId("supabase-123")).thenReturn(Optional.of(user));
+
+        assertThrows(AuthException.class, () -> authService.resolveUserForSupabaseUser(supabaseUser));
+        verify(userRepository, never()).save(any(UserEntity.class));
     }
 
     private UserDTO criarUserDTO() {

@@ -1,7 +1,8 @@
 package br.com.senai.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -10,6 +11,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import br.com.senai.exception.Auth.AuthException;
@@ -20,13 +22,10 @@ import br.com.senai.exception.Validation.QuantityChronosInvalidException;
 import br.com.senai.model.DTO.user.DocumentDTO;
 import br.com.senai.model.DTO.user.SupabaseUserDTO;
 import br.com.senai.model.DTO.user.UserEditDTO;
-import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
-import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.NotificationRepository;
 import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
-import java.util.List;
 import java.util.Optional;
 
 import br.com.senai.service.auth.AuthService;
@@ -221,32 +220,18 @@ class UserServiceTest {
     }
 
     @Test
-    void deveExcluirUsuarioERemoverDependencias() {
+    void deveDesativarUsuarioSemExcluirDadosRelacionados() {
         prepararUsuarioLogado(usuarioLogado);
         usuarioLogado.setSupabaseUserId("supabase-123");
-        ServiceEntity aceito = criarServico(10L, ServiceStatus.ACEITO, criarUsuario(2L, "Bia", "bia@chronora.com", 50));
-        aceito.setUserAccepted(usuarioLogado);
-        aceito.setVerificationCode("1234");
-        ServiceEntity emAndamento = criarServico(11L, ServiceStatus.EM_ANDAMENTO, criarUsuario(3L, "Caio", "caio@chronora.com", 50));
-        emAndamento.setUserAccepted(usuarioLogado);
-        emAndamento.setVerificationCode("9999");
-        ServiceEntity criadoPeloUsuario = criarServico(12L, ServiceStatus.CRIADO, usuarioLogado);
-
-        when(serviceRepository.findAllByUserAccepted(usuarioLogado)).thenReturn(List.of(aceito, emAndamento));
-        when(serviceRepository.findAllByUserCreator(usuarioLogado)).thenReturn(List.of(criadoPeloUsuario));
 
         userService.delete(TOKEN_HEADER);
 
-        assertEquals(ServiceStatus.CRIADO, aceito.getStatus());
-        assertNull(aceito.getUserAccepted());
-        assertNull(aceito.getVerificationCode());
-        assertEquals(ServiceStatus.CANCELADO, emAndamento.getStatus());
-        assertNull(emAndamento.getUserAccepted());
-        verify(notificationRepository).deleteAllByUser(usuarioLogado);
-        verify(notificationRepository).deleteAllByServiceIn(List.of(criadoPeloUsuario));
-        verify(serviceRepository).deleteAll(List.of(criadoPeloUsuario));
-        verify(supabaseAuthService).deleteUser("supabase-123");
-        verify(userRepository).delete(usuarioLogado);
+        assertFalse(usuarioLogado.isActive());
+        assertNotNull(usuarioLogado.getDeletedAt());
+        verify(userRepository).save(usuarioLogado);
+        verify(userRepository, never()).delete(any(UserEntity.class));
+        verify(supabaseAuthService, never()).deleteUser(any());
+        verifyNoInteractions(serviceRepository, notificationRepository);
     }
 
     private void prepararUsuarioLogado(UserEntity user) {
@@ -291,14 +276,4 @@ class UserServiceTest {
         return imageDTO;
     }
 
-    private ServiceEntity criarServico(Long id, ServiceStatus status, UserEntity criador) {
-        ServiceEntity service = new ServiceEntity();
-        service.setId(id);
-        service.setTitle("Pedido " + id);
-        service.setDescription("Descricao do pedido");
-        service.setTimeChronos(10);
-        service.setStatus(status);
-        service.setUserCreator(criador);
-        return service;
-    }
 }

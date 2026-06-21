@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-06-17-add-user-active
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - tableExists:
+            tableName: app_user
+        - not:
+            columnExists:
+              tableName: app_user
+              columnName: active
+      changes:
+        - addColumn:
+            tableName: app_user
+            columns:
+              - column:
+                  name: active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 2026-06-17-add-user-deleted-at
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - tableExists:
+            tableName: app_user
+        - not:
+            columnExists:
+              tableName: app_user
+              columnName: deleted_at
+      changes:
+        - addColumn:
+            tableName: app_user
+            columns:
+              - column:
+                  name: deleted_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
