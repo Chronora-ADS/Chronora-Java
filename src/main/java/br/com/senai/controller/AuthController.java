@@ -57,6 +57,12 @@ public class AuthController {
         return ResponseEntity.ok(UserResponseDTO.fromEntity(newUser));
     }
 
+    @PostMapping("/resend-confirmation")
+    public ResponseEntity<Void> resendConfirmation(@RequestBody Map<String, String> body) {
+        supabaseAuthService.resendConfirmation(body.get("email"));
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordDTO body) {
         supabaseAuthService.sendPasswordRecovery(body.getEmail(), body.getRedirectTo());
