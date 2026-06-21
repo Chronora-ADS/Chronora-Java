@@ -77,6 +77,11 @@ public class ServiceController {
         return ResponseEntity.ok(serviceService.secondCall(id, tokenHeader));
     }
 
+    @PutMapping("/renewCode/{id}")
+    public ResponseEntity<ServiceEntity> renewVerificationCode(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
+        return ResponseEntity.ok(serviceService.renewVerificationCode(id, tokenHeader));
+    }
+
     @PutMapping("/finishService/{id}")
     public ResponseEntity<ServiceEntity> finishService(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id) {
         return ResponseEntity.ok(serviceService.finishService(id, tokenHeader));
