@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -49,6 +50,15 @@ public class PaymentService {
         this.userRepository = userRepository;
         this.notificationService = notificationService;
         this.serviceRepository = serviceRepository;
+    }
+
+    public Map<String, Object> getChronosConfig() {
+        Map<String, Object> config = new java.util.LinkedHashMap<String, Object>();
+        config.put("buyPrice", CHRONOS_BUY_PRICE);
+        config.put("sellPrice", CHRONOS_SELL_PRICE);
+        config.put("taxPercentage", TAX_RATE);
+        config.put("maxChronosPerAccount", MAX_CHRONOS);
+        return config;
     }
 
     @Transactional
