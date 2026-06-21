@@ -208,6 +208,9 @@ public class SupabaseAuthService {
             if (responseBody != null && responseBody.contains("Email not confirmed")) {
                 throw new AuthException("EMAIL_NOT_CONFIRMED");
             }
+            if (isInvalidLoginError(e)) {
+                throw new AuthException("Credenciais inválidas.");
+            }
             throw new SupabaseIntegrationException("Erro na chamada ao fazer login no Supabase", e);
         } catch (HttpServerErrorException e) {
             throw new SupabaseIntegrationException("Erro na chamada ao fazer login no Supabase", e);
@@ -216,6 +219,24 @@ public class SupabaseAuthService {
         } catch (Exception e) {
             throw new SupabaseIntegrationException("Erro inesperado no login", e);
         }
+    }
+
+    private boolean isInvalidLoginError(HttpClientErrorException exception) {
+        HttpStatus status = HttpStatus.resolve(exception.getStatusCode().value());
+        if (status == HttpStatus.UNAUTHORIZED) {
+            return true;
+        }
+
+        String responseBody = exception.getResponseBodyAsString();
+        if (status != HttpStatus.BAD_REQUEST || !StringUtils.hasText(responseBody)) {
+            return false;
+        }
+
+        String normalizedBody = responseBody.toLowerCase();
+        return normalizedBody.contains("invalid_grant")
+                || normalizedBody.contains("invalid login credentials")
+                || normalizedBody.contains("credenciais invalidas")
+                || normalizedBody.contains("credenciais inválidas");
     }
 
     public SupabaseAuthResponseDTO refreshSession(String refreshToken) {
