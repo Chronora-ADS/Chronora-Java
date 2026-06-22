@@ -4,6 +4,7 @@ import br.com.senai.model.DTO.payment.PaymentTransactionSummaryDTO;
 import br.com.senai.model.DTO.payment.PlatformStatsDTO;
 import br.com.senai.model.DTO.service.ModeratorServiceSummaryDTO;
 import br.com.senai.model.DTO.user.UserResponseDTO;
+import br.com.senai.model.entity.PaymentTransactionEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.PaymentStatus;
 import br.com.senai.model.enums.PaymentType;
@@ -52,6 +53,39 @@ public class ModeratorService {
         return transactions.stream()
                 .map(t -> PaymentTransactionSummaryDTO.from(t, userNames.getOrDefault(t.getUserId(), "Desconhecido")))
                 .toList();
+    }
+
+    public List<PaymentTransactionSummaryDTO> getTransactionsByType(String tokenHeader, PaymentType type) {
+        requireModerator(tokenHeader);
+
+        var transactions = transactionRepository.findAllByTypeOrderByCreatedAtDesc(type);
+
+        Map<Long, String> userNames = userRepository.findAllById(
+                transactions.stream().map(t -> t.getUserId()).distinct().toList()
+        ).stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getName));
+
+        return transactions.stream()
+                .map(t -> PaymentTransactionSummaryDTO.from(t, userNames.getOrDefault(t.getUserId(), "Desconhecido")))
+                .toList();
+    }
+
+    @Transactional
+    public void markSellAsPaid(String tokenHeader, Long transactionId) {
+        requireModerator(tokenHeader);
+
+        PaymentTransactionEntity transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transacao nao encontrada."));
+
+        if (transaction.getType() != PaymentType.SELL) {
+            throw new RuntimeException("Transacao nao e uma venda.");
+        }
+
+        if (transaction.getStatus() != PaymentStatus.PENDING) {
+            throw new RuntimeException("Apenas transacoes pendentes podem ser marcadas como pagas.");
+        }
+
+        transaction.setStatus(PaymentStatus.PAID);
+        transactionRepository.save(transaction);
     }
 
     public PlatformStatsDTO getStats(String tokenHeader) {

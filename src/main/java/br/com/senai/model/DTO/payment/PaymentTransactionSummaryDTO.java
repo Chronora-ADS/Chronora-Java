@@ -17,7 +17,8 @@ public record PaymentTransactionSummaryDTO(
         BigDecimal totalAmount,
         String createdAt,
         boolean isPix,
-        Long mpPaymentId
+        Long mpPaymentId,
+        String pixKey
 ) {
     public static PaymentTransactionSummaryDTO from(PaymentTransactionEntity t, String userName) {
         return new PaymentTransactionSummaryDTO(
@@ -30,7 +31,8 @@ public record PaymentTransactionSummaryDTO(
                 t.getTotalAmount(),
                 t.getCreatedAt().atOffset(ZoneOffset.UTC).toString(),
                 t.getQrCode() != null,
-                t.getMpPaymentId()
+                t.getMpPaymentId(),
+                t.getPixKey()
         );
     }
 }
