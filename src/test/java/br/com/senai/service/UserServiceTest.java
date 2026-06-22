@@ -157,8 +157,8 @@ class UserServiceTest {
         editDTO.setDocument(criarDocumentoDTO());
         editDTO.setProfileImage(criarImagemPerfilDTO());
 
-        when(userRepository.existsByEmail("ana.atualizada@chronora.com")).thenReturn(false);
-        when(userRepository.existsByPhoneNumber(11888888888L)).thenReturn(false);
+        when(userRepository.findByEmail("ana.atualizada@chronora.com")).thenReturn(Optional.empty());
+        when(userRepository.findByPhoneNumber(11888888888L)).thenReturn(Optional.empty());
         when(passwordEncoder.encode("novaSenha123")).thenReturn("hash-novo");
         when(storageService.uploadBase64Image(eq("base64-documento"), eq("users"), eq("token-valido"), eq("png")))
                 .thenReturn("https://storage/novo-documento.png");
@@ -184,6 +184,28 @@ class UserServiceTest {
     }
 
     @Test
+    void deveEditarPerfilComMesmoEmailETelefoneDoUsuarioLogado() {
+        prepararUsuarioLogado(usuarioLogado);
+        UserEditDTO editDTO = new UserEditDTO();
+        editDTO.setId(1L);
+        editDTO.setName("Ana Atualizada");
+        editDTO.setEmail("ana@chronora.com");
+        editDTO.setPhoneNumber(usuarioLogado.getPhoneNumber());
+
+        when(userRepository.findByEmail("ana@chronora.com")).thenReturn(Optional.of(usuarioLogado));
+        when(userRepository.findByPhoneNumber(usuarioLogado.getPhoneNumber())).thenReturn(Optional.of(usuarioLogado));
+        when(userRepository.save(usuarioLogado)).thenReturn(usuarioLogado);
+
+        UserEntity atualizado = userService.put(editDTO, TOKEN_HEADER);
+
+        assertSame(usuarioLogado, atualizado);
+        assertEquals("ana@chronora.com", atualizado.getEmail());
+        assertEquals(usuarioLogado.getPhoneNumber(), atualizado.getPhoneNumber());
+        verify(supabaseAuthService).updateUser(eq("token-valido"), eq("ana@chronora.com"), isNull(), anyMap());
+        verify(userRepository).save(usuarioLogado);
+    }
+
+    @Test
     void deveRetornarErroQuandoUsuarioTentarEditarOutraConta() {
         prepararUsuarioLogado(usuarioLogado);
         UserEditDTO editDTO = new UserEditDTO();
@@ -202,7 +224,8 @@ class UserServiceTest {
         UserEditDTO editDTO = new UserEditDTO();
         editDTO.setId(1L);
         editDTO.setEmail("duplicado@chronora.com");
-        when(userRepository.existsByEmail("duplicado@chronora.com")).thenReturn(true);
+        UserEntity outroUsuario = criarUsuario(2L, "Bia", "duplicado@chronora.com", 20);
+        when(userRepository.findByEmail("duplicado@chronora.com")).thenReturn(Optional.of(outroUsuario));
         assertThrows(EmailAlreadyExistsException.class, () -> userService.put(editDTO, TOKEN_HEADER));
         verify(userRepository, never()).save(any());
     }
@@ -215,7 +238,7 @@ class UserServiceTest {
         editDTO.setPhoneNumber(11777777777L);
         UserEntity outroUsuario = criarUsuario(2L, "Bia", "bia@chronora.com", 20);
         outroUsuario.setPhoneNumber(11777777777L);
-        when(userRepository.existsByPhoneNumber(11777777777L)).thenReturn(true);
+        when(userRepository.findByPhoneNumber(11777777777L)).thenReturn(Optional.of(outroUsuario));
         assertThrows(PhoneNumberAlreadyExistsException.class, () -> userService.put(editDTO, TOKEN_HEADER));
         verify(userRepository, never()).save(any());
     }

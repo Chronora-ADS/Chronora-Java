@@ -106,7 +106,8 @@ public class UserService {
         String updatedEmail = userEntity.getEmail();
         if (userEditDTO.getEmail() != null && !userEditDTO.getEmail().trim().isEmpty()) {
             String email = userEditDTO.getEmail().trim();
-            if (userRepository.existsByEmail(email)) {
+            Optional<UserEntity> userWithEmail = userRepository.findByEmail(email);
+            if (userWithEmail.isPresent() && !Objects.equals(userWithEmail.get().getId(), userEntity.getId())) {
                 throw new EmailAlreadyExistsException(email);
             }
             updatedEmail = email;
@@ -115,7 +116,8 @@ public class UserService {
 
         Long updatedPhoneNumber = userEntity.getPhoneNumber();
         if (userEditDTO.getPhoneNumber() != null) {
-            if (userRepository.existsByPhoneNumber(userEditDTO.getPhoneNumber())) {
+            Optional<UserEntity> userWithPhoneNumber = userRepository.findByPhoneNumber(userEditDTO.getPhoneNumber());
+            if (userWithPhoneNumber.isPresent() && !Objects.equals(userWithPhoneNumber.get().getId(), userEntity.getId())) {
                 throw new PhoneNumberAlreadyExistsException(String.valueOf(userEditDTO.getPhoneNumber()));
             }
             updatedPhoneNumber = userEditDTO.getPhoneNumber();
