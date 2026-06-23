@@ -15,7 +15,9 @@ import br.com.senai.util.JWTBlacklist;
 import jakarta.validation.Valid;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -55,6 +57,41 @@ public class AuthController {
             throw ex;
         }
         return ResponseEntity.ok(UserResponseDTO.fromEntity(newUser));
+    }
+
+    @GetMapping(value = "/email-confirmed", produces = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<String> emailConfirmed() {
+        String html = """
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Chronora - E-mail confirmado</title>
+                  <style>
+                    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
+                    .card { background: white; border-radius: 16px; padding: 40px; text-align: center; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+                    .icon { font-size: 64px; margin-bottom: 16px; }
+                    h1 { color: #C8A100; margin: 0 0 12px; }
+                    p { color: #555; line-height: 1.5; }
+                  </style>
+                </head>
+                <body>
+                  <div class="card">
+                    <div class="icon">✅</div>
+                    <h1>E-mail confirmado!</h1>
+                    <p>Sua conta foi verificada com sucesso.<br>Você já pode fazer login no app <strong>Chronora</strong>.</p>
+                  </div>
+                </body>
+                </html>
+                """;
+        return ResponseEntity.ok(html);
+    }
+
+    @PostMapping("/resend-confirmation")
+    public ResponseEntity<Void> resendConfirmation(@RequestBody Map<String, String> body) {
+        supabaseAuthService.resendConfirmation(body.get("email"));
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/forgot-password")

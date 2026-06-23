@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -21,4 +22,12 @@ public interface ServiceRepository extends JpaRepository<ServiceEntity, Long>, J
 
     List<ServiceEntity> findAllByStatusAndDeadline(ServiceStatus status, LocalDate deadline);
     List<ServiceEntity> findAllByStatusAndDeadlineBefore(ServiceStatus status, LocalDate deadline);
+
+    long countByStatus(ServiceStatus status);
+
+    @Query("SELECT COALESCE(SUM(s.timeChronos), 0) FROM ServiceEntity s WHERE s.userCreator = :creator AND s.status = :status")
+    int sumTimeChronosByUserCreatorAndStatus(UserEntity creator, ServiceStatus status);
+
+    @Query("SELECT DISTINCT s FROM ServiceEntity s LEFT JOIN FETCH s.categoryEntities ORDER BY s.postedAt DESC")
+    List<ServiceEntity> findAllWithCategoriesOrderByPostedAtDesc();
 }

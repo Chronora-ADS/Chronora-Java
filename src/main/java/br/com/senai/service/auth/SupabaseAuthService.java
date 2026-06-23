@@ -154,7 +154,16 @@ public class SupabaseAuthService {
             throw new SupabaseIntegrationException("Erro no cadastro no Supabase: " + response.getStatusCode(), null);
         } catch (HttpClientErrorException.Conflict e) {
             throw new EmailAlreadyExistsException(email);
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
+        } catch (HttpClientErrorException e) {
+            String responseBody = e.getResponseBodyAsString();
+            if (responseBody != null && (
+                    responseBody.contains("user_already_exists") ||
+                    responseBody.contains("User already registered") ||
+                    responseBody.contains("Email already registered"))) {
+                throw new EmailAlreadyExistsException(email);
+            }
+            throw new SupabaseIntegrationException("Erro na chamada ao cadastrar no Supabase", e);
+        } catch (HttpServerErrorException e) {
             throw new SupabaseIntegrationException("Erro na chamada ao cadastrar no Supabase", e);
         } catch (RestClientException e) {
             throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
@@ -203,7 +212,13 @@ public class SupabaseAuthService {
             throw new SupabaseIntegrationException("Erro no login no Supabase", null);
         } catch (HttpClientErrorException.Unauthorized e) {
             throw new AuthException("Credenciais inválidas.");
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
+        } catch (HttpClientErrorException e) {
+            String responseBody = e.getResponseBodyAsString();
+            if (responseBody != null && responseBody.contains("Email not confirmed")) {
+                throw new AuthException("EMAIL_NOT_CONFIRMED");
+            }
+            throw new SupabaseIntegrationException("Erro na chamada ao fazer login no Supabase", e);
+        } catch (HttpServerErrorException e) {
             throw new SupabaseIntegrationException("Erro na chamada ao fazer login no Supabase", e);
         } catch (RestClientException e) {
             throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
@@ -255,6 +270,33 @@ public class SupabaseAuthService {
             throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
         } catch (Exception e) {
             throw new SupabaseIntegrationException("Erro inesperado no renovar sessão", e);
+        }
+    }
+
+    public void resendConfirmation(String email) {
+        if (!StringUtils.hasText(email)) {
+            throw new AuthException("E-mail obrigatório.");
+        }
+
+        if (!isSupabaseConfigured()) {
+            return;
+        }
+
+        try {
+            Map<String, Object> body = new HashMap<>();
+            body.put("email", email);
+            body.put("type", "signup");
+
+            restTemplate.exchange(
+                    supabaseUrl + "/auth/v1/resend",
+                    HttpMethod.POST,
+                    new HttpEntity<>(body, buildJsonHeaders(supabaseAnonKey)),
+                    String.class
+            );
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            throw new SupabaseIntegrationException("Erro ao reenviar confirmação de e-mail", e);
+        } catch (RestClientException e) {
+            throw new SupabaseIntegrationException("Falha de conexão com o Supabase", e);
         }
     }
 

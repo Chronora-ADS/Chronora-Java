@@ -447,8 +447,14 @@ public class ServiceService {
             throw new AuthException("Somente pedidos criados podem ter prazo renovado.");
         }
 
-        if (newDeadline == null || !newDeadline.isAfter(LocalDate.now(ZoneId.of("America/Sao_Paulo")))) {
+        LocalDate today = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        if (newDeadline == null || !newDeadline.isAfter(today)) {
             throw new IllegalArgumentException("Novo prazo deve ser uma data futura.");
+        }
+
+        LocalDate maxAllowedDeadline = today.plusDays(366);
+        if (newDeadline.isAfter(maxAllowedDeadline)) {
+            throw new IllegalArgumentException("Novo prazo nao pode ser superior a 365 dias a partir de hoje.");
         }
 
         service.setDeadline(newDeadline);
