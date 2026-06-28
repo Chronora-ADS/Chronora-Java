@@ -59,7 +59,3 @@ jobs:
 
       - name: Gerar build
         run: ./mvnw clean package -DskipTests
-
-      - name: Notificar Render para deploy
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
