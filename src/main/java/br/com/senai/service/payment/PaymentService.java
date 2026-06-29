@@ -67,7 +67,7 @@ public class PaymentService {
 
         if (user.getTimeChronos() + request.chronosAmount() > MAX_CHRONOS) {
             throw new QuantityChronosInvalidException(
-                    "Limite de " + MAX_CHRONOS + " Chronos por usuario seria excedido.");
+                    "Limite de " + MAX_CHRONOS + " Chronos por usuário seria excedido.");
         }
 
         BigDecimal subtotal = CHRONOS_BUY_PRICE.multiply(BigDecimal.valueOf(request.chronosAmount()));
@@ -102,7 +102,7 @@ public class PaymentService {
         paymentTransactionRepository.save(transaction);
 
         notificationService.create(
-                "Voce tem um pagamento PIX pendente de " + chronosAmount + " Chronos. Conclua o pagamento para receber seus Chronos.",
+                "Você tem um pagamento PIX pendente de " + chronosAmount + " Chronos. Conclua o pagamento para receber seus Chronos.",
                 user
         );
 

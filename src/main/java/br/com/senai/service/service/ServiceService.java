@@ -208,7 +208,7 @@ public class ServiceService {
         }
 
         if (service.getVerificationCode() == null || service.getVerificationCodeExpiresAt() == null) {
-            throw new IncorrectValidationCodeException("Codigo de verificacao indisponivel");
+            throw new IncorrectValidationCodeException("Código de verificação indisponível");
         }
 
         if (nowForVerificationCode().isAfter(service.getVerificationCodeExpiresAt())) {
@@ -218,12 +218,12 @@ public class ServiceService {
                 notificationService.create("Segunda chamada expirada", service.getUserCreator(), service);
                 notificationService.create("Segunda chamada expirada", acceptedUser, service);
             }
-            throw new ExpiredValidationCodeException("Codigo de verificacao expirado");
+            throw new ExpiredValidationCodeException("Código de verificação expirado");
         }
 
         String normalizedVerificationCode = normalizeVerificationCode(verificationCode);
         if (!Objects.equals(normalizedVerificationCode, service.getVerificationCode())) {
-            throw new IncorrectValidationCodeException("Codigo de verificacao incorreto");
+            throw new IncorrectValidationCodeException("Código de verificação incorreto");
         }
 
         clearVerificationCode(service);
@@ -306,7 +306,7 @@ public class ServiceService {
 
         if (isProvider) {
             if (service.getStatus() != ServiceStatus.EM_ANDAMENTO) {
-                throw new AuthException("Este pedido nao esta em andamento.");
+                throw new AuthException("Este pedido não está em andamento.");
             }
             service.setStatus(ServiceStatus.AGUARDANDO_CONFIRMACAO);
             service = serviceRepository.save(service);
@@ -325,7 +325,7 @@ public class ServiceService {
 
         // Solicitante confirma a conclusao
         if (service.getStatus() != ServiceStatus.AGUARDANDO_CONFIRMACAO) {
-            throw new AuthException("O prestador ainda nao concluiu o servico.");
+            throw new AuthException("O prestador ainda não concluiu o serviço.");
         }
 
         if (service.getUserAccepted() != null) {
@@ -405,8 +405,8 @@ public class ServiceService {
             service.setServiceCancellationJustification(null);
         }
         reopenAcceptedService(service);
-        notificationService.create("Servico cancelado", user, service);
-        notificationService.create("Servico cancelado por " + user.getName(), otherUser, service);
+        notificationService.create("Serviço cancelado", user, service);
+        notificationService.create("Serviço cancelado por " + user.getName(), otherUser, service);
         if (service.getServiceCancellationJustification() != null) {
             createServiceCancellationJustificationNotifications(
                     service,
@@ -455,7 +455,7 @@ public class ServiceService {
 
         LocalDate maxAllowedDeadline = today.plusDays(366);
         if (newDeadline.isAfter(maxAllowedDeadline)) {
-            throw new IllegalArgumentException("Novo prazo nao pode ser superior a 365 dias a partir de hoje.");
+            throw new IllegalArgumentException("Novo prazo não pode ser superior a 365 dias a partir de hoje.");
         }
 
         service.setDeadline(newDeadline);
@@ -777,7 +777,7 @@ public class ServiceService {
 
         String normalizedJustification = justification.trim();
         if (normalizedJustification.length() > MAX_CANCELLATION_JUSTIFICATION_LENGTH) {
-            throw new IllegalArgumentException("Justificativa do cancelamento deve ter no maximo 1000 caracteres.");
+            throw new IllegalArgumentException("Justificativa do cancelamento deve ter no máximo 1000 caracteres.");
         }
         return normalizedJustification;
     }

@@ -58,16 +58,16 @@ public class ReviewService {
                 && Objects.equals(service.getUserAccepted().getId(), reviewer.getId());
 
         if (!isCreator && !isAccepted) {
-            throw new AuthException("Voce nao tem permissao para avaliar este pedido.");
+            throw new AuthException("Você não tem permissão para avaliar este pedido.");
         }
 
         if (reviewRepository.existsByServiceAndReviewer(service, reviewer)) {
-            throw new ReviewValidationException("Voce ja avaliou este pedido.");
+            throw new ReviewValidationException("Você já avaliou este pedido.");
         }
 
         UserEntity reviewee = isCreator ? service.getUserAccepted() : service.getUserCreator();
         if (reviewee == null) {
-            throw new ReviewValidationException("Nao e possivel avaliar este pedido.");
+            throw new ReviewValidationException("Não é possível avaliar este pedido.");
         }
 
         if (isCreator) {
@@ -91,7 +91,7 @@ public class ReviewService {
             userRepository.save(reviewee);
         }
 
-        notificationService.create("Voce foi avaliado", reviewee, service);
+        notificationService.create("Você foi avaliado", reviewee, service);
 
         return saved;
     }

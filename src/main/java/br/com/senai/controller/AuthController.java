@@ -131,7 +131,7 @@ public class AuthController {
 
     private String extractBearerToken(String tokenHeader) {
         if (tokenHeader == null || !tokenHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Token invalido");
+            throw new IllegalArgumentException("Token inválido");
         }
         return tokenHeader.substring(7);
     }
