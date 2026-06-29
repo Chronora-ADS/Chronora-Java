@@ -461,7 +461,7 @@ public class SupabaseAuthService {
 
     private SupabaseUserDTO validateLocalToken(String token) {
         if (!StringUtils.hasText(token) || !token.startsWith(LOCAL_TOKEN_PREFIX)) {
-            throw new AuthException("Token invalido");
+            throw new AuthException("Token inválido");
         }
 
         String supabaseUserId = token.substring(LOCAL_TOKEN_PREFIX.length());
