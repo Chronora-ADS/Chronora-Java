@@ -237,29 +237,20 @@ public class PaymentService {
         user.setTimeChronos(user.getTimeChronos() - chronosAmount);
         userRepository.save(user);
 
-        try {
-            MercadoPagoService.PixPaymentResult result = mercadoPagoService.sendPixPayout(
-                    amountToReceive,
-                    pixKey,
-                    user.getEmail()
-            );
+        PaymentTransactionEntity transaction = new PaymentTransactionEntity();
+        transaction.setUserId(user.getId());
+        transaction.setChronosAmount(chronosAmount);
+        transaction.setTotalAmount(amountToReceive);
+        transaction.setPixKey(pixKey);
+        transaction.setType(PaymentType.SELL);
+        transaction.setStatus(PaymentStatus.PENDING);
+        transaction.setCreatedAt(LocalDateTime.now());
+        paymentTransactionRepository.save(transaction);
 
-            PaymentTransactionEntity transaction = new PaymentTransactionEntity();
-            transaction.setUserId(user.getId());
-            transaction.setChronosAmount(chronosAmount);
-            transaction.setTotalAmount(amountToReceive);
-            transaction.setMpPaymentId(result.getMpPaymentId());
-            transaction.setPixKey(pixKey);
-            transaction.setType(PaymentType.SELL);
-            transaction.setStatus(PaymentStatus.PAID);
-            transaction.setCreatedAt(LocalDateTime.now());
-            paymentTransactionRepository.save(transaction);
-
-        } catch (Exception e) {
-            user.setTimeChronos(user.getTimeChronos() + chronosAmount);
-            userRepository.save(user);
-            throw new RuntimeException("Falha ao processar pagamento PIX: " + e.getMessage(), e);
-        }
+        notificationService.create(
+                "Sua solicitação de venda de " + chronosAmount + " Chronos foi registrada. Aguarde o PIX dos moderadores.",
+                user
+        );
     }
 
     @Transactional

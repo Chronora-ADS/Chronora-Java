@@ -35,6 +35,7 @@ public class JWTFilter extends OncePerRequestFilter {
                 || path.equals("/health")
                 || path.equals("/healthz")
                 || path.equals("/payment/webhook")
+                || path.equals("/payment/config")
                 || path.startsWith("/monitoring/")) {
             filterChain.doFilter(request, response);
             return;

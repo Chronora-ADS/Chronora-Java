@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0020-payment-mp-id-nullable
+      author: fellipe
+      comment: Torna mp_payment_id opcional para suportar solicitacoes de venda manual sem integracao MP
+      changes:
+        - dropNotNullConstraint:
+            tableName: payment_transaction
+            columnName: mp_payment_id
+            columnDataType: BIGINT

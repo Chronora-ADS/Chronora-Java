@@ -16,6 +16,8 @@ databaseChangeLog:
       file: db/changelog/db.changelog-payment-qrcode.yaml
   - include:
       file: db/changelog/db.changelog-review.yaml
+  - include:
+      file: db/changelog/db.changelog-payment-mp-id-nullable.yaml
   - changeSet:
       id: baseline-2026-03-17
       author: codex
