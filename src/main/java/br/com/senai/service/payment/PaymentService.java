@@ -226,16 +226,7 @@ public class PaymentService {
     public void createSellPayment(String tokenHeader, Integer chronosAmount, String pixKey) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
 
-        int reservedChronos = serviceRepository.sumTimeChronosByUserCreatorAndStatus(user, ServiceStatus.EM_ANDAMENTO);
-        int availableChronos = user.getTimeChronos() - reservedChronos;
-
-        if (chronosAmount > availableChronos) {
-            if (reservedChronos > 0) {
-                throw new QuantityChronosInvalidException(
-                    "Você tem " + reservedChronos + " Chronos reservados em pedidos em andamento. " +
-                    "Máximo disponível para venda: " + Math.max(0, availableChronos) + "."
-                );
-            }
+        if (user.getTimeChronos() - chronosAmount < 0) {
             throw new QuantityChronosInvalidException("Saldo insuficiente de Chronos.");
         }
 
