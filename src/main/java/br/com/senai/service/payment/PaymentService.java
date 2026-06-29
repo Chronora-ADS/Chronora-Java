@@ -13,6 +13,7 @@ import br.com.senai.repository.ServiceRepository;
 import br.com.senai.repository.UserRepository;
 import br.com.senai.service.user.UserService;
 import br.com.senai.service.notification.NotificationService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,9 @@ public class PaymentService {
     private static final BigDecimal CHRONOS_SELL_PRICE = new BigDecimal("2.00");
     private static final BigDecimal TAX_RATE = new BigDecimal("0.10");
     private static final int MAX_CHRONOS = 300;
+
+    @Value("${payment.demo-mode:false}")
+    private boolean demoMode;
 
     private final UserService userService;
     private final MercadoPagoService mercadoPagoService;
@@ -120,6 +124,23 @@ public class PaymentService {
     }
 
     private BuyChronosResponseDTO createCardBuyPayment(UserEntity user, BuyChronosRequestDTO request, BigDecimal total) {
+        if (demoMode) {
+            PaymentTransactionEntity transaction = new PaymentTransactionEntity();
+            transaction.setUserId(user.getId());
+            transaction.setChronosAmount(request.chronosAmount());
+            transaction.setTotalAmount(total);
+            transaction.setType(PaymentType.BUY);
+            transaction.setStatus(PaymentStatus.PAID);
+            transaction.setCreatedAt(LocalDateTime.now());
+            paymentTransactionRepository.save(transaction);
+            creditChronos(transaction);
+            notificationService.create(
+                    "Pagamento aprovado! " + request.chronosAmount() + " Chronos foram adicionados ao seu saldo.",
+                    user
+            );
+            return new BuyChronosResponseDTO(transaction.getId(), null, null, null, "PAID", "CREDIT_CARD");
+        }
+
         int installments = request.installments() != null ? request.installments() : 1;
 
         MercadoPagoService.CardPaymentResult result = mercadoPagoService.createCardPayment(
