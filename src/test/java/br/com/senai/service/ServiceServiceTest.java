@@ -498,9 +498,9 @@ class ServiceServiceTest {
         assertNull(cancelado.getServiceCancellationJustification());
         assertEquals(criador.getId(), cancelado.getServiceCancellationRequestedByUserId());
         assertEquals(prestador.getId(), cancelado.getServiceCancellationCounterpartyUserId());
-        verify(notificationService).create("Servico cancelado", criador, service);
+        verify(notificationService).create("Serviço cancelado", criador, service);
         verify(notificationService).create(
-                "Servico cancelado por Ana",
+                "Serviço cancelado por Ana",
                 prestador,
                 service
         );
@@ -525,8 +525,8 @@ class ServiceServiceTest {
         assertEquals(ServiceStatus.CRIADO, cancelado.getStatus());
         assertEquals("Texto que deve ficar somente no aplicativo.", cancelado.getServiceCancellationJustification());
         assertEquals(prestador.getId(), cancelado.getServiceCancellationCounterpartyUserId());
-        verify(notificationService).create("Servico cancelado", criador, service);
-        verify(notificationService).create("Servico cancelado por Ana", prestador, service);
+        verify(notificationService).create("Serviço cancelado", criador, service);
+        verify(notificationService).create("Serviço cancelado por Ana", prestador, service);
         verify(notificationService).createWithDetails(
                 "Justificativa de cancelamento do servico",
                 criador,

@@ -74,7 +74,7 @@ class ReviewServiceTest {
         verify(userRepository).save(userCaptor.capture());
         assertSame(fornecedor, userCaptor.getValue());
         assertEquals(4.5, userCaptor.getValue().getRating());
-        verify(notificationService).create("Voce foi avaliado", fornecedor, service);
+        verify(notificationService).create("Você foi avaliado", fornecedor, service);
     }
 
     private ServiceEntity criarServicoConcluido(Long id, UserEntity solicitante, UserEntity fornecedor) {
