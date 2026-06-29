@@ -5,6 +5,7 @@ import br.com.senai.model.DTO.user.UserResponseDTO;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.service.user.UserService;
 import jakarta.validation.Valid;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +40,11 @@ public class UserController {
     @GetMapping("/get")
     public ResponseEntity<UserResponseDTO> getLoggedUser(@RequestHeader("Authorization") String tokenHeader) {
         return ResponseEntity.ok(UserResponseDTO.fromEntity(userService.getLoggedUser(tokenHeader)));
+    }
+
+    @GetMapping("/wallet/summary")
+    public ResponseEntity<Map<String, Integer>> getWalletSummary(@RequestHeader("Authorization") String tokenHeader) {
+        return ResponseEntity.ok(userService.getWalletSummary(tokenHeader));
     }
 
     @PutMapping("/put")

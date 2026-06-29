@@ -28,6 +28,9 @@ public interface ServiceRepository extends JpaRepository<ServiceEntity, Long>, J
     @Query("SELECT COALESCE(SUM(s.timeChronos), 0) FROM ServiceEntity s WHERE s.userCreator = :creator AND s.status = :status")
     int sumTimeChronosByUserCreatorAndStatus(UserEntity creator, ServiceStatus status);
 
+    @Query("SELECT COALESCE(SUM(s.timeChronos), 0) FROM ServiceEntity s WHERE s.userCreator = :creator AND s.status IN :statuses")
+    int sumTimeChronosByUserCreatorAndStatusIn(UserEntity creator, List<ServiceStatus> statuses);
+
     @Query("SELECT DISTINCT s FROM ServiceEntity s LEFT JOIN FETCH s.categoryEntities ORDER BY s.postedAt DESC")
     List<ServiceEntity> findAllWithCategoriesOrderByPostedAtDesc();
 }

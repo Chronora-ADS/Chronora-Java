@@ -38,6 +38,18 @@ public class UserService {
     private final ServiceRepository serviceRepository;
     private final NotificationRepository notificationRepository;
 
+    public Map<String, Integer> getWalletSummary(String tokenHeader) {
+        UserEntity user = getLoggedUser(tokenHeader);
+        int inActiveServices = serviceRepository.sumTimeChronosByUserCreatorAndStatusIn(
+            user,
+            List.of(ServiceStatus.CRIADO, ServiceStatus.ACEITO, ServiceStatus.EM_ANDAMENTO)
+        );
+        Map<String, Integer> summary = new HashMap<>();
+        summary.put("balance", user.getTimeChronos());
+        summary.put("chronosInActiveServices", inActiveServices);
+        return summary;
+    }
+
     public UserEntity buyChronos(String tokenHeader, Integer chronos) {
         UserEntity userEntity = getLoggedUser(tokenHeader);
         validateChronosAmount(chronos);
