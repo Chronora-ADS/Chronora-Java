@@ -7,7 +7,6 @@ import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
-import com.mercadopago.net.MPRequestOptions;
 import com.mercadopago.resources.payment.Payment;
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.UUID;
 
 @Service
 public class MercadoPagoService {
@@ -49,11 +47,8 @@ public class MercadoPagoService {
                             .build())
                     .build();
 
-            MPRequestOptions options = MPRequestOptions.builder()
-                    .customHeaders(java.util.Collections.singletonMap("X-Idempotency-Key", UUID.randomUUID().toString()))
-                    .build();
             PaymentClient client = new PaymentClient();
-            Payment payment = client.create(request, options);
+            Payment payment = client.create(request);
 
             String qrCode = payment.getPointOfInteraction()
                     .getTransactionData().getQrCode();
@@ -96,11 +91,8 @@ public class MercadoPagoService {
                             .build())
                     .build();
 
-            MPRequestOptions options = MPRequestOptions.builder()
-                    .customHeaders(java.util.Collections.singletonMap("X-Idempotency-Key", UUID.randomUUID().toString()))
-                    .build();
             PaymentClient client = new PaymentClient();
-            Payment payment = client.create(request, options);
+            Payment payment = client.create(request);
 
             logger.info("Pagamento cartao criado: id={}, status={}", payment.getId(), payment.getStatus());
             return new CardPaymentResult(payment.getId(), payment.getStatus());
