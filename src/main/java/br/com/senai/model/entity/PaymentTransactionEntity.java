@@ -33,7 +33,7 @@ public class PaymentTransactionEntity {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private Long mpPaymentId;
 
     @Column(length = 1000)
