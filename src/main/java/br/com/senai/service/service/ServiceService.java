@@ -562,13 +562,19 @@ public class ServiceService {
                 Join<ServiceEntity, CategoryEntity> categoryJoin = root.join("categoryEntities", JoinType.LEFT);
                 Join<ServiceEntity, UserEntity> creatorJoin = root.join("userCreator", JoinType.LEFT);
 
-                predicates.add(criteriaBuilder.or(
+                List<Predicate> searchPredicates = new ArrayList<>(List.of(
                         criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), searchPattern),
                         criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), searchPattern),
                         criteriaBuilder.like(criteriaBuilder.lower(creatorJoin.get("name")), searchPattern),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("modality").as(String.class)), searchPattern),
                         criteriaBuilder.like(criteriaBuilder.lower(categoryJoin.get("name")), searchPattern)
                 ));
+
+                ServiceModality matchedModality = parseFilterModalityOrNull(normalizedQuery);
+                if (matchedModality != null) {
+                    searchPredicates.add(criteriaBuilder.equal(root.get("modality"), matchedModality));
+                }
+
+                predicates.add(criteriaBuilder.or(searchPredicates.toArray(Predicate[]::new)));
             }
 
             List<String> normalizedCategories = normalizeFilterList(categories);
@@ -649,6 +655,14 @@ public class ServiceService {
         }
 
         return ServiceModality.fromString(modality);
+    }
+
+    private ServiceModality parseFilterModalityOrNull(String modality) {
+        try {
+            return parseFilterModality(modality);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private List<CategoryEntity> buildCategories(List<String> categories) {
