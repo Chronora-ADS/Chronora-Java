@@ -164,6 +164,12 @@ public class UserService {
         return userRepository.save(userEntity);
     }
 
+    public void saveFcmToken(String tokenHeader, String fcmToken) {
+        UserEntity user = getLoggedUser(tokenHeader);
+        user.setFcmToken(fcmToken);
+        userRepository.save(user);
+    }
+
     @Transactional
     public void delete(String tokenHeader) {
         UserEntity user = getLoggedUser(tokenHeader);

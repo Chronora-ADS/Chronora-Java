@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-fcm-token-to-user-2026-07-01
+      author: fellipe
+      changes:
+        - addColumn:
+            tableName: app_user
+            columns:
+              - column:
+                  name: fcm_token
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: true

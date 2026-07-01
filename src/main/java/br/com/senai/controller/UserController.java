@@ -1,5 +1,6 @@
 package br.com.senai.controller;
 
+import br.com.senai.model.DTO.user.FcmTokenDTO;
 import br.com.senai.model.DTO.user.UserEditDTO;
 import br.com.senai.model.DTO.user.UserResponseDTO;
 import br.com.senai.model.entity.UserEntity;
@@ -53,6 +54,12 @@ public class UserController {
         UserEntity saved = userService.put(userEditDTO, tokenHeader);
         logger.info("Usuário editado com sucesso: {}", saved.getId());
         return ResponseEntity.ok(UserResponseDTO.fromEntity(saved));
+    }
+
+    @PutMapping("/fcm-token")
+    public ResponseEntity<Void> saveFcmToken(@RequestHeader("Authorization") String tokenHeader, @RequestBody @Valid FcmTokenDTO dto) {
+        userService.saveFcmToken(tokenHeader, dto.getToken());
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/delete")

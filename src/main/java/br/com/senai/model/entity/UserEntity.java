@@ -55,4 +55,7 @@ public class UserEntity {
 
     @Column
     private Double rating;
+
+    @Column(name = "fcm_token", length = 512)
+    private String fcmToken;
 }

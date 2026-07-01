@@ -24,6 +24,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserService userService;
     private final NotificationEventPublisher notificationEventPublisher;
+    private final FcmService fcmService;
 
     public NotificationEntity create(String message, UserEntity user) {
         return create(message, user, null);
@@ -37,6 +38,10 @@ public class NotificationService {
         notification.setNotificationTime(LocalDateTime.now());
 
         NotificationEntity saved = notificationRepository.save(notification);
+
+        if (user.getFcmToken() != null && !user.getFcmToken().isBlank()) {
+            fcmService.sendPushNotification(user.getFcmToken(), "Chronora", message);
+        }
 
         NotificationEventDTO event = new NotificationEventDTO();
         event.setMessage(saved.getMessage());
@@ -75,6 +80,10 @@ public class NotificationService {
         notification.setNotificationTime(LocalDateTime.now());
 
         NotificationEntity saved = notificationRepository.save(notification);
+
+        if (user.getFcmToken() != null && !user.getFcmToken().isBlank()) {
+            fcmService.sendPushNotification(user.getFcmToken(), "Chronora", message);
+        }
 
         NotificationEventDTO event = new NotificationEventDTO();
         event.setMessage(saved.getMessage());
