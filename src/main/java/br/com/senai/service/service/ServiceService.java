@@ -324,10 +324,7 @@ public class ServiceService {
         }
 
         // Solicitante confirma a conclusao
-        // TODO: reverter apos apresentacao - atalho temporario permitindo o solicitante
-        // finalizar direto a partir de EM_ANDAMENTO, sem esperar o prestador confirmar
-        if (service.getStatus() != ServiceStatus.AGUARDANDO_CONFIRMACAO
-                && service.getStatus() != ServiceStatus.EM_ANDAMENTO) {
+        if (service.getStatus() != ServiceStatus.AGUARDANDO_CONFIRMACAO) {
             throw new AuthException("O prestador ainda não concluiu o serviço.");
         }
 
