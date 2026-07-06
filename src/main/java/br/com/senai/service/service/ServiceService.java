@@ -891,14 +891,17 @@ public class ServiceService {
             throw new IllegalArgumentException("Metrica de progresso do servico e obrigatoria.");
         }
 
-        if (trackingType != TrackingType.CUSTOM) {
+        if (trackingType == TrackingType.COMPLETION) {
             return null;
         }
 
         if (trackingDescription == null || trackingDescription.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Descreva como o progresso sera medido para a metrica customizada."
-            );
+            if (trackingType == TrackingType.CUSTOM) {
+                throw new IllegalArgumentException(
+                        "Descreva como o progresso sera medido para a metrica customizada."
+                );
+            }
+            return null;
         }
 
         String normalizedDescription = trackingDescription.trim();
