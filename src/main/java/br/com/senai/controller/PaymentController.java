@@ -2,6 +2,7 @@ package br.com.senai.controller;
 
 import br.com.senai.model.DTO.payment.BuyChronosRequestDTO;
 import br.com.senai.model.DTO.payment.BuyChronosResponseDTO;
+import br.com.senai.model.DTO.payment.ChronosExtractItemDTO;
 import br.com.senai.model.DTO.payment.PaymentStatusResponseDTO;
 import br.com.senai.model.DTO.payment.SellChronosRequestDTO;
 import br.com.senai.service.payment.PaymentService;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/payment")
@@ -36,6 +39,13 @@ public class PaymentController {
     @GetMapping("/config")
     public ResponseEntity<java.util.Map<String, Object>> getChronosConfig() {
         return ResponseEntity.ok(paymentService.getChronosConfig());
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<List<ChronosExtractItemDTO>> getHistory(
+            @RequestHeader("Authorization") String tokenHeader
+    ) {
+        return ResponseEntity.ok(paymentService.getExtrato(tokenHeader));
     }
 
     @PostMapping("/buy/create")

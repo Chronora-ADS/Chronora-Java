@@ -16,6 +16,8 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
 
     List<PaymentTransactionEntity> findAllByTypeOrderByCreatedAtDesc(PaymentType type);
 
+    List<PaymentTransactionEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
+
     Optional<PaymentTransactionEntity> findByMpPaymentId(Long mpPaymentId);
 
     Optional<PaymentTransactionEntity> findByIdAndUserId(Long id, Long userId);

@@ -7,6 +7,8 @@ import br.com.senai.model.entity.PaymentTransactionEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.PaymentStatus;
 import br.com.senai.model.enums.PaymentType;
+import br.com.senai.model.DTO.payment.ChronosExtractItemDTO;
+import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.enums.ServiceStatus;
 import br.com.senai.repository.PaymentTransactionRepository;
 import br.com.senai.repository.ServiceRepository;
@@ -20,6 +22,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -281,5 +286,60 @@ public class PaymentService {
             user.setTimeChronos(newBalance);
             userRepository.save(user);
         });
+    }
+
+    public List<ChronosExtractItemDTO> getExtrato(String tokenHeader) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        List<ChronosExtractItemDTO> items = new ArrayList<>();
+
+        List<PaymentTransactionEntity> transactions =
+                paymentTransactionRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        for (PaymentTransactionEntity t : transactions) {
+            if (t.getType() == PaymentType.BUY && t.getStatus() == PaymentStatus.PAID) {
+                items.add(new ChronosExtractItemDTO(
+                        "COMPRA",
+                        t.getChronosAmount(),
+                        t.getCreatedAt(),
+                        "Compra de " + t.getChronosAmount() + " Chronos",
+                        "CONCLUIDA"
+                ));
+            } else if (t.getType() == PaymentType.SELL && t.getStatus() != PaymentStatus.FAILED) {
+                String status = t.getStatus() == PaymentStatus.PAID ? "CONCLUIDA" : "PENDENTE";
+                items.add(new ChronosExtractItemDTO(
+                        "VENDA",
+                        -t.getChronosAmount(),
+                        t.getCreatedAt(),
+                        "Venda de " + t.getChronosAmount() + " Chronos",
+                        status
+                ));
+            }
+        }
+
+        List<ServiceEntity> createdServices = serviceRepository.findAllByUserCreator(user);
+        for (ServiceEntity s : createdServices) {
+            items.add(new ChronosExtractItemDTO(
+                    "PEDIDO_CRIADO",
+                    -s.getTimeChronos(),
+                    s.getPostedAt(),
+                    "Pedido: " + s.getTitle(),
+                    null
+            ));
+        }
+
+        List<ServiceEntity> acceptedServices = serviceRepository.findAllByUserAccepted(user);
+        for (ServiceEntity s : acceptedServices) {
+            if (s.getStatus() == ServiceStatus.CONCLUIDO) {
+                items.add(new ChronosExtractItemDTO(
+                        "RECEBIMENTO_SERVICO",
+                        s.getTimeChronos(),
+                        s.getPostedAt(),
+                        "Pedido: " + s.getTitle(),
+                        null
+                ));
+            }
+        }
+
+        items.sort(Comparator.comparing(ChronosExtractItemDTO::date).reversed());
+        return items;
     }
 }
