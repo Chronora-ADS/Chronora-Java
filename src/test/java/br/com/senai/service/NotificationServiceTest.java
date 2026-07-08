@@ -18,6 +18,9 @@ import br.com.senai.service.notification.NotificationEventPublisher;
 import br.com.senai.service.notification.NotificationService;
 import br.com.senai.service.user.UserService;
 import org.springframework.amqp.AmqpException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -139,14 +142,20 @@ class NotificationServiceTest {
         notification.setUser(user);
         notification.setService(criarServico());
 
+        Page<NotificationEntity> page = new PageImpl<>(List.of(notification));
         when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(user);
-        when(notificationRepository.findAllByUser(user)).thenReturn(List.of(notification));
+        when(notificationRepository.findAllByUserOrderByNotificationTimeDesc(
+                org.mockito.ArgumentMatchers.eq(user),
+                org.mockito.ArgumentMatchers.any(Pageable.class)))
+            .thenReturn(page);
 
-        List<NotificationEntity> notificacoes = notificationService.getAll(TOKEN_HEADER);
+        Page<NotificationEntity> resultado = notificationService.getAll(TOKEN_HEADER, 0, 10);
 
-        assertEquals(List.of(notification), notificacoes);
+        assertEquals(List.of(notification), resultado.getContent());
         verify(userService).getLoggedUser(TOKEN_HEADER);
-        verify(notificationRepository).findAllByUser(user);
+        verify(notificationRepository).findAllByUserOrderByNotificationTimeDesc(
+                org.mockito.ArgumentMatchers.eq(user),
+                org.mockito.ArgumentMatchers.any(Pageable.class));
     }
 
     @Test

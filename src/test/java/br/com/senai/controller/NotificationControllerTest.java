@@ -12,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationControllerTest {
@@ -29,12 +31,13 @@ class NotificationControllerTest {
         NotificationEntity notification = new NotificationEntity();
         notification.setId(100L);
         notification.setMessage("Pedido cancelado");
-        when(notificationService.getAll(TOKEN_HEADER)).thenReturn(List.of(notification));
+        Page<NotificationEntity> page = new PageImpl<>(List.of(notification));
+        when(notificationService.getAll(TOKEN_HEADER, 0, 10)).thenReturn(page);
 
-        var response = notificationController.getAll(TOKEN_HEADER);
+        var response = notificationController.getAll(TOKEN_HEADER, 0, 10);
 
         assertEquals(200, response.getStatusCode().value());
-        assertEquals(List.of(notification), response.getBody());
-        verify(notificationService).getAll(TOKEN_HEADER);
+        assertEquals(page, response.getBody());
+        verify(notificationService).getAll(TOKEN_HEADER, 0, 10);
     }
 }
