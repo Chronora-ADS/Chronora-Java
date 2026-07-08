@@ -5,6 +5,7 @@ import br.com.senai.exception.NotFound.ServiceNotFoundException;
 import br.com.senai.exception.Validation.ExpiredValidationCodeException;
 import br.com.senai.exception.Validation.IncorrectValidationCodeException;
 import br.com.senai.exception.Validation.QuantityChronosInvalidException;
+import br.com.senai.model.DTO.service.MyServiceCountsDTO;
 import br.com.senai.model.DTO.service.ServiceCancellationDTO;
 import br.com.senai.model.DTO.service.ServiceDTO;
 import br.com.senai.model.DTO.service.ServiceEditDTO;
@@ -29,8 +30,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -498,6 +501,34 @@ public class ServiceService {
 
     public ServiceEntity getById(Long id) {
         return serviceRepository.findById(id).orElseThrow(() -> new ServiceNotFoundException("Serviço com ID " + id + " não encontrado."));
+    }
+
+    public MyServiceCountsDTO getMyServicesCounts(String tokenHeader) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        Map<String, Long> created = buildStatusCountMap(serviceRepository.countByUserCreatorGroupByStatus(user));
+        Map<String, Long> accepted = buildStatusCountMap(serviceRepository.countByUserAcceptedAndNotCreatorGroupByStatus(user));
+        return new MyServiceCountsDTO(created, accepted);
+    }
+
+    public Page<ServiceEntity> getMyCreatedServices(String tokenHeader, ServiceStatus status, int page, int size) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        return serviceRepository.findByUserCreatorAndStatusOrderByIdDesc(user, status, PageRequest.of(page, size));
+    }
+
+    public Page<ServiceEntity> getMyAcceptedServices(String tokenHeader, ServiceStatus status, int page, int size) {
+        UserEntity user = userService.getLoggedUser(tokenHeader);
+        return serviceRepository.findMyAcceptedServicesByStatus(user, status, PageRequest.of(page, size));
+    }
+
+    private Map<String, Long> buildStatusCountMap(List<Object[]> rows) {
+        Map<String, Long> map = new LinkedHashMap<>();
+        for (ServiceStatus s : ServiceStatus.values()) {
+            map.put(s.name(), 0L);
+        }
+        for (Object[] row : rows) {
+            map.put(((ServiceStatus) row[0]).name(), (Long) row[1]);
+        }
+        return map;
     }
 
     @Transactional

@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -33,4 +34,15 @@ public interface ServiceRepository extends JpaRepository<ServiceEntity, Long>, J
 
     @Query("SELECT DISTINCT s FROM ServiceEntity s LEFT JOIN FETCH s.categoryEntities ORDER BY s.postedAt DESC")
     List<ServiceEntity> findAllWithCategoriesOrderByPostedAtDesc();
+
+    Page<ServiceEntity> findByUserCreatorAndStatusOrderByIdDesc(UserEntity userCreator, ServiceStatus status, Pageable pageable);
+
+    @Query("SELECT s FROM ServiceEntity s WHERE s.userAccepted = :user AND s.userCreator != :user AND s.status = :status ORDER BY s.id DESC")
+    Page<ServiceEntity> findMyAcceptedServicesByStatus(@Param("user") UserEntity user, @Param("status") ServiceStatus status, Pageable pageable);
+
+    @Query("SELECT s.status, COUNT(s) FROM ServiceEntity s WHERE s.userCreator = :user GROUP BY s.status")
+    List<Object[]> countByUserCreatorGroupByStatus(@Param("user") UserEntity user);
+
+    @Query("SELECT s.status, COUNT(s) FROM ServiceEntity s WHERE s.userAccepted = :user AND s.userCreator != :user GROUP BY s.status")
+    List<Object[]> countByUserAcceptedAndNotCreatorGroupByStatus(@Param("user") UserEntity user);
 }
