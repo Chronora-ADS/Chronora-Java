@@ -23,10 +23,15 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class PaymentService {
@@ -288,58 +293,61 @@ public class PaymentService {
         });
     }
 
-    public List<ChronosExtractItemDTO> getExtrato(String tokenHeader) {
+    public Page<ChronosExtractItemDTO> getExtrato(String tokenHeader, String type, int page, int size) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
-        List<ChronosExtractItemDTO> items = new ArrayList<>();
-
-        List<PaymentTransactionEntity> transactions =
-                paymentTransactionRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
-        for (PaymentTransactionEntity t : transactions) {
-            if (t.getType() == PaymentType.BUY && t.getStatus() == PaymentStatus.PAID) {
-                items.add(new ChronosExtractItemDTO(
-                        "COMPRA",
-                        t.getChronosAmount(),
-                        t.getCreatedAt(),
-                        "Compra de " + t.getChronosAmount() + " Chronos",
-                        "CONCLUIDA"
-                ));
-            } else if (t.getType() == PaymentType.SELL && t.getStatus() != PaymentStatus.FAILED) {
-                String status = t.getStatus() == PaymentStatus.PAID ? "CONCLUIDA" : "PENDENTE";
-                items.add(new ChronosExtractItemDTO(
-                        "VENDA",
-                        -t.getChronosAmount(),
-                        t.getCreatedAt(),
-                        "Venda de " + t.getChronosAmount() + " Chronos",
-                        status
-                ));
-            }
-        }
-
-        List<ServiceEntity> createdServices = serviceRepository.findAllByUserCreator(user);
-        for (ServiceEntity s : createdServices) {
-            items.add(new ChronosExtractItemDTO(
-                    "PEDIDO_CRIADO",
-                    -s.getTimeChronos(),
-                    s.getPostedAt(),
-                    "Pedido: " + s.getTitle(),
-                    null
-            ));
-        }
-
-        List<ServiceEntity> acceptedServices = serviceRepository.findAllByUserAccepted(user);
-        for (ServiceEntity s : acceptedServices) {
-            if (s.getStatus() == ServiceStatus.CONCLUIDO) {
-                items.add(new ChronosExtractItemDTO(
-                        "RECEBIMENTO_SERVICO",
-                        s.getTimeChronos(),
-                        s.getPostedAt(),
-                        "Pedido: " + s.getTitle(),
-                        null
-                ));
-            }
-        }
-
+        Pageable pageable = PageRequest.of(page, size);
+        List<ChronosExtractItemDTO> items = buildExtratoItems(user, type);
         items.sort(Comparator.comparing(ChronosExtractItemDTO::date).reversed());
+        return toPage(items, pageable);
+    }
+
+    private List<ChronosExtractItemDTO> buildExtratoItems(UserEntity user, String type) {
+        List<ChronosExtractItemDTO> items = new ArrayList<>();
+        boolean all = (type == null);
+
+        if (all || "COMPRA".equals(type) || "VENDA".equals(type)) {
+            for (PaymentTransactionEntity t :
+                    paymentTransactionRepository.findByUserIdOrderByCreatedAtDesc(user.getId())) {
+                if (t.getType() == PaymentType.BUY && t.getStatus() == PaymentStatus.PAID
+                        && (all || "COMPRA".equals(type))) {
+                    items.add(new ChronosExtractItemDTO(
+                            "COMPRA", t.getChronosAmount(), t.getCreatedAt(),
+                            "Compra de " + t.getChronosAmount() + " Chronos", "CONCLUIDA"));
+                } else if (t.getType() == PaymentType.SELL && t.getStatus() != PaymentStatus.FAILED
+                        && (all || "VENDA".equals(type))) {
+                    String status = t.getStatus() == PaymentStatus.PAID ? "CONCLUIDA" : "PENDENTE";
+                    items.add(new ChronosExtractItemDTO(
+                            "VENDA", -t.getChronosAmount(), t.getCreatedAt(),
+                            "Venda de " + t.getChronosAmount() + " Chronos", status));
+                }
+            }
+        }
+
+        if (all || "PEDIDO_CRIADO".equals(type)) {
+            for (ServiceEntity s : serviceRepository.findAllByUserCreator(user)) {
+                items.add(new ChronosExtractItemDTO(
+                        "PEDIDO_CRIADO", -s.getTimeChronos(), s.getPostedAt(),
+                        "Pedido: " + s.getTitle(), null));
+            }
+        }
+
+        if (all || "RECEBIMENTO_SERVICO".equals(type)) {
+            for (ServiceEntity s : serviceRepository.findAllByUserAccepted(user)) {
+                if (s.getStatus() == ServiceStatus.CONCLUIDO) {
+                    items.add(new ChronosExtractItemDTO(
+                            "RECEBIMENTO_SERVICO", s.getTimeChronos(), s.getPostedAt(),
+                            "Pedido: " + s.getTitle(), null));
+                }
+            }
+        }
+
         return items;
+    }
+
+    private static <T> Page<T> toPage(List<T> all, Pageable pageable) {
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), all.size());
+        List<T> content = start >= all.size() ? Collections.emptyList() : all.subList(start, end);
+        return new PageImpl<>(content, pageable, all.size());
     }
 }

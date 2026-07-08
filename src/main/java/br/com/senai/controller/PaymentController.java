@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,9 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/payment")
@@ -42,10 +42,13 @@ public class PaymentController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<ChronosExtractItemDTO>> getHistory(
-            @RequestHeader("Authorization") String tokenHeader
+    public ResponseEntity<Page<ChronosExtractItemDTO>> getHistory(
+            @RequestHeader("Authorization") String tokenHeader,
+            @RequestParam(required = false) String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
-        return ResponseEntity.ok(paymentService.getExtrato(tokenHeader));
+        return ResponseEntity.ok(paymentService.getExtrato(tokenHeader, type, page, size));
     }
 
     @PostMapping("/buy/create")

@@ -10,6 +10,8 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -104,9 +106,10 @@ public class NotificationService {
     }
 
     @Transactional
-    public List<NotificationEntity> getAll(String tokenHeader) {
+    public Page<NotificationEntity> getAll(String tokenHeader, int page, int size) {
         UserEntity user = userService.getLoggedUser(tokenHeader);
-        return notificationRepository.findAllByUser(user);
+        return notificationRepository.findAllByUserOrderByNotificationTimeDesc(
+                user, PageRequest.of(page, size));
     }
 
     public boolean exists(String message, UserEntity user, ServiceEntity service) {
