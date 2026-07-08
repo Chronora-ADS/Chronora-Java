@@ -1,5 +1,6 @@
 package br.com.senai.controller;
 
+import br.com.senai.model.DTO.service.MyServiceCountsDTO;
 import br.com.senai.model.DTO.service.ServiceCancellationDTO;
 import br.com.senai.model.DTO.service.ServiceDTO;
 import br.com.senai.model.DTO.service.ServiceDeadlineRenewalDTO;
@@ -127,6 +128,24 @@ public class ServiceController {
                                                       @RequestParam(defaultValue = "10") @Min(1) int size) {
         Page<ServiceEntity> services = serviceService.getAll(tokenHeader, page, size);
         return ResponseEntity.ok(services);
+    }
+
+    @GetMapping("/my-services/counts")
+    public ResponseEntity<MyServiceCountsDTO> getMyServicesCounts(@RequestHeader("Authorization") String tokenHeader) {
+        return ResponseEntity.ok(serviceService.getMyServicesCounts(tokenHeader));
+    }
+
+    @GetMapping("/my-services")
+    public ResponseEntity<Page<ServiceEntity>> getMyServices(
+            @RequestHeader("Authorization") String tokenHeader,
+            @RequestParam String role,
+            @RequestParam ServiceStatus status,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) int size) {
+        if ("accepted".equals(role)) {
+            return ResponseEntity.ok(serviceService.getMyAcceptedServices(tokenHeader, status, page, size));
+        }
+        return ResponseEntity.ok(serviceService.getMyCreatedServices(tokenHeader, status, page, size));
     }
 
     @GetMapping("/get/all/{status}")
