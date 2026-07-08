@@ -54,8 +54,8 @@ public class FcmService {
                             .build())
                     .setToken(fcmToken)
                     .build();
-            String response = FirebaseMessaging.getInstance().send(message);
-            LOGGER.info("Push enviado: {}", response);
+            FirebaseMessaging.getInstance().send(message);
+            LOGGER.info("Push enviado com sucesso.");
         } catch (Exception e) {
             LOGGER.warn("Falha ao enviar push notification: {}", e.getMessage());
         }

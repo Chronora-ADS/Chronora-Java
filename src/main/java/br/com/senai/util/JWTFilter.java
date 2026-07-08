@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,8 +23,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
+@Order(1)
 @AllArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
+
+    private static final Logger logger = LoggerFactory.getLogger(JWTFilter.class);
     private final AuthService authService;
     private final SupabaseAuthService supabaseAuthService;
     private final JWTBlacklist jwtBlacklist;
@@ -55,6 +62,8 @@ public class JWTFilter extends OncePerRequestFilter {
         try {
             SupabaseUserDTO supabaseUserDTO = supabaseAuthService.validateToken(token);
             UserEntity userEntity = authService.resolveUserForSupabaseUser(supabaseUserDTO);
+            // Injeta userId no MDC para rastreabilidade em toda a request
+            MDC.put("userId", String.valueOf(userEntity.getId()));
             List<SimpleGrantedAuthority> authorities = userEntity.getRoles().stream()
                     .map(SimpleGrantedAuthority::new)
                     .toList();
@@ -62,7 +71,8 @@ public class JWTFilter extends OncePerRequestFilter {
                     userEntity.getEmail(), null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido: " + e.getMessage());
+            logger.warn("Falha de autenticação | path={} | reason={}", path, e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido.");
             return;
         }
 
