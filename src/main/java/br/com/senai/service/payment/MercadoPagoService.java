@@ -75,6 +75,9 @@ public class MercadoPagoService {
                                                String payerEmail, String cardToken,
                                                String cardPaymentMethodId, int installments,
                                                String payerDocNumber) {
+        String tokenPrefix = cardToken != null && cardToken.length() > 8 ? cardToken.substring(0, 8) + "..." : cardToken;
+        String atPrefix = accessToken != null && accessToken.length() > 20 ? accessToken.substring(0, 20) + "..." : accessToken;
+        logger.info("[MP DIAG] cardToken={} paymentMethodId={} accessToken={}", tokenPrefix, cardPaymentMethodId, atPrefix);
         try {
             PaymentCreateRequest request = PaymentCreateRequest.builder()
                     .transactionAmount(amount)
