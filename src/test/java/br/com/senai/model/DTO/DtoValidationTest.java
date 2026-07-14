@@ -8,6 +8,7 @@ import br.com.senai.model.DTO.user.DocumentDTO;
 import br.com.senai.model.DTO.user.LoginDTO;
 import br.com.senai.model.DTO.user.ResetPasswordDTO;
 import br.com.senai.model.DTO.user.UserDTO;
+import br.com.senai.model.enums.TrackingType;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -97,6 +98,7 @@ class DtoValidationTest {
         assertTrue(contemViolacao(violacoes, "deadline"));
         assertTrue(contemViolacao(violacoes, "categories"));
         assertTrue(contemViolacao(violacoes, "serviceImage"));
+        assertTrue(contemViolacao(violacoes, "trackingType"));
     }
 
     @Test
@@ -131,6 +133,16 @@ class DtoValidationTest {
         Set<ConstraintViolation<ServiceDTO>> violacoes = validator.validate(dto);
 
         assertTrue(violacoes.isEmpty());
+    }
+
+    @Test
+    void deveValidarLimiteDaDescricaoDaMetrica() {
+        ServiceDTO dto = criarServiceDTO(10);
+        dto.setTrackingDescription("x".repeat(501));
+
+        Set<ConstraintViolation<ServiceDTO>> violacoes = validator.validate(dto);
+
+        assertTrue(contemViolacao(violacoes, "trackingDescription"));
     }
 
     @Test
@@ -172,7 +184,9 @@ class DtoValidationTest {
                 "Remoto",
                 LocalDate.now().plusDays(15),
                 List.of("Programacao"),
-                "base64-imagem"
+                "base64-imagem",
+                TrackingType.CUSTOM,
+                "Por capitulo traduzido"
         );
     }
 }

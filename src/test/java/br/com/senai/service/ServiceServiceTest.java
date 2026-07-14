@@ -26,6 +26,7 @@ import br.com.senai.model.entity.ServiceEntity;
 import br.com.senai.model.entity.UserEntity;
 import br.com.senai.model.enums.ServiceModality;
 import br.com.senai.model.enums.ServiceStatus;
+import br.com.senai.model.enums.TrackingType;
 import br.com.senai.repository.ServiceRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -153,6 +154,50 @@ class ServiceServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> serviceService.create(dto, TOKEN_HEADER));
 
+        verify(serviceRepository, never()).save(any());
+    }
+
+    @Test
+    void deveExigirDescricaoQuandoMetricaForCustomizada() {
+        ServiceDTO dto = criarServiceDTO(10);
+        dto.setTrackingDescription(" ");
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+
+        assertThrows(IllegalArgumentException.class, () -> serviceService.create(dto, TOKEN_HEADER));
+
+        verify(serviceRepository, never()).save(any());
+    }
+
+    @Test
+    void devePermitirEditarMetricaAntesDoAceite() {
+        ServiceEntity service = criarServico(10L, criador, null, ServiceStatus.CRIADO, 20);
+        ServiceEditDTO editDTO = new ServiceEditDTO();
+        editDTO.setId(10L);
+        editDTO.setTrackingType(TrackingType.COMPLETION);
+
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
+        when(serviceRepository.save(service)).thenReturn(service);
+
+        ServiceEntity atualizado = serviceService.put(editDTO, TOKEN_HEADER);
+
+        assertEquals(TrackingType.COMPLETION, atualizado.getTrackingType());
+        assertNull(atualizado.getTrackingDescription());
+    }
+
+    @Test
+    void deveBloquearAlteracaoDaMetricaDepoisDoAceite() {
+        ServiceEntity service = criarServico(10L, criador, prestador, ServiceStatus.ACEITO, 20);
+        ServiceEditDTO editDTO = new ServiceEditDTO();
+        editDTO.setId(10L);
+        editDTO.setTrackingType(TrackingType.TIME);
+
+        when(userService.getLoggedUser(TOKEN_HEADER)).thenReturn(criador);
+        when(serviceRepository.findById(10L)).thenReturn(Optional.of(service));
+
+        assertThrows(IllegalArgumentException.class, () -> serviceService.put(editDTO, TOKEN_HEADER));
+
+        assertEquals(TrackingType.CUSTOM, service.getTrackingType());
         verify(serviceRepository, never()).save(any());
     }
 
@@ -791,6 +836,8 @@ class ServiceServiceTest {
         assertEquals("Aula de Java", salvo.getTitle());
         assertEquals(15, salvo.getTimeChronos());
         assertEquals(ServiceStatus.CRIADO, salvo.getStatus());
+        assertEquals(TrackingType.CUSTOM, salvo.getTrackingType());
+        assertEquals("Por capitulo traduzido", salvo.getTrackingDescription());
         assertSame(criador, salvo.getUserCreator());
         verify(notificationService, times(1)).create("Pedido criado", criador, salvo);
     }
@@ -803,7 +850,9 @@ class ServiceServiceTest {
                 "Remoto",
                 LocalDate.now().plusDays(15),
                 List.of("Programacao", "Backend"),
-                "base64-imagem"
+                "base64-imagem",
+                TrackingType.CUSTOM,
+                "Por capitulo traduzido"
         );
     }
 
@@ -823,6 +872,8 @@ class ServiceServiceTest {
         service.setModality(ServiceModality.REMOTO);
         service.setPostedAt(LocalDateTime.now().minusDays(1));
         service.setStatus(status);
+        service.setTrackingType(TrackingType.CUSTOM);
+        service.setTrackingDescription("Por capitulo traduzido");
         service.setUserCreator(userCreator);
         service.setUserAccepted(userAccepted);
         return service;
